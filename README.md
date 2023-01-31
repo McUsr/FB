@@ -1,3 +1,4 @@
+<<<<<<< HEAD
      _____     _     _             ____             _                
     |  ___|__ | | __| | ___ _ __  | __ )  __ _  ___| | ___   _ _ __  
     | |_ / _ \| |/ _` |/ _ \ '__| |  _ \ / _` |/ __| |/ / | | | '_ \ 
@@ -105,4 +106,4 @@ always manual, so, there are only two manual commands,
 	be viewed in ChromeOs's Filer.
 	
 
-  Last updated:23-02-02 00:02
+  Last updated:23-02-02 00:37

@@ -21,11 +21,11 @@ State: By no means finished.
 * [Naming Conventions used in the
 	system](https://github.com/McUsr/FB/blob/main/Docs/technical/namingconventions.md)
 
+<<<<<<< HEAD
 * [Notes and concepts concerning
 	fbrestore](https://github.com/McUsr/FB/blob/main/Docs/technical/fbrestore-tech.md)
 
 * [Concerning the DEBUG-variables in the scripts](https://github.com/McUsr/FB/blob/main/Docs/technical/DEBUG-variables.md)
 
 
-  Last updated:23-02-01 23:56
-
+  Last updated:23-02-02 00:38
