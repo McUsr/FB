@@ -9,6 +9,11 @@
 
 # First we check if there is any jobs to dispatch from the jobs folder.
 
+
+# Moving forward:
+# Using the XDG_DATA_HOME, would give some leeway as to avoiding hard_coding of paths.
+# We are still using this with service. SnapShot
+
 DEBUG=0
 
 if [ $# -ne 1 ] ; then 
@@ -24,6 +29,8 @@ JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 # We should check if the job folder exist
 
 if [ ! -d $JOBS_FOLDER ] ; then
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
+
 	 	notify-send "Folder Backup: ${0##*/}" "The folder $JOBFOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
 		# As Critical Error, if no tty. or just give a shit, and send the error anyway.
 		exit 2
@@ -34,8 +41,10 @@ fi
 BIN_FOLDER=$HOME/.local/bin/fb/$BACKUP_SCHEME
 
 if [ ! -d $BIN_FOLDER ] ; then
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 	 	notify-send "Folder Backup: ${0##*/}" "The folder $BIN_FOLDER doesn't exist. The system must be inconsistent since $BACKUP_SCHEME don't exist."
 		# As Critical Error, if no tty. or just give a shit, and send the error anyway.
+		# Or, someone tried to invoke the governor with a badly spelled backup scheme.
 		exit 2
 fi
 
@@ -63,9 +72,10 @@ fi
 # the thing is, is that I'm waiting for a copy of the parent environment to be read in.
 
 if [ x"$FB" = x ] ; then 
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 	 	notify-send "${0##*/}" "The variable \$FB isn't set, is the system initialized? you may want to use \'fbctl stop $BACKUP_SCHEME\' to stop the system while you configure it."	
 	 	sleep 180
-		exit 9
+		exit 255
 fi
 
 source /home/mcusr/.local/bin/fb/shared_functions.sh
@@ -76,15 +86,18 @@ INET_CTR=0
 while : ; do
 	if hasInternet ; then
 		if [ $INET_CTR -gt 0 ] ; then 
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 			notify-send "${0##*/}" "Your internet connection is back. Continuing."
 		fi
 		break 
 	else 
 		INET_CTR=$(( $INET_CTR + 1 ))
 		if [ $INET_CTR -eq 3 ] ; then 
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 		 	notify-send  "${0##*/}" "No internet connection in 6 minutes. Giving up."
 			exit 255
 		else
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 			notify-send "${0##*/}" "You have no internet connection. Retrying in 3 minutes"	
 			sleep 180 
 		fi
@@ -95,15 +108,18 @@ MNT_CTR=0
 while : ; do
 	if [  -d $FB ] ; then
 			if [ $MNT_CTR -gt 0 ] ; then 
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 				notify-send "${0##*/}" "You have successfully mounted \$FB: $FB Continuing." 
 			fi
 			break
   else
     MNT_CTR=$(( $MNT_CTR + 1 ))
 		if [ $CTR -eq 3 ] ; then 
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 			notify-send "${0##*/}" "No mounted folder \$FB: $FB in 6 minutes. Giving up." 
 			exit 255
     else
+	# TODO: [ -t 1 ] // executed from a terminal, no notify!
 			notify-send "${0##*/}" "You have forgotten to mount/create the root backupfolder \$FB. Retrying in 3 minutes"	
 		 sleep 180 
     fi
@@ -113,14 +129,14 @@ done
 # Absolutely first time, or something removed?
 # we rest/Assured.
 	
-mkdir -p $FB/Periodic
+mkdir -p "$FB/Periodic"
 # just in case, no harm, no foul.
 
 mkdir -p $FB/Periodic/$BACKUP_SCHEME
 
-DEST_SCHEME_FOLDER=$FB/Periodic/$BACKUP_SCHEME
-if [ ! -d $DEST_SCHEME_FOLDER ] ; then 
-	mkdir -p $DEST_SCHEME_FOLDER 
+DEST_SCHEME_FOLDER="$FB/Periodic/$BACKUP_SCHEME"
+if [ ! -d "$DEST_SCHEME_FOLDER" ] ; then 
+	mkdir -p "$DEST_SCHEME_FOLDER"
 	# we can go silent about this, or we can just send a message.
 	if [ $DEBUG -eq 0 ] ; then 
 		echo "$DEST_SCHEME_FOLDER didn't exist, que to make backup"
@@ -189,6 +205,8 @@ for symlink in $JOB_LIST ; do
 					fi
 				fi
 
+# Manager level:
+
 				dropin_script=$BIN_FOLDER/$symlink.d/dropinBackup.sh
 				if [ $DEBUG -eq 0 ] ; then 
 					echo "dropin_script:>$dropin_script<is this"
@@ -200,6 +218,7 @@ for symlink in $JOB_LIST ; do
 				if [ $DEBUG -eq 0 ] ; then 
 					echo "regular_script:>$regular_script<is this"
 				fi
+				
 				if [  -x $dropin_script ] ; then
 						$dropin_script $BACKUP_SCHEME $symlink
 				elif [ -x $regular_script ] ; then 
