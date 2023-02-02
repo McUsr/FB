@@ -1,6 +1,8 @@
 Terms and jargon used in the Documentation for FB
 -------------------------------------------------
 
+v0.0.3
+
 **State:** *Unfinished*
 
 It is what it says, a dictionary over words used, so to
@@ -44,6 +46,10 @@ minimize ambiguity and confusion.
   The `TIME_STAMPED_BACKUP_CONTAINING_FOLDER`: the folder
 	containing backups from that date onwards, depending on
 	the **scheme**.
+
+* **Delegate** The actual executionor of the job, whether
+	the job is performed on behalf of a manager?, called by the
+	governor, or by a fbsnapshot.
 
 * **Executioner** It's the *delegate*, that performs the
 	actual job, on the behalf of the **Governor**, that
@@ -138,5 +144,5 @@ minimize ambiguity and confusion.
 
 	* Monthly a `calendar-intervalled` backup.
 
-  Last updated:23-01-29 17:38
+  Last updated:23-02-02 16:32
 

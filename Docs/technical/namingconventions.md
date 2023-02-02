@@ -1,6 +1,8 @@
 Naming Conventions for the folder backup system
 -----------------------------------------------
 
+v0.0.3
+
 State: Unfinished
 
 This document is meant to explain the various naming
@@ -15,6 +17,8 @@ conventions, used thoughout the system.
 * Customizability of variables, kinds  and schemes
 
 see folder structure.
+
+* Naming conventions for dropin delegates/executionors.
 
 
 ## Periodic backup destination folder structure
@@ -189,14 +193,79 @@ to sift through logmessages for a certain backup scheme.
 Though, the folder name, on the `symlink-format` can also
 be used.
 
+## Naming conventions for dropin delegates/executionors.
+
+
+23-02-02 (after v0.0.2) in the process of making the
+Governor have the same functionality.
+
+We follow the last conventions we made for OneShot, the
+conventions
+
+### Deviations: 
+
+The `fbsnapshot` doesn't have a scheme really, it has only a
+kind `OneShot`, since it is a kind of OneShot task, as the
+other task/job kind is `Periodic`, since there are  no array
+of backup-schemes but a only a snapshot-backup of a folder,
+we treat the `OneShot` kind as a scheme of it is own, to
+have a homogenous structure, so, in this context, everything
+holds for `OneShot`, as it holds for any periodic
+`<backup-scheme>`. 
+
+### Naming standard for the folders the delegates reside in.
+
+The folders for the different backup-schemes  are found beneath
+`$XDG_BIN_HOME/fb` or `~/.local/bin/fb `
+
+There is one folder for each backup-scheme we support, named by
+the exact same name as the correlating backup-scheme.
+
+Inside this folder the delegates reside, and folders for
+dropins/overrides, and `exclude.file` files.
+
+#### General dropins/overrides
+
+There is one folder for a general dropin/override for all
+jobs concerning one backup-scheme, and that folder is named
+`<backup-scheme>.d`. You can't have an `exclude.file` file
+inside the general dropin folder.
+
+Additionally there are local dropins they get their name of
+the `full-symlink-name` of the folder, the dropin is
+for. Ex: `<etc-apache2-config>.d`, in local dropin folders,
+you can have `exclude.file` files, (only one for each dropin.d
+folder).  
+
+### The naming standard for the delegates.
+
+The delegates, one for backup, and one for restore resides
+within the `<backup-scheme>` folder, at the same level as
+any dropin.d folders.
+
+They are named as `<backup-scheme>.backup.sh` and
+`<backup-scheme>.restore.sh`, where the casing is *exactly*
+the same as the casing of the backup-scheme.
+
+The name of an dropin-scripts/overrides in dropin folders,
+whether it is a local dropin folder or the general dropin
+folder must have exactly the same name.
+
 
 ## Customizability of the variables, kinds, and schemes
 
 ### The FB literal name for the root of your backup repo can be changed.
 
-You can  exchange the literal 'FB; in the `$FB` environment variable for something else, (and only that!) ,in the initialization, and create that folder, and share it with Linux, on a  machine so they have separate "backup-repos", maybe seeing, but not using the other machine's repo, because they have different roots for their repos.
+You can  exchange the literal 'FB; in the `$FB` environment
+variable for something else, (and only that!) ,in the
+initialization, and create that folder, and share it with
+Linux, on a  machine so they have separate "backup-repos",
+maybe seeing, but not using the other machine's repo,
+because they have different roots for their repos.
 
-There are no hardcoded paths in the code, everything trickles down from the $FB environment variable, so this will work just fine.
+There are no hardcoded paths in the code, everything
+trickles down from the $FB environment variable, so this
+will work just fine.
 
 Instead of FB you  could use 'Book1' and 'Book2' for instance.
 
@@ -207,12 +276,12 @@ and not your individual named root for your backup repo.
 ### The literals for the kinds are set in stone
 
 Both 'Periodic' and 'OneShot', enumerating the two kinds of
-backs are hardcoded into the scripts, and changing them will
+backups are hardcoded into the scripts, and changing them will
 break the scripts.
 
 ### The literals for enumerating the different backupschmes are set in stone
 
 They are hardcoded into the scripts as kinds as described above.
 
-  Last updated:23-01-29 17:40
+  Last updated:23-02-02 17:17
 
