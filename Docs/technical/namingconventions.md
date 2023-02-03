@@ -18,8 +18,9 @@ conventions, used thoughout the system.
 
 see folder structure.
 
-* Naming conventions for dropin delegates/executionors.
+* Naming conventions used by dropin delegates/executionors.
 
+* Naming conventions for scripts of various kinds
 
 ## Periodic backup destination folder structure
 
@@ -252,6 +253,14 @@ whether it is a local dropin folder or the general dropin
 folder must have exactly the same name.
 
 
+##  Naming conventions for scripts of various kinds
+
+Routines that are commands and meant to be used from the cli
+doesn't end in `.sh`. Scripts that are intendend to be
+executed/sourced by other scripts and not by people,
+**ends** in `.sh`.
+
+
 ## Customizability of the variables, kinds, and schemes
 
 ### The FB literal name for the root of your backup repo can be changed.
@@ -283,5 +292,5 @@ break the scripts.
 
 They are hardcoded into the scripts as kinds as described above.
 
-  Last updated:23-02-02 18:59
+  Last updated:23-02-03 11:26
 
