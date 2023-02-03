@@ -1,39 +1,19 @@
 #!/bin/bash
-# OneShot. 
-# OneShot Take an adhoc backup of a folder - a snapshot.  2022 (c) Mcusr -- Vim license.
-#
-# The backup is stored in a parallell structure to the Periodic folder structure.
-# This is a reworked version of the "DailySnapshot.sh" script.
-
-# This script gets executed every time the timer interval specified in this
-# case DailySnapshot.timer fires and is made for  being  started by the ../governor.sh 
-# the name of the script should give an idea as to what you are backing up.
-
-# You need to edit it to align with the folder you share with Linux for backup
-# purposes, and with the folder you want to make an hourly backup of.  you also
-# need to install notify-send.
-# https://www.reddit.com/r/Crostini/comments/zl5nte/sending_notifications_to_chromeos_desktop_from/
-#
-# 27/12: Added "sparsity" doesn't make unneccessary backups anymore. 
-# 12/01: Real deal ready for production, for what DailySnapshot backups are concerned. 
-
-# exec 4>&2 2> >(while read -r REPLY; do printf >&4 '<3>%s\n' "$REPLY"; done)
-# exec 2>&1 >/dev/null
-# trap 'exec >&2-' EXIT
-# Above only works for services!
-# https://serverfault.com/questions/573946/how-can-i-send-a-message-to-the-systemd-journal-from-the-command-line
-
-#########
-#  sudo ls | tee /dev/tty | sed -n '/[a-z][A-Z]*/ s:^:<3>:p' | systemd-cat -t testing
-########  
+VERSION="\"v0.0.3\""
+# fbsnapshot. 
+# fbsnapshot Take an adhoc backup of a folder - a snapshot. 
+# 2022 (c) Mcusr -- Vim license.
+PNAME=${0##*/}
+SILENCE=0
 
 err_report() {
-	echo "${0##*/} : Error on line $1"
-	echo "${0##*/} : Please report this issue at 'https://github.com/McUsr/FB/issues'" 
+	if [ $SILENCE -eq 0 ] ; then 
+		echo "$PNAME : Error on line $1"
+		echo "$PNAME : Please report this issue at 'https://github.com/McUsr/FB/issues'" 
+	fi 
 }
 
 trap 'err_report $LINENO' ERR
-VERSION="\"v0.0.2\""
 
 LOG_TO_JOURNAL=false
 
@@ -48,29 +28,33 @@ TO_CONSOLE=0
 # controls whether debug output will be sent to the journal when the script is called 
 # from the terminal, and output be sent to the journal anyway, when the script is run
 # implicitly by a daemon.
-ARCHIVE_OUTPUT=1
 
-if [ -r ~/.local/bin/fb/shared_functions.sh ] ; then 
-	source ~/.local/bin/fb/shared_functions.sh
+if [[ ! -v XDG_BIN_HOME ]] ; then 
+	echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME), is the system initialized? You need configure it.\nTerminating..." >/dev/tty
+		exit 255
+fi
+
+
+if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then 
+	source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
-	echo -e  "Can't source: ~/.local/bin/fb/shared_functions.sh\nTerminates... " >&2
+	echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\nTerminates... " >/dev/tty
 	exit 255
 fi 
 
-if [ x"$FB" = x ] ; then 
-	 	echo -e "${0##*/}" "The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." | journalThis 2 OneShot
+if [[ ! -v FB ]] ; then 
+	 	echo -e "$PNAME The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." | journalThis 2 OneShot
 		exit 255
 fi
 # checks if we can get online so we have a guarranteed connection to our google drive
-consoleHasInternet
+consoleHasInternet OneShot
 
-consoleFBFolderIsMounted
+consoleFBFolderIsMounted OneShot
 
-PNAME=${0##*/}
 GETOPT_COMPATIBLE=true
 
-if [ $# -eq 0 ] ; then 
-	echo -e $PNAME : "Too few arguments. At least I need a path to a directory, I should make a backup of.\nExecute \"$PNAME -h\" for help. Terminating..." | journalThis 2 OneShot
+if [[ $# -eq 0 ]] ; then 
+	echo -e "$PNAME : Too few arguments. At least I need a path to a directory, I should make a backup of.\nExecute \"$PNAME -h\" for help. Terminating..." | journalThis 2 OneShot
  exit 2
 fi
 
@@ -83,7 +67,7 @@ $PNAME:  Backups the folder specified into the folder backup system OneShot root
 
 syntax:
 
-  $PNAME [options] <source folder> [ -o <destination> ]
+  $PNAME [options] <source folder>
 
   Options:
   
@@ -99,8 +83,9 @@ EOF
 TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,verbose,version \
               -n "$PNAME" -- "$@")
 
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 2 ; fi
+if [ $? != 0 ] ; then echo "$PNAME -h | --help for help :  Terminating..." | journalThis 2 OneShot ; exit 2 ; fi
 
+SILENCE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 DRYRUN=false
@@ -172,8 +157,7 @@ fi
 
 # next up, is to construct the full-symlink  name
 
-SYMLINK_NAME=$(echo $TARGET_FOLDER | sed -ne 's:^/::' -e 's:/:-:g' -e 's:^\.:\\.:' -e 's:[-]\(\.\):-\\\1:' -e 'p')
-# TODO: a candidate for a function.
+SYMLINK_NAME=$(fullPathSymlinkName "$1")
 
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
 	echo "$PNAME : SYMLINK_NAME: $SYMLINK_NAME." | journalThis 7 OneShot
@@ -205,18 +189,19 @@ fi
 TODAYS_BACKUP_FOLDER=$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)
 CREATED_TODAYS_BACKUP_FOLDER=1
 if [ ! -d "$TODAYS_BACKUP_FOLDER" ] ; then 
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-		echo "$PNAME : TODAYS_BACKUP_FOLDER: \$TODAYS_BACKUP_FOLDER didn't exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." | journalThis 7 OneShot
+	if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then 
+		echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." | journalThis 7 OneShot
 	fi
 	if [ $DRYRUN = false ] ; then 
 		CREATED_TODAYS_BACKUP_FOLDER=0
 		mkdir -p "$TODAYS_BACKUP_FOLDER" 
 	else
-		echo "$PNAME : Todays backup folder didn't exist, creating it:\n mkdir -p $TODAYS_BACKUP_FOLDER"
+		CREATED_TODAYS_BACKUP_FOLDER=0
+		echo -e  "$PNAME : Todays backup folder didn't exist, creating it:\n mkdir -p $TODAYS_BACKUP_FOLDER"
 	fi
 else 
 	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-		echo  "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID exist." | journalThis 7 OneShot
+		echo -e  "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID exist." | journalThis 7 OneShot
 	fi
 fi
 
@@ -246,86 +231,45 @@ if [ $CREATE_EXCLUDE_FILE = true ] ; then
 fi
 # Exclude file out of the way, time to figure out if there are any "dropin" scripts that should be used.
 
-
-
-# FIND THE CORRECT SCRIPT/DROPIN-SCRIPT TO EXECUTE IF ANY:
-# it is time to figure out which restore script we are going to use.
-# So, the standard restore script for restoring a OneShot backup is in the
-# ~/.local/bin/fb/OneShot and the standard-name should be OneShot.restore.sh 
-# it should exist, and it should be executable.
-# TODO:  transfer this part back to governor.sh and fboneshot.sh
-
-if [ ! -x ~/.local/bin/fb/OneShot/OneShot.backup.sh ] ; then
-	# same if with DRYRUN or VERBOSE
-	echo -e $PNAME : "I can't find the backup script  ~/.local/bin/fb/OneShot/OneShot.backup.sh\nThis is a critical error.\nTerminates..." | journalThis 2 OneShot
-	exit 255
+manager OneShot  "$SYMLINK_NAME" backup 
+exit_code=$?
+if [ $exit_code  -eq 0 ] ; then 
+	BACKUP_SCRIPT="$DELEGATE_SCRIPT"
 else
-	BACKUP_SCRIPT=~/.local/bin/fb/OneShot/OneShot.backup.sh
-	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-		echo $PNAME : "Current backup script is : $BACKUP_SCRIPT" | journalThis 7 OneShot
-	fi
-fi
-GENERAL_DROPIN=1
-# the place to look for a general replacement is in the OneShot.d folder.
-if [  -f ~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh ] ; then
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-		echo $PNAME : " I have a readable backup script:  ~/.local/bin/fb/OneShot/OneShot.d/OneShot.restore.sh" | journalThis 7 OneShot
-	fi
-	if [ ! -x ~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh ] ; then
-		echo -e $PNAME : " I found a backup dropin script: ~/.local/bin/fb/OneShot/OneShot.d/OneShot.restore.sh.\nBut it isn't executabe.\nTerminates.." | journalThis 7 OneShot
-		exit 5
-	else
-		GENERAL_DROPIN=0
-		BACKUP_SCRIPT=~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh
-		if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-			echo $PNAME : "I found a general backup dropin script: Current backup script is : $BACKUP_SCRIPT" | journalThis 7 OneShot
-		fi
-	fi
-elif [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-		echo $PNAME : "I didn't find  a general backup dropin script at: ~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh." | journalThis 7 OneShot 
-fi
-LOCAL_DROPIN=1
-# the place to look for a general replacement is in the OneShot.d folder.
-if [  -f ~/.local/bin/fb/OneShot/$SYMLINK_NAME.d/OneShot.backup.sh ] ; then
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-		echo $PNAME : "I have a readable local dropin backup script: ~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh" | journalThis 7 OneShot
-	fi
-	if [ ! -x ~/.local/bin/fb/OneShot/$SYMLINK_NAME.d/OneShot.backup.sh ] ; then
-		echo -e $PNAME : " I found a local backup dropin script: ~/.local/bin/fb/OneShot/OneShot.d/OneShot.backup.sh.\nBut it isn't executabe.\nTerminates.." | journalThis 7 OneShot
-		exit 5
-	else
-		LOCAL_DROPIN=0
-		BACKUP_SCRIPT=~/.local/bin/fb/OneShot/$SYMLINK_NAME.d/OneShot.backup.sh
-		if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-			echo $PNAME : "I found a local backup dropin script : Current backup script is : $BACKUP_SCRIPT" | journalThis 7 OneShot
-		fi
-	fi
-elif [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-		echo $PNAME : "I didn't find  a local backup dropin script at: ~/.local/bin/fb/OneShot/$SYMLINK_NAME.d" | journalThis 7 OneShot
-fi
+	exit $exitcode
+fi	
 
-if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-# TODO: Needs to look at fbrestore here:
-	echo $PNAME : executing $BACKUP_SCRIPT $BACKUP_OPTIONS  $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER | journalThis 7 OneShot
+if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then 
+	echo -e "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
 fi
 
 
-EXIT_CODE=0
-# TODO: trenger en interrupt handler her?
-# Installerer den her, setter exitcode til 130, og rydder opp hvis ble trappet
+EXIT_STATUS=0
 trap '' ERR
-$BACKUP_SCRIPT $BACKUP_OPTIONS  $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER $SYMLINK_NAME
-EXIT_CODE=$?
-if [[ $EXIT_CODE -gt 1 && $CREATED_TODAYS_BACKUP_FOLDER -eq 0 ]] ; then 
+$BACKUP_SCRIPT $BACKUP_OPTIONS  "$TARGET_FOLDER"  "$TODAYS_BACKUP_FOLDER" "$SYMLINK_NAME"
+EXIT_STATUS=$?
+
+# We do some cleanup in OneShot.backup.sh 
+if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+	 echo  -e "$PNAME : backup  of $TARGET_FOLDER into $TODAYS_BACKUP_FOLDER complete!"	 | journalThis 5 OneShot
+
+elif [[ $EXIT_STATUS -gt 1 ]] ; then 
+
+	if [ $EXIT_STATUS -eq 130 ] ; then 
+			echo "$PNAME : User interrupted the operation"
+	else
+			echo "$PNAME : A fatal error occurred."
+	fi
+
+  if [[  -d "$TODAYS_BACKUP_FOLDER" && $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then 
+
 	if [ $DRYRUN = false ] ; then 
 		if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
 			echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
 		fi
-		rm -fr $TODAYS_BACKUP_FOLDER 
+		rm -fr "$TODAYS_BACKUP_FOLDER"
 	else
 		echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
 	fi 
 fi
-
-# TODO: CLEANUP AFTER DRYRUN, OR ERRORS. fbrestore too.
-# BACKUP container folder, må fjernes!
+exit $EXIT_STATUS
