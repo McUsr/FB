@@ -7,7 +7,7 @@ err_report() {
 trap 'err_report $LINENO' ERR
 VERSION="\"v0.0.2\""
 if [ ! -v FB ] ; then 
-	 	echo "${0##*/}" "The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." | journalThis 2
+	 	echo "${0##*/}" "The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." | journalThis 2 OneShot
 		exit 255
 fi
 
@@ -134,9 +134,11 @@ else
 	if [ $DRYRUN = false ] ; then 
 		echo -e $PNAME : "The destination folder $2 does not exist.\nTerminating..."
 		exit 2
-	else
-		HAVING_ERRORS=true
-		echo -e $PNAME : "The destination folder $2 does not exist."
+
+	# else
+	# THE Directory doesn't need to exist when dry-run is true
+	# 	HAVING_ERRORS=true
+	# 	echo -e $PNAME : "The destination folder $2 does not exist."
 	fi
 fi
 TARGET_FOLDER="$1"
@@ -164,9 +166,10 @@ else
 	if [ $DRYRUN = false ] ; then 
 		echo -e $PNAME : "The destination folder $2 does not exist.\nTerminating..."
 		exit 2
-	else 
-		HAVING_ERRORS=true
-		echo -e $PNAME : "The destination folder $2 does not exist."
+	# else 
+	#  No need under dryrun
+	# 	HAVING_ERRORS=true
+	# 	echo -e $PNAME : "The destination folder $2 does not exist."
 	fi
 fi
 
@@ -245,7 +248,7 @@ if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 else 
 	VERBOSE_OPTIONS="-v"
 fi 
-exit_status=0
+EXIT_STATUS=0
 if [ $DRYRUN = true  ] ; then
 
 	DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.backup.sh.XXX")
@@ -267,14 +270,14 @@ ctrl_c() {
 		echo "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" $EXCLUDE_OPTIONS -C "$TARGET_FOLDER" . "
 	#	| journalThis 7 OneShot
 		sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" $EXCLUDE_OPTIONS -C "$TARGET_FOLDER" . 
-		exit_status=$?
 	 # 	| journalThis 7 OneShot
-		if [ $exit_status -gt 1 ] ; then 
-			echo "$PNAME : exit status after tar commmand = $exit_status" 
-			echo "$PNAME : rm -fr $DRY_RUN_FOLDER"
-			if [ -d $DRY_RUN_FOLDER ] ; then 
+		if [ -d $DRY_RUN_FOLDER ] ; then 
 				rm -fr $DRY_RUN_FOLDER
-			fi
+		fi
+		EXIT_STATUS=$?
+		if [ $EXIT_STATUS -gt 1 ] ; then 
+			echo "$PNAME : exit status after tar commmand = $EXIT_STATUS" 
+			echo "$PNAME : rm -fr $DRY_RUN_FOLDER"
 		fi
 	else
 		echo -e "$PNAME : DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
@@ -282,6 +285,7 @@ ctrl_c() {
 		echo -e "$PNAME : rm -fr $DRY_RUN_FOLDER"
 	fi
 else
+
 	TAR_BALL_NAME="$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
 	# TODO: installer trap her.
 	trap "HAVING_ERRORS=true;ctrl_c" INT
@@ -295,12 +299,12 @@ ctrl_c() {
 			echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS -f $TAR_BALL_NAME  -C $TARGET_FOLDER" .
 		fi 
 		sudo tar -z $VERBOSE_OPTIONS -c $EXCLUDE_OPTIONS -f $TAR_BALL_NAME -C "$TARGET_FOLDER" .
-		exit_status=$?
+		EXIT_STATUS=$?
 	 # 	| journalThis 7 OneShot
-		if [ $exit_status -gt 1 ] ; then 
+		if [ $EXIT_STATUS -gt 1 ] ; then 
 
 	  	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-				echo "$PNAME : exit status after tar commmand = $exit_status" 
+				echo "$PNAME : exit status after tar commmand (fatal error)  = $EXIT_STATUS" 
 			fi
 
 			if [ -f $TAR_BALL_NAME ] ; then 
@@ -309,17 +313,10 @@ ctrl_c() {
 				fi
 				rm -f $TAR_BALL_NAME
 			fi
-		elif [ $exit_status -eq 0 ] ; then  
-			echo "("$TAR_BALL_NAME")"
+		elif [ $EXIT_STATUS -eq 0 ] ; then  
+			echo -e "\n("$TAR_BALL_NAME")\n"
 		fi
 
-		# TODO: test på exit code her, og rydd opp hvis stoerre enn 1 (på denne backupen er det bare fila som skal slettes).
-		# the output sent as a notice message. 
 fi
-		
-# TODO: More work on the notify-send message, and needs to send a message to the Journal as well.
-# Needs to learn the journalctl better first.
-if [[ $exit_status -eq 0 &&  $DRYRUN = false && $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-	 echo  "${0##*/} (Folder Backup):" "OneShot backup  of $TARGET_FOLDER into $TODAYS_BACKUP_FOLDER complete!"	 | journalThis 5 OneShot
-fi
-exit $exit_status	
+
+exit $EXIT_STATUS	

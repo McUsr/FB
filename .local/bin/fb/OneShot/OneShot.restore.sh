@@ -127,18 +127,13 @@ if [ -r "$1" ] ; then
 		echo -e $PNAME : "The backup source (candidate) exists!"
 	fi
 	DEST_TEST="${1/$FB/}"
-	if [[ $DRYRUN = false && "$DEST_TEST" = "$1" ]] ; then 
-		echo -e $PNAME : "The backup source to restore  are not allowed to be outside "$FB".\nTerminating..."
-		exit 2
-	else
-		HAVING_ERRORS=true
+	if [[  "$DEST_TEST" = "$1" ]] ; then 
+			echo -e $PNAME : "The backup source to restore  are not allowed to be outside "$FB".\nTerminating..."
+			exit 2
 	fi	
-elif [ $DRYRUN = false ] ; then 
+else 
 		echo -e $PNAME : "The backup source \"$1\" doesn't exist!\nTerminating..."
 		exit 2
-else
-		echo -e $PNAME : "The backup source \"$1\" doesn't exist!"
-		HAVING_ERRORS=true
 fi
 
 # We need to sort out which backup to restore.
@@ -205,7 +200,7 @@ if [ "$BACKUP_SOURCE_TYPE" = "folder" ] ; then
 		fi
 	else 
 		BACKUP_SOURCE="${BACKUP_CANDIDATE[0]}"
-		if [ $DEBUG -eq 0 ] ;  then 
+		if [ $DEBUG -eq || $VERBOSE = true  ] ;  then 
 			echo -e $PNAME : "We found the latest file within the folder:\n$BACKUP_SOURCE"
 		fi
 	fi
@@ -216,7 +211,11 @@ fi
 
 # Preparing the folder name we shall append, or not.
 FOLDER_BASE_NAME="${BACKUP_SOURCE##*/}"
-FOLDER_STEM_NAME="${FOLDER_BASE_NAME%%.*}"
+if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then 
+	echo -e $PNAME : "The folder base name we will use for basis for the  the tar-dump in is:\n$FOLDER_BASE_NAME"
+fi
+FOLDER_STEM_NAME="$( baseNameFromBackupFile \"$FOLDER_BASE_NAME\")"
+# FOLDER_STEM_NAME="${FOLDER_BASE_NAME%%.*}"
 
 if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then 
 	echo -e $PNAME : "The folder stem name we will use for storing the tar-dump in is:\n$FOLDER_STEM_NAME"
@@ -246,7 +245,7 @@ if [ "$PROBE" = "$DEST_FOLDER" ] ; then
 		if [ $DRYRUN = false ] ; then 
 			if [ ! -d "$DEST_FOLDER" ] ; then 
 				if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then 
-					echo "$PNAME : "$DEST_FOLDER" didn't exist: mkdir -p "$DEST_FOLDER"."
+					echo "$PNAME : $DEST_FOLDER didn't exist: mkdir -p $DEST_FOLDER."
 				fi 
 				mkdir -p "$DEST_FOLDER"
 				MADE_FOLDER=true
@@ -263,11 +262,11 @@ if [ "$PROBE" = "$DEST_FOLDER" ] ; then
 			# NO: because we-re not really making a restore when dryrun is on,
 			# we do restore to a temp folder that we subsequently delete.
 			if [ ! -d "$DEST_FOLDER" ] ; then 
-				echo $PNAME : Making destination folder: mkdir -p "$DEST_FOLDER"
-			else
-					echo "$PNAME : "$DEST_FOLDER" already exist and --force isn't used : bailing out"
-					ls -ld "$DEST_FOLDER"
-					exit 2
+				echo "$PNAME : WOULD have made destination folder: mkdir -p $DEST_FOLDER"
+		 	else
+			 	echo "$PNAME : $DEST_FOLDER already exist and --force isn't used : bailing out"
+			 	ls -ld "$DEST_FOLDER"
+			 	exit 2
 			fi
 		fi
   else
@@ -318,7 +317,7 @@ else
 fi 
 
 
-exit_status=0
+EXIT_STATUS=0
 if [ $DRYRUN = true ] ; then 
 trap "ctrl_c" INT
 
@@ -327,9 +326,8 @@ ctrl_c() {
 	echo "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
 	rm -fr $DRY_RUN_FOLDER 
 }
-	if [ $HAVING_ERRORS = false ] ; then 
-		DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
-		sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C $DRY_RUN_FOLDER
+	if [ $HAVING_ERRORS = false ] ; then DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
+		sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$DRY_RUN_FOLDER"
 		if [ $? -lt 130 ] ; then 
 			rm -fr $DRY_RUN_FOLDER
 		fi 
@@ -338,8 +336,10 @@ ctrl_c() {
 		echo -e "$PNAME : tar -x -z $VERBOSE_OPTIONS -f  \"$BACKUP_SOURCE\" -C $DRY_RUN_FOLDER"
 		echo -e "$PNAME : rm -fr $DRY_RUN_FOLDER"
 	fi 
+
 else 
-trap "ctrl_c" INT
+
+	trap "ctrl_c" INT
 
 ctrl_c() {
 	if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ; then 
@@ -350,20 +350,28 @@ ctrl_c() {
 		rm -fr $DEST_FOLDER 
 	fi
 }
+ 
+	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+		echo -e "$PNAME : sudo tar -x -z $VERBOSE_OPTIONS -f  $BACKUP_SOURCE -C $DEST_FOLDER"
+	fi 
 	sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$DEST_FOLDER"
-	exit_status=$?
-fi
-if [ $exit_status -eq 0 ] ; then 
-	echo "("$DEST_FOLDER")"
-	# This only looks like this here, not when the script is implicitly
-	# initiated from a daemon.
-elif [ $exit_status -eq 1 ] ; then 
-	echo "$PNAME : Contents of "$DEST_FOLDER"."
-	ls -l "$DEST_FOLDER"
-	echo "$PNAME : Contents of "$DEST_FOLDER"."
-elif [ $exit_status -ne 130 ] ; then 
-	if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then 
-		rm -fr $DEST_FOLDER 
+	EXIT_STATUS=$?
+	 # 	| journalThis 7 OneShot
+
+	if [ $EXIT_STATUS -gt 1 ] ; then 
+	  	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+				echo "$PNAME : exit status after tar commmand (fatal error) = $EXIT_STATUS" 
+			fi
+
+		if [ $EXIT_STATUS -ne 130 ] ; then 
+			if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then 
+				rm -fr $DEST_FOLDER 
+			fi
+		fi
+	elif [ $EXIT_STATUS -eq 0 ] ; then  
+			echo -e  "\n("$DEST_FOLDER")\n"
+			# This only looks like this here, not when the script is implicitly
+			# initiated from a daemon.
 	fi
 fi
-exit $exit_status
+exit $EXIT_STATUS

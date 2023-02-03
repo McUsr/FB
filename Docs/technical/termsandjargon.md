@@ -43,18 +43,23 @@ minimize ambiguity and confusion.
 --->
 
 * **Container**. A **Container** for backups.
-  The `TIME_STAMPED_BACKUP_CONTAINING_FOLDER`: the folder
-	containing backups from that date onwards, depending on
-	the **scheme**.
+The `TIME_STAMPED_BACKUP_CONTAINING_FOLDER`: the folder
+containing backups from that date onwards, depending on
+the **scheme**.
 
-* **Delegate** The actual executionor of the job, whether
-	the job is performed on behalf of a manager?, called by the
-	governor, or by a fbsnapshot.
+* **Delegate** A class of scripts that actually performs a backup
+operation, whether it is taking a backup, or restoring a
+backup. The **delegate** is chosen by the  *manager*,
+called by an  *executive*.
 
-* **Executioner** It's the *delegate*, that performs the
-	actual job, on the behalf of the **Governor**, that
-	qualifies and selects what to be done, and then gets the
-	**Executioner** to do it.
+* **Executioner** See: *delegate*. 
+
+* **Executive** The script that controls a *job*, calls the
+*manager* if need be that dispatches the correct *delegate*.
+An executive is the top level layer of all the routines that
+works on the the system, the user commands, and the scripts
+that gets called by the services.
+
 
 * **Full-symlink-name** The **full-symlink-name** is a
 	*transformation of the full path to the target of the
@@ -79,6 +84,10 @@ minimize ambiguity and confusion.
 	
 * **KIND** (Backup kind.) Denotes if it is a `OneShot` or a
 	`Periodical` backup kind.
+
+* **Manager** The manager, is the single script for all
+*jobs*/executives that gets sourced in, and chooses which
+delegate to choose.
 
 
 * **snapshot** This word has two different meanings. 
@@ -144,5 +153,5 @@ minimize ambiguity and confusion.
 
 	* Monthly a `calendar-intervalled` backup.
 
-  Last updated:23-02-02 16:32
+  Last updated:23-02-03 11:20
 

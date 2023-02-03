@@ -1,4 +1,3 @@
-<<<<<<< HEAD
      _____     _     _             ____             _                
     |  ___|__ | | __| | ___ _ __  | __ )  __ _  ___| | ___   _ _ __  
     | |_ / _ \| |/ _` |/ _ \ '__| |  _ \ / _` |/ __| |/ / | | | '_ \ 
@@ -6,8 +5,19 @@
     |_|  \___/|_|\__,_|\___|_|    |____/ \__,_|\___|_|\_\\__,_| .__/ 
                                                               |_|    
 
-# README v0.0.2
+# README v0.0.3
 
+First of all: this program uses tar, in order for tar to
+preserver owner and groups of files, and run as robustly as
+possible, tar needs to be run with sudo. If you have set a
+password for sudo, then you need to run the commands by
+sudo, and running the services that performs periodic
+backups are not for you, but, think about this:
+If you run a backup job through cron, then your backup
+script will too run with root privileges. And, beeing on
+ChromeOs, where perps will really have a hard time to get to
+you, I encourage you to remove your sudo password, and live
+more easy.
 
 **Folder Backup** is a dedicated back up system for
 backing up folders from Linux containers on
@@ -37,7 +47,7 @@ intervals.
 	with few options.
  
 
-### About v0.0.2
+### About v0.0.3
 
 This is the beginning of the whole system, the only thing
 operating here, is manual backups and restores, which are
@@ -106,4 +116,4 @@ always manual, so, there are only two manual commands,
 	be viewed in ChromeOs's Filer.
 	
 
-  Last updated:23-02-02 00:37
+  Last updated:23-02-04 12:56
