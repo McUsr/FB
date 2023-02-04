@@ -35,7 +35,7 @@ echo  $PNAME : copies the shared functions into $XDG_BIN_HOME/fb
 rmifexist "$XDG_BIN_HOME/fb/shared_functions.sh"
 cp -f $SOURCE_PATH/.local/bin/fb/shared_functions.sh $XDG_BIN_HOME/fb
 echo cp -f $SOURCE_PATH/.local/bin/fb/shared_functions.sh $XDG_BIN_HOME/fb
-echo -e "\n\n$PNAME : Successfully installed Folder Backup v0.0.2\nEnjoy!"
+echo -e "\n\n$PNAME : Successfully installed Folder Backup v0.0.3\nEnjoy!"
 
 
 
