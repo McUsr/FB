@@ -1,4 +1,5 @@
 #!/bin/bash
+# v0.0.4
 # Governor.sh
 # We are getting the backup-scheme passed as parameter from the
 # <backup-scheme>.service, invoked by <backup-scheme>.timer.

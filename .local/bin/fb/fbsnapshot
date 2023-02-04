@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="\"v0.0.3\""
+VERSION="\"v0.0.4\""
 # fbsnapshot. 
 # fbsnapshot Take an adhoc backup of a folder - a snapshot. 
 # 2022 (c) Mcusr -- Vim license.
@@ -205,8 +205,8 @@ else
 	fi
 fi
 
-# Time to figure out which script we are going to use: an making any preparations:
-
+# creating an exclude file -- the block refactored into shared_functions?
+# there is no dryrun in fbctl?
 if [ $CREATE_EXCLUDE_FILE = true ] ; then 
 	# is the editor variable set?
 	if [[ ! -v EDITOR || ! -x "$EDITOR" ]] ; then  
@@ -231,6 +231,7 @@ if [ $CREATE_EXCLUDE_FILE = true ] ; then
 fi
 # Exclude file out of the way, time to figure out if there are any "dropin" scripts that should be used.
 
+# Time to figure out which script we are going to use: and making any preparations:
 manager OneShot  "$SYMLINK_NAME" backup 
 exit_code=$?
 if [ $exit_code  -eq 0 ] ; then 
