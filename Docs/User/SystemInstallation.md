@@ -1,7 +1,7 @@
-Configuration and Installation of Folder Backup v0.0.2
+Configuration and Installation of Folder Backup v0.0.3
 ------------------------------------------------------
 
-This version of the document goes with "v0.0.2" of Folder
+This version of the document goes with "v0.0.3" of Folder
 Backup. The document assumes you are going configure  a
 standard Linux/Debian container under ChromeOs, and that you
 have an available Google Drive with some free space on it.
