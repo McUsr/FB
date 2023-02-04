@@ -1,4 +1,4 @@
-Documentation for Folder Backup  v0.0.2
+Documentation for Folder Backup  v0.0.3
 ---------------------------------------
 
 State: By no means finished.
