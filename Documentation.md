@@ -21,7 +21,6 @@ State: By no means finished.
 * [Naming Conventions used in the
 	system](https://github.com/McUsr/FB/blob/main/Docs/technical/namingconventions.md)
 
-<<<<<<< HEAD
 * [Notes and concepts concerning
 	fbrestore](https://github.com/McUsr/FB/blob/main/Docs/technical/fbrestore-tech.md)
 
