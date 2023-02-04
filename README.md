@@ -36,7 +36,7 @@ intervals.
 	with few options.
  
 
-### About v0.0.2
+### About v0.0.3
 
 This is the beginning of the whole system, the only thing
 operating here, is manual backups and restores, which are
