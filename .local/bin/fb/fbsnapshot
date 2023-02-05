@@ -226,7 +226,7 @@ if [ $CREATE_EXCLUDE_FILE = true ] ; then
 	if [ $? - ne 0 ] ; then 
 		echo -e "$PNAME : Something went wrong during editing.\n
 		~/.local/bin/fb/OneShot/$SYMLINK_NAME.d/exclude.file\nTerminating..." | journalThis 2 OneShot
-		exit 255
+		exit 1
 	fi
 fi
 
