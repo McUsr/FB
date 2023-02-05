@@ -211,7 +211,7 @@ if [ $CREATE_EXCLUDE_FILE = true ] ; then
 	# is the editor variable set?
 	if [[ ! -v EDITOR || ! -x "$EDITOR" ]] ; then  
 		echo -e  "$PNAME : The variable \$EDITOR wasn't set or didn't point to a binary.\nYou need to set assign the \$EDITOR variable in .bashrc or .bash_profile, then  \"exec bash\" and try again.\nTerminating..." | journalThis 5 OneShot
-		exit 2
+		exit 255
 	fi
 	# Only one place a the exclude file. And if it doesn't exist, then we'll make it.
 	if [ ! -d ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d ] ; then 
@@ -229,6 +229,7 @@ if [ $CREATE_EXCLUDE_FILE = true ] ; then
 		exit 255
 	fi
 fi
+
 # Exclude file out of the way, time to figure out if there are any "dropin" scripts that should be used.
 
 # Time to figure out which script we are going to use: and making any preparations:
