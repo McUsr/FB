@@ -7,7 +7,16 @@
 
 # README v0.0.3
 
-## Short about sudo
+Folder Backup is a dedicated back up system to easily back
+up folders from Linux containers on ChromeOs to your
+GoogleDrive, so you have cloud based backups, of what
+matters to you. Those are easy to watch, compare and
+restore, all residing in an easy to drill down into folder
+structure.
+
+## About Folder Backup - fb
+
+### Short about sudo
 
 First of all: this program uses tar, in order for tar to
 preserver owner and groups of files, and run as robustly as
@@ -21,12 +30,8 @@ ChromeOs, where perps will really have a hard time to get to
 you, I encourage you to remove your sudo password, and live
 more easy.
 
-## About Folder Backup - fb
 
-**Folder Backup** is a dedicated back up system for
-backing up folders from Linux containers on
-ChromeOs to your GoogleDrive, so you have cloud based
-backups, of what matters to you.
+### **Folder Backup** Highlights:
 
 
 * The backups can either be  a spontaneously executed snapshot
@@ -51,7 +56,7 @@ intervals.
 	with few options.
  
 
-### About v0.0.3
+### About v0.0.4
 
 This is the beginning of the whole system, the only thing
 operating here, is manual backups and restores, which are
@@ -120,4 +125,4 @@ always manual, so, there are only two manual commands,
 	be viewed in ChromeOs's Filer.
 	
 
-  Last updated:23-02-04 13:06
+  Last updated:23-02-05 13:04
