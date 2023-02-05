@@ -406,12 +406,8 @@ nextSnarFile() {
 # fullPathSymlinkName() 
 # PARAMETERS: the full path to convert.
 
-# returns the fullPath of the folder we
-# want to create a symlink to,, so that
-# there is no ambiguity, as to which
-# folder the symlink points to.
-# SOME PARAMETER CHECKING BEFORE
-# CALLING THIS ONE, IS ASSUMED!
+# RETURNS: the fullPath of the folder we want to create a symlink to,, so that
+# there is no ambiguity, as to which folder the symlink points to.
 
 fullPathSymlinkName() {
 	if [ $# -ne 1 ] ; then 
@@ -419,21 +415,20 @@ fullPathSymlinkName() {
 		exit 5
 	fi
 	local fn
-	fn=`realpath "$1"`
+	fn=$(realpath "$1")
 	echo "$fn" | sed -ne 's:^/::' -e 's:/:-:g' -e 's:^\.:\\.:' -e 's:[-]\(\.\):-\\\1:' -e 'p'
-# Old version: 	echo $fn | sed -ne 's:^/::' -e 's:/:-:gp'
 }
 
 # pathFromFullSymlinkName(){
 # PARAMETERS: the full symlink name to convert.
-# Returns the fullSymlinkName back to the path it once was.
+# RETURNS the fullSymlinkName back to the path it once was.
 # Add a trailing slash yourself, on the outside, shoud you need one.
+
 pathFromFullSymlinkName() {
 	if [ $# -ne 1 ] ; then 
 		echo -e "${0##*/}/pathFromFullSymlinkName: I need exactly 1 parameter.\nTerminating"
 		exit 5
 	fi
-	# exit 5 == programmer error.
 	echo "$1" | sed -ne  's:^:/:' -e 's:-:/:g' -e ':/(.*/)$:\1\/:g' -e 's:\\::' -e 'p'
 }
 
@@ -545,6 +540,125 @@ manager() {
 	fi
 
 }
+
+
+# verifyEditorToUse() 
+# selects VISUAL over EDITOR
+# sets global THE_EDITOR with the correct editor.
+# RETURNS: any error code.
+dieIfNoEditorSetToUse() {
+  declare -g THE_EDITOR
+	FOUND_EDITOR=1 
+
+	if [[  -v VISUAL  ]] ; then  
+		type -a $VISUAL &>/dev/null 
+		if [[ $? -eq 0 ]] ; then 
+			# if 0, found  executable
+	 		FOUND_EDITOR=0 ; THE_EDITOR=$VISUAL
+		fi	
+	fi
+
+	if [[ $FOUND_EDITOR -eq 0 && -v EDITOR  ]] ; then  
+		type -a $EDITOR >/dev/null
+		if [[ $? -eq 0 ]] ; then 
+	 		FOUND_EDITOR=0 ; THE_EDITOR=$EDITOR
+		fi	
+	fi
+	if [[ $FOUND_EDITOR -ne 0  ]] ; then 
+		echo -e  "$PNAME : Neither the  variable \$VISUAL nor \$EDITOR was set or didn't point to a binary.\nYou need to set assign the \$EDITOR variable in .bashrc or .bash_profile, then  \"exec bash\" and try again.\nTerminating..." | journalThis 5 OneShot
+		exit 255
+	fi
+
+}
+
+# dieIfNotValidFullSymlinkName()
+# PARAMETERS: SYMLINKNAME SCHEME
+# RETURNS: 0, if the symlink name is valid.
+dieIfNotValidFullSymlinkName() {
+	if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : I need two arguments full-symlink-name and scheme.\nTerminates" >&2 ; exit 5 ; fi
+  local FULL_SYMLINK_NAME SCHEME
+	FULL_SYMLINK_NAME="$1" ; SCHEME=$2
+	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $FULL_SYMLINK_NAME" | journalThis 7 $SCHEME
+	fi 
+	full_path="$(pathFromFullSymlinkName $FULL_SYMLINK_NAME)"
+	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} :full_path after : \$(pathFromFullSymlinkName \"\$FULL_SYMLINK_NAME\") : $full_path"| journalThis 7 $SCHEME
+	fi
+	symlink_probe="$(fullPathSymlinkName "$full_path" )" 
+
+	if [[ "$FULL_SYMLINK_NAME" != "$symlink_probe" ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} : $FULL_SYMLINK_NAME Not a valid symlink name! \nTerminates" >&2 ; exit 5 
+ 	fi
+}
+
+# dieIfNotValidFbFolderName() 
+# returns 0 if the folder name within XDG_BIN_HOME/fb given, is a valid one
+# TODO: We must premake the folders?
+
+dieIfNotValidFbFolderName() {
+
+	if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : I need 1 argument.\nTerminates" >&2 ; exit 5 ; fi
+	local validFbFolderNames
+	validFbFolderNames=( OneShot DailySnapshot DailyIncremental WeeklySnapshot WeeklyIncremental WeeklyDifferential MonthlySnapshot MonthlyDifferential MonthlyIncremental )
+	FOUND_SCHEME=1
+	for backup_category in ${validFbFolderNames[@]} ; do
+	 	if [[ $1 = $backup_category ]] ; then
+			FOUND_SCHEME=0
+			break
+		fi
+	done
+	if [[ $FOUND_SCHEME -ne 0 ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} : $2 Not a valid scheme folder name in the $XDG_BIN_HOME/fb folder! \nTerminates" | journalThis 2 FolderBackup ; exit 2
+		# error_code 2, because can be user set from the command line.
+	fi
+}
+
+# createExcludeFile() 
+# 
+# creates an exclude file, or not, in which case the caller should abort the current operation.
+# that is, this current operation.
+# PARAMETERS:
+# a scheme name 
+# A valid symlink name.
+# GLOBAL: uses  THE_EDITOR with the correct editor, if any.
+
+createExcludeFile() {
+	if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two argument\nTerminates" >&2 ; exit 5 ; fi
+	# visual first, editor after.
+	dieIfNotValidFbFolderName $1
+	SCHEME=$1
+	dieIfNotValidFullSymlinkName "$2" $1
+	FULL_SYMLINK_NAME="$2"
+
+	# Only one place a the exclude file. And if it doesn't exist, then we'll make it.
+	if [ ! -d "$XDG_BIN_HOME"/fb/$SCHEME/"$FULL_SYMLINK_NAME".d ] ; then 
+		echo "$XDG_BIN_HOME"/fb/$SCHEME/"$FULL_SYMLINK_NAME".d
+
+		if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+			echo -e "$PNAME : The folder \"$XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d\" didn't exist.\nMaking it.\nmkdir -p ~/.local/bin/fb/OneShot/$FULL_SYMLINK_NAME.d" | journalThis 7 $SCHEME
+		fi
+		mkdir -p $XDG_BIN_HOME/fb/$SCHEME/"$FULL_SYMLINK_NAME".d
+		touch $XDG_BIN_HOME/fb/$SCHEME/"$FULL_SYMLINK_NAME".d/exclude.file
+	fi
+
+	dieIfNoEditorSetToUse
+
+	$THE_EDITOR "$XDG_BIN_HOME"/fb/$SCHEME/"$FULL_SYMLINK_NAME".d/exclude.file
+
+	if [[ $? -ne 0 ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} : Something went wrong during editing.\n $XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\nTerminating..." | journalThis 2 OneShot
+		exit 1
+	fi
+
+	# Maybe we should check if there were any contents in the file we created before we see this as a success?
+  grep '[-/.@+a-zA-Z0-9]\+'  < $XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file &>/dev/null 
+	if [[  $? -ne 0 ]] ; then 
+		echo -e "${0##*/}/${FUNCNAME[0]} : The exclude file\n$XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\nIs empty!\nTerminating..." | journalThis 2 $SCHEME
+		exit 1
+	fi 
+}
+
 
 # topLevelConsistency() 
 # Checks that we have internet, so we can check the superstructure for sure
