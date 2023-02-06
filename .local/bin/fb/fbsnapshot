@@ -141,8 +141,11 @@ fi
 if [ $VERBOSE = true ] ; then 
 	BACKUP_OPTIONS+=" --verbose"
 fi
-# --create-exclude-file isn't an option, it's more of a command.
 
+# --create-exclude-file isn't an option, it's more of a command.
+# --dry-run doesn't work on create-exclude-file, it is useful
+# to execute the rest of the command as --dry-run when we make
+# the exclude file so we can see the result.
 
 TARGET_FOLDER=$(realpath "$1")
 
@@ -208,26 +211,7 @@ fi
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
 if [ $CREATE_EXCLUDE_FILE = true ] ; then 
-	# is the editor variable set?
-	if [[ ! -v EDITOR || ! -x "$EDITOR" ]] ; then  
-		echo -e  "$PNAME : The variable \$EDITOR wasn't set or didn't point to a binary.\nYou need to set assign the \$EDITOR variable in .bashrc or .bash_profile, then  \"exec bash\" and try again.\nTerminating..." | journalThis 5 OneShot
-		exit 255
-	fi
-	# Only one place a the exclude file. And if it doesn't exist, then we'll make it.
-	if [ ! -d ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d ] ; then 
-		if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then 
-			echo -e "$PNAME : The folder \"~/.local/bin/fb/OneShot/$SYMLINK_NAME.d\" didn't exist.\nMaking it.\nmkdir -p ~/.local/bin/fb/OneShot/$SYMLINK_NAME.d" | journalThis 7 OneShot
-		fi
-		mkdir -p ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d
-		touch ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d/exclude.file
-	fi
-
-	$EDITOR ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d/exclude.file
-	if [ $? - ne 0 ] ; then 
-		echo -e "$PNAME : Something went wrong during editing.\n
-		~/.local/bin/fb/OneShot/$SYMLINK_NAME.d/exclude.file\nTerminating..." | journalThis 2 OneShot
-		exit 1
-	fi
+	createExcludeFile OneShot $SYMLINK_NAME
 fi
 
 # Exclude file out of the way, time to figure out if there are any "dropin" scripts that should be used.
@@ -265,13 +249,14 @@ elif [[ $EXIT_STATUS -gt 1 ]] ; then
 
   if [[  -d "$TODAYS_BACKUP_FOLDER" && $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then 
 
-	if [ $DRYRUN = false ] ; then 
-		if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+		if [ $DRYRUN = false ] ; then 
+			if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+				echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
+			fi
+			rm -fr "$TODAYS_BACKUP_FOLDER"
+		else
 			echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-		fi
-		rm -fr "$TODAYS_BACKUP_FOLDER"
-	else
-		echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-	fi 
+		fi 
+	fi
 fi
 exit $EXIT_STATUS
