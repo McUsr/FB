@@ -233,7 +233,7 @@ if [ $PARSE_DEBUG -eq 0 ] ; then
 fi
 
 # Kan optimalisere senere ved å bare ha en EXCLUDE_FILE variabel.
-if [ $HAS_EXCLUDE_FILE ] ; then 
+if [ $HAS_EXCLUDE_FILE = true ] ; then 
  if [ $VERBOSE = true ] ; then 
 	 echo "$PNAME : I have an exclude file : $EXCLUDE_FILE "
 	 cat "$EXCLUDE_FILE"
