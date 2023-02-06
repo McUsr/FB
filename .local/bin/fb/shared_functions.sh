@@ -5,6 +5,17 @@ export ROOTFOLDERS="OneShot Periodic"
 
 export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential Weekly WeeklyIncremental WeeklyDifferential Monthly MonthlyIncremental MonthlyDifferential"
 
+
+# ok_version() 
+# returns 0 if the bash version >= 4.15, because that was the final version of arrays.
+ok_version() {
+  if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 15 ]] ; then 
+    return 1
+  elif [[ ${BASH_VERSINFO[0]} < 4 ]]  ; then 
+    return 1
+	fi
+}
+
 # checkIfOkMandatoryVariable()
 # checks if a variable is set, and contains value,
 # and checks that the path indeed exists. 
