@@ -16,16 +16,111 @@
 # 12/01: Real deal ready for production, for what DailySnapshot backups are concerned.
 
 PNAME=${0##*/}
+CURSCHEME=DailySnapshot
+
+# The piece below are set in with m4, to keep just one piece to
+# maintain.
+
+
 err_report() {
   echo "$PNAME : Error on line $1"
   echo "$PNAME : Please report this issue at\
     'https://github.com/McUsr/FB/issues'"
 }
+
+fatal_err() {
+  if [[ $# -le 2 ]] ; then
+    if [ -t 1 ] ; then
+      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
+        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... " 1>&2
+    else
+      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
+        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... "\
+        | systemd-cat -t FolderBackup -p crit
+    fi
+    exit 5
+  fi
+  if [[ $# -eq 3 ]] ; then
+    local err_msg="${1}"
+    local modus="${2}"
+    local scheme="${3}"
+
+    if [[ "$modus" == "SERVICE" ]] ; then
+      echo >"$PNAME : ${err_msg}\
+      Terminating..."| systemd-cat -t "${scheme}" -p err
+    else
+      echo -e "$PNAME : ${err_msg}\
+        \nTerminating..." >/dev/tty
+    fi
+
+  else
+    local funcname="${1}"
+    local err_msg="${2}"
+    local modus="${3}"
+    local scheme="${4}"
+
+    if [[ "$modus" == "SERVICE" ]] ; then
+      echo >"$PNAME/$funcname : ${err_msg}\
+      Terminating..."| systemd-cat -t "${scheme}" -p err
+    else
+      echo -e "$PNAME/$funcname ${err_msg}\
+        \nTerminating..." >/dev/tty
+    fi
+  fi
+}
+
+dieIfMandatoryVariableNotSet() {
+  if [[ $# -ne 3 ]] ; then
+    if [ -t 1 ] ; then
+      echo -e "${0##*/}/${FUNCNAME[0]}  I need three parameters:\
+        the variable NAME MODUS SCHEME\nTerminating... " 1>&2
+    else
+      echo -e "${0##*/}/${FUNCNAME[0]}  I need three parameters:\
+        the variable NAME MODUS SCHEME\nTerminating... "\
+        | systemd-cat -t FolderBackup -p crit
+    fi
+    exit 5
+  fi
+  local var_name="${1}"
+  local modus="${2}"
+  local scheme="${3}"
+
+  if [[ !  -v "$var_name" ]] ; then
+    if [[ "$modus" == "SERVICE" ]] ; then
+      echo >"$PNAME/${FUNCNAME[0]} : The variable $var_name isn't set.\
+      Terminating..."| systemd-cat -t "${scheme}" -p crit
+    else
+      echo -e "$PNAME/${FUNCNAME[0]} : The variable $1 isn't set.\
+        \nTerminating..." >/dev/tty
+    fi
+    exit 255
+  fi
+}
+
 trap 'err_report $LINENO' ERR
 TO_CONSOLE=false
 VERSION='v0.0.3c'
 if [[ -t 1 ]] ; then
-  TO_CONSOLE=true
+  TO_CONSOLE=true;MODE=DEBUG
+else
+  TO_CONSOLE=false;MODE=SERVICE
+fi
+dieIfMandatoryVariableNotSet FB $MODE $CURSCHEME
+dieIfMandatoryVariableNotSet XDG_BIN_HOME $MODE $CURSCHEME
+dieIfMandatoryVariableNotSet XDG_DATA_HOME $MODE $CURSCHEME
+exit $?
+# can't check FB just yet, because it is apt to check for internet first.
+
+if ! isDirectory $XDG_BIN_HOME ; then
+  fatal_error "the Directory \$XDG_BIN_HOME : $XDG_BIN_HOME doesn't\
+    exist!" "$MODE" "$CURSCHEME"
+  exit 255
+fi
+
+if ! isDirectory $XDG_DATA_HOME ; then
+  fatal_error "the Directory \$XDG_DATA_HOME : $XDG_DATA_HOME doesn't\
+    exist!" "$MODE" "$CURSCHEME"
+  exit 255
 fi
 
 exec 4>&2 2> >(while read -r REPLY; do printf >&4 '<3>%s\n' "$REPLY"; done)
@@ -43,6 +138,9 @@ TO_CONSOLE=0
 # from the terminal, and output be sent to the journal anyway, when the script is run
 # implicitly by a daemon.
 ARCHIVE_OUTPUT=1
+
+
+
 if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
   source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
@@ -52,8 +150,12 @@ else
 fi
 
 DAYS_TO_KEEP_BACKUPS=14
+
+# TODO: differ between "REAL" mode and debug mode.
 if [ $# -ne 2 ] ; then
-     notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory parameters: A backup scheme, and a job-folder, Hopefully you are executing from the commandline. Exiting hard."
+    if [[ $TO_CONSOLE == false ]] ; then
+      notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory parameters: A backup scheme, and a job-folder, Hopefully you are executing from the commandline. Exiting hard."
+    fi
     # TODO : journal message.
     # A criticial error.
     # I think it will be good with date and folder as variables, and the scheme as target.
@@ -63,11 +165,15 @@ if [ $# -ne 2 ] ; then
 
 fi
 
+# ----------------------------------------------------------------------------
+# parsing of options happens here!
+# ----------------------------------------------------------------------------
+
 BACKUP_SCHEME=$1
 SYMLINK_NAME=$2
 
 
-JOBSFOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
+JOBSFOLDER=$XDG_DATA_HOME/fbjobs/$BACKUP_SCHEME
 
 TARGET_FOLDER=$(realpath $JOBSFOLDER/$SYMLINK_NAME)
 if [ $DEBUG -eq 0 ] ; then
