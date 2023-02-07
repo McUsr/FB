@@ -9,8 +9,10 @@ export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
 
 # ok_version()
 # returns 0 if the bash version >= 4.15, because  the one with arrays.
+# https://wiki.bash-hackers.org/scripting/bashchanges
+  local man_var="$2"
 ok_version() {
-  if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 15 ]] ; then
+  if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]] ; then
     return 1
   elif [[ ${BASH_VERSINFO[0]} -lt 4 ]]  ; then
     return 1
@@ -28,6 +30,10 @@ ok_version() {
 # TODO: Fix for console
 
 brokenSymlink() {
+if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
+  argument\nTerminates" >&2 ; exit 5 ; fi
+# TODO:
+# Add the missing code.
     echo "The symlink $1/$2 is broken! No backups are made for  $2 before it\
       is fixed."  | systemd-cat -t "$3" -p crit
     notify-send "$3" "The symlink $1/$2 is broken! No backups are made for $2\
@@ -39,25 +45,36 @@ brokenSymlink() {
 # returns if the parameter is a symlink.
 # ( I need the full path to the file, to be able to check it. {realpath} )
 isASymlink() {
+if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+  argument\nTerminates" >&2 ; exit 5 ; fi
   file "$1" | grep 'symbolic link' >/dev/null
   return $?
 }
 
 
 isUnbrokenSymlink() {
+if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+  argument\nTerminates" >&2 ; exit 5 ; fi
   if file "$1" | grep 'broken symbolic link' >/dev/null  ; then
     return 1
   fi
   return 0
 }
 
+# moved to service_functions, and  removed here
+# until we need it, figure what, then.
+
+if [[ 0 -eq 1 ]] ; then
 # isDirectory()
 # just returns whether the parameter given is a
 # directory, or not.
 isDirectory() {
+if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+  argument\nTerminates" >&2 ; exit 5 ; fi
   file "$1" | grep 'directory' >/dev/null
   return $?
 }
+fi
 
 # hasInternet()
 # The governor checks if there is an internet-
@@ -160,7 +177,7 @@ backupKind() {
   local  ORIG="$1"
    local REPLACED="${1/$FB/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't within  the defined\
+    echo -e "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within  the defined\
       location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
