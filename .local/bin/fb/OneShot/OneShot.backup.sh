@@ -246,7 +246,7 @@ if hasExcludeFile OneShot "$SYMLINK_NAME" ; then
    echo "$PNAME : I have an exclude file : $EXCLUDE_FILE "
    cat "$EXCLUDE_FILE"
  fi
- EXCLUDE_OPTIONS="--exclude-from="$EXCLUDE_FILE
+ EXCLUDE_OPTIONS="--exclude-from=$EXCLUDE_FILE"
 else
   EXCLUDE_OPTIONS=
 fi
@@ -305,7 +305,7 @@ ctrl_c() {
       echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
         -f $TAR_BALL_NAME  -C $TARGET_FOLDER" .
     fi
-    sudo tar -z "$VERBOSE_OPTIONS" -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C "$TARGET_FOLDER" .
+    sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C "$TARGET_FOLDER" .
     EXIT_STATUS=$?
    #   | journalThis 7 OneShot
     if [[ $EXIT_STATUS -gt 1 ]] ; then
