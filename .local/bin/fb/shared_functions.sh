@@ -9,8 +9,10 @@ export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
 
 # ok_version()
 # returns 0 if the bash version >= 4.15, because  the one with arrays.
+# https://wiki.bash-hackers.org/scripting/bashchanges 
+  local man_var="$2"
 ok_version() {
-  if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 15 ]] ; then
+  if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]] ; then
     return 1
   elif [[ ${BASH_VERSINFO[0]} -lt 4 ]]  ; then
     return 1
