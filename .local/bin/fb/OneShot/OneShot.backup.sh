@@ -1,4 +1,6 @@
 #!/bin/bash
+# The version at a8de2b1 contains the scaffolding.
+
 PNAME=${0##*/}
 err_report() {
   echo "$PNAME : Error on line $1"
@@ -69,46 +71,22 @@ if [[ $? != 0 ]] ; then echo "Terminating..." >&2 ; exit 2 ; fi
 eval set -- "$TEMP"
 
 PARSE_DEBUG=1
-if [[ $PARSE_DEBUG -eq 0 ]] ; then
-  echo "$PNAME TEMP : $TEMP"
-fi
 DRYRUN=false
 VERBOSE=false
 
-# echo NARG1 : $#
-
 while true; do
-  if [ $PARSE_DEBUG -eq 0 ] ; then
-  echo "while ...."
-    case "$1" in
-      -h | --help ) echo 'h' ; help ; exit 0 ;;
-      -n | --dry-run ) echo '--dry-run' ; DRYRUN=true; shift ;;
-      -v | --verbose ) echo '--verbose ' ; VERBOSE=true; shift ;;
-      -V | --version ) echo 'version' ;echo "$PNAME" : $VERSION ; exit 0 ;;
-      -- ) shift; break ;;
-  #    * ) break ;;
-    esac
-  else
     case "$1" in
       -h | --help )  help ; exit 0 ;;
       -n | --dry-run ) DRYRUN=true; shift ;;
       -v | --verbose ) VERBOSE=true; shift ;;
       -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
       -- ) shift; break ;;
-  #    * ) break ;;
     esac
-  fi
 done
 
 HAVING_ERRORS=false
 DEBUG=1
 
-if [[ $PARSE_DEBUG -eq 0 ]] ; then
-  echo "$@"
-  echo 'Ended while '
-  echo NARG2 : $#
-  echo D1 : "$1"
-fi
 
 if [[ $# -ne 3 ]] ; then
   echo -e "$PNAME : Wrong number of  few arguments. I need one argument for\
@@ -146,11 +124,6 @@ else
     echo -e "$PNAME : The destination folder $2 does not exist.\
       \nTerminating..."
     exit 2
-
-  # else
-  # THE Directory doesn't need to exist when dry-run is true
-  #   HAVING_ERRORS=true
-  #   echo -e $PNAME : "The destination folder $2 does not exist."
   fi
 fi
 TARGET_FOLDER="$1"
@@ -192,53 +165,9 @@ else
   fi
   # else .. silently moving on ...
 fi
-
 SYMLINK_NAME="$3"
+
 # time to look for any exclude files
-
-
-HAS_DROPIN_DIRECTORY=false
-
-if [[ -d ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d ]] ; then
-
-  HAS_DROPIN_DIRECTORY=true
-  if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-    echo -e "$PNAME : We have a dropin directory:\
-      \n$HOME/.local/bin/fb/OneShot/$SYMLINK_NAME.d"
-  fi
-
-  HAS_EXCLUDE_FILE=false
-  if [[ -f ~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d/exclude.file ]] ; then
-    HAS_EXCLUDE_FILE=true
-    EXCLUDE_FILE=~/.local/bin/fb/OneShot/"$SYMLINK_NAME".d/exclude.file
-    if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-      echo -e "$PNAME : We have an \"exclude.file\" file:\
-        \n$HOME/.local/bin/fb/OneShot/$SYMLINK_NAME.d/exclude.file"
-    fi
-  fi
-else
-  if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-    echo -e "$PNAME : We don't have  a dropin directory:\
-      $HOME/.local/bin/fb/OneShot/$SYMLINK_NAME.d"
-    echo -e "$PNAME : We don't have an \"exclude.file\" file:\
-      $HOME/.local/bin/fb/OneShot/$SYMLINK_NAME.d/exclude.file"
-  fi
-fi
-
-PARSE_DEBUG=1
-if [[ $PARSE_DEBUG -eq 0 ]] ; then
-# This is where we start:
-  echo "$PNAME" : DRYRUN : "$DRYRUN"
-  echo "$PNAME" : VERBOSE : "$VERBOSE"
-  echo "$PNAME" : TODAYS_BACKUP_FOLDER : "$TODAYS_BACKUP_FOLDER"
-  echo "$PNAME" : TARGET_FOLDER : "$TARGET_FOLDER"
-  echo "$PNAME" : SYMLINK_NAME : "$SYMLINK_NAME"
-  echo "$PNAME" : HAS_DROPIN_DIRECTORY :  "$HAS_DROPIN_DIRECTORY"
-  echo "$PNAME" : HAS_EXCLUDE_FILE :  "$HAS_EXCLUDE_FILE"
-  echo "$PNAME" : EXCLUDE_FILE :  "$EXCLUDE_FILE"
-fi
-
-# Kan optimalisere senere ved å bare ha en EXCLUDE_FILE variabel.
 
 if hasExcludeFile OneShot "$SYMLINK_NAME" ; then
  if [[ $VERBOSE = true ]] ; then
@@ -267,7 +196,6 @@ ctrl_c() {
   rm -fr "$DRY_RUN_FOLDER"
 }
 
-# Bedre å sjekke error code?
   TAR_BALL_NAME="$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
@@ -292,7 +220,7 @@ ctrl_c() {
     echo -e "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
 else
-
+# DRYRUN == false
   TAR_BALL_NAME="$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
   trap "HAVING_ERRORS=true;ctrl_c" INT
 ctrl_c() {
