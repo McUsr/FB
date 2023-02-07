@@ -44,7 +44,7 @@ DEBUG=1
 help() {
 cat  << EOF
 
-$PNAME:  Restores a previous folder backup, made with the fb system.
+$PNAME:  Makes  a folder backup, part of the FB system.
 
 syntax:
 
