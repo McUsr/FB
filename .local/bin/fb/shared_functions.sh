@@ -61,10 +61,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   return 0
 }
 
-# moved to service_functions, and  removed here
-# until we need it, figure what, then.
-
-if [[ 0 -eq 1 ]] ; then
+if [[ 0 -eq 1 ]] ; then 
 # isDirectory()
 # just returns whether the parameter given is a
 # directory, or not.

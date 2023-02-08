@@ -1,16 +1,17 @@
 #!/bin/bash
 VERSION="\"v0.0.4\""
-# fbsnapshot. 
-# fbsnapshot Take an adhoc backup of a folder - a snapshot. 
+# fbsnapshot.
+# fbsnapshot Take an adhoc backup of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
 PNAME=${0##*/}
 SILENCE=0
 
 err_report() {
-	if [ $SILENCE -eq 0 ] ; then 
-		echo "$PNAME : Error on line $1"
-		echo "$PNAME : Please report this issue at 'https://github.com/McUsr/FB/issues'" 
-	fi 
+  if [ $SILENCE -eq 0 ] ; then
+    echo "$PNAME : Error on line $1"
+    echo "$PNAME : Please report this issue at\
+      'https://github.com/McUsr/FB/issues'"
+  fi
 }
 
 trap 'err_report $LINENO' ERR
@@ -18,72 +19,83 @@ trap 'err_report $LINENO' ERR
 LOG_TO_JOURNAL=false
 
 DRYRUN=1
-# controls whether we are going to print the backup command to the console/journal,
-# (when DRYRUN=0) or if were actually going to perform.
+# controls whether we are going to print the backup command to the
+# console/journal, (when DRYRUN=0) or if were actually going to perform.
 DEBUG=1
-# 
-# prints out debug messages to the console/journal if its on when instigated by
+#
+# prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
 TO_CONSOLE=0
-# controls whether debug output will be sent to the journal when the script is called 
-# from the terminal, and output be sent to the journal anyway, when the script is run
-# implicitly by a daemon.
+# controls whether debug output will be sent to the journal when the script is
+# called from the terminal, and output be sent to the journal anyway, when the
+# script is run implicitly by a daemon.
 
-if [[ ! -v XDG_BIN_HOME ]] ; then 
-	echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME), is the system initialized? You need configure it.\nTerminating..." >/dev/tty
-		exit 255
+if [[ ! -v XDG_BIN_HOME ]] ; then
+  echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME),\
+    is the system initialized? You need configure it.\nTerminating..."\
+    >/dev/tty
+    exit 255
 fi
 
 
-if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then 
-	source "$XDG_BIN_HOME"/fb/shared_functions.sh
+if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
+  source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
-	echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\nTerminates... " >/dev/tty
-	exit 255
-fi 
-
-if [[ ! -v FB ]] ; then 
-	 	echo -e "$PNAME The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." | journalThis 2 OneShot
-		exit 255
+  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
+    \nTerminates... " >/dev/tty
+  exit 255
 fi
-# checks if we can get online so we have a guarranteed connection to our google drive
+
+if [[ ! -v FB ]] ; then
+  echo -e "$PNAME The variable \$FB isn't set, is the system initialized? You\
+    need configure it.\nTerminating..." | journalThis 2 OneShot
+  exit 255
+fi
+# Checks if we can get online so we have a guarranteed connection to our\
+# Google Drive
+
 consoleHasInternet OneShot
 
 consoleFBFolderIsMounted OneShot
 
 GETOPT_COMPATIBLE=true
 
-if [[ $# -eq 0 ]] ; then 
-	echo -e "$PNAME : Too few arguments. At least I need a path to a directory, I should make a backup of.\nExecute \"$PNAME -h\" for help. Terminating..." | journalThis 2 OneShot
+if [[ $# -eq 0 ]] ; then
+  echo -e "$PNAME : Too few arguments. At least I need a path to a directory,\
+    I should make a backup of.\nExecute \"$PNAME -h\" for help.\
+    Terminating..." | journalThis 2 OneShot
  exit 2
 fi
 
 help() {
 cat  << EOF
 
-$PNAME:  Backups the folder specified into the folder backup system OneShot root-directory,
-         under the path name of the folder, and yet another folder specifying time and date,
-         for coherent access across the folder backup system.
+$PNAME:  Backups the folder specified into the folder backup system OneShot
+         root-directory, under the path name of the folder, and yet another
+         folder specifying time and date, for coherent access across the
+         folder backup system.
 
-syntax:
+Syntax:
 
   $PNAME [options] <source folder>
 
   Options:
-  
+
   -h | --help.    Shows this help.
   -n | --dry-run  Shows what would have happened
   -v | --verbose  Shows more detailed output.
   -V | --version  Shows the version of $PNAME ($VERSION).
-  -c | --create-exclude-file Lets you use $EDITOR to edit a file with globs to exclude.
-  
+  -c | --create-exclude-file Lets you use $EDITOR to edit a file with globs
+                             for tar to  exclude from the backup.
+
 EOF
 }
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
-TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,verbose,version \
-              -n "$PNAME" -- "$@")
+TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,\
+  verbose,version -n "$PNAME" -- "$@")
 
-if [ $? != 0 ] ; then echo "$PNAME -h | --help for help :  Terminating..." | journalThis 2 OneShot ; exit 2 ; fi
+if [ $? != 0 ] ; then echo "$PNAME -h | --help for help :  Terminating..."\
+  | journalThis 2 OneShot ; exit 2 ; fi
 
 SILENCE=1
 # Note the quotes around '$TEMP': they are essential!
@@ -92,54 +104,35 @@ DRYRUN=false
 VERBOSE=false
 CREATE_EXCLUDE_FILE=false
 
-# echo NARG1 : $#
 
-PARSE_DEBUG=1
 while true; do
-	if [ $PARSE_DEBUG -eq 0 ] ; then 
-	echo "while ...." 
-		case "$1" in
-			-h | --help ) echo 'h' ; help ; exit 0 ;;
-			-n | --dry-run ) echo '--dry-run' ; DRYRUN=true; shift ;;
-			-v | --verbose ) echo 'verbose ' ; VERBOSE=true; shift ;;
-			-V | --version ) echo 'version' ;echo $PNAME : $VERSION ; exit 0 ;;
-			-c | --create-exclude-file ) echo 'create exclude file' ; CREATE_EXCLUDE_FILE=true; shift ;;
-			-- ) shift; break ;;
-	#    * ) break ;;
-		esac
-	else 
-		case "$1" in
-			-h | --help )  help ; exit 0 ;;
-			-n | --dry-run ) DRYRUN=true; shift ;;
-			-v | --verbose ) VERBOSE=true; shift ;;
-			-V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
-			-c | --create-exclude-file ) echo 'create exclude file' ; CREATE_EXCLUDE_FILE=true; shift ;;
-			-- ) shift; break ;;
-	#    * ) break ;;
-		esac
-	fi
+  case "$1" in
+    -h | --help )  help ; exit 0 ;;
+    -n | --dry-run ) DRYRUN=true; shift ;;
+    -v | --verbose ) VERBOSE=true; shift ;;
+    -V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
+    -c | --create-exclude-file ) echo 'create exclude file' ; \
+      CREATE_EXCLUDE_FILE=true; shift ;;
+    -- ) shift; break ;;
+  esac
 done
 
-if [ $PARSE_DEBUG -eq 0 ] ; then 
-	echo "$@"
-	echo 'Ended while '
-	echo NARG2 : $#
-	echo D1 : $1
-fi
 
 # We need to collect the options we should pass along.
 
-if [ $# -ne 1 ] ; then 
-		echo -e "$PNAME: I didn't get a mandatory parameter. A source-folder to back up.\n\"$PNAME -h\" for help.\nTerminating..."	| journalThis 2 OneShot
-		exit 2
+if [ $# -ne 1 ] ; then
+    echo -e "$PNAME: I didn't get a mandatory parameter. A source-folder to \
+      back up.\n\"$PNAME -h\" for help.\nTerminating..." \
+      | journalThis 2 OneShot
+    exit 2
 fi
 BACKUP_OPTIONS=
 
-if [ $DRYRUN = true ] ; then 
-	BACKUP_OPTIONS+="--dry-run"
+if [ $DRYRUN = true ] ; then
+  BACKUP_OPTIONS+="--dry-run"
 fi
-if [ $VERBOSE = true ] ; then 
-	BACKUP_OPTIONS+=" --verbose"
+if [ $VERBOSE = true ] ; then
+  BACKUP_OPTIONS+=" --verbose"
 fi
 
 # --create-exclude-file isn't an option, it's more of a command.
@@ -149,12 +142,13 @@ fi
 
 TARGET_FOLDER=$(realpath "$1")
 
-if [[ $DEBUG -eq 0  || $VERBOSE = true ]] ; then 
-	echo "$PNAME : TARGET_FOLDER: $TARGET_FOLDER" | journalThis 7 OneShot
+if [[ $DEBUG -eq 0  || $VERBOSE = true ]] ; then
+  echo "$PNAME : TARGET_FOLDER: $TARGET_FOLDER" | journalThis 7 OneShot
 fi
 
-if [ ! -d $TARGET_FOLDER ] ; then 
-	echo "$PNAME : $TARGET_FOLDER isn't a directory. Terminating..." | journalThis 2 OneShot
+if [ ! -d $TARGET_FOLDER ] ; then
+  echo "$PNAME : $TARGET_FOLDER isn't a directory. Terminating..." \
+    | journalThis 2 OneShot
   exit 1
 fi
 
@@ -162,101 +156,116 @@ fi
 
 SYMLINK_NAME=$(fullPathSymlinkName "$1")
 
-if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-	echo "$PNAME : SYMLINK_NAME: $SYMLINK_NAME." | journalThis 7 OneShot
+if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
+  echo "$PNAME : SYMLINK_NAME: $SYMLINK_NAME." | journalThis 7 OneShot
 fi
 
 BACKUP_CONTAINER=$FB/OneShot/$SYMLINK_NAME
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-	echo "$PNAME : Backups of $TARGET_FOLDER are stored in: $BACKUP_CONTAINER" | journalThis 7 OneShot
+  echo "$PNAME : Backups of $TARGET_FOLDER are stored in: $BACKUP_CONTAINER" \
+    | journalThis 7 OneShot
 fi
 
 # can be called from the OneShot routine.
-# or we can somehow had our own idea of how to start 
+# or we can somehow had our own idea of how to start
 # the things up, so we just silently create it.
 # we are here to solve problems, not create them.
 
 if [ ! -d "$BACKUP_CONTAINER" ] ; then
-	# selv om det er DRYRUN så beholder vi denne!
-	mkdir -p "$BACKUP_CONTAINER" 
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-		echo -e "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER didn\'t exist.\nMaking $BACKUP_CONTAINER." | journalThis 7 OneShot
-	fi
+  # selv om det er DRYRUN så beholder vi denne!
+  mkdir -p "$BACKUP_CONTAINER"
+  if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
+    echo -e "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER didn\'t exist.\
+      \nMaking $BACKUP_CONTAINER." | journalThis 7 OneShot
+  fi
 else
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-		echo "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER DID  exist." | journalThis 7 OneShot
-	fi
-fi	
+  if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
+    echo "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER DID  exist." \
+      | journalThis 7 OneShot
+  fi
+fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
 TODAYS_BACKUP_FOLDER=$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)
 CREATED_TODAYS_BACKUP_FOLDER=1
-if [ ! -d "$TODAYS_BACKUP_FOLDER" ] ; then 
-	if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then 
-		echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." | journalThis 7 OneShot
-	fi
-	if [ $DRYRUN = false ] ; then 
-		CREATED_TODAYS_BACKUP_FOLDER=0
-		mkdir -p "$TODAYS_BACKUP_FOLDER" 
-	else
-		CREATED_TODAYS_BACKUP_FOLDER=0
-		echo -e  "$PNAME : Todays backup folder didn't exist, creating it:\n mkdir -p $TODAYS_BACKUP_FOLDER"
-	fi
-else 
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-		echo -e  "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID exist." | journalThis 7 OneShot
-	fi
+if [ ! -d "$TODAYS_BACKUP_FOLDER" ] ; then
+  if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then
+    echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
+      exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." \
+      | journalThis 7 OneShot
+  fi
+  if [ $DRYRUN = false ] ; then
+    CREATED_TODAYS_BACKUP_FOLDER=0
+    mkdir -p "$TODAYS_BACKUP_FOLDER"
+  else
+    CREATED_TODAYS_BACKUP_FOLDER=0
+    echo -e  "$PNAME : Todays backup folder didn't exist, creating it:\n \
+      mkdir -p $TODAYS_BACKUP_FOLDER"
+  fi
+else
+  if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
+    echo -e  "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID \
+      exist." | journalThis 7 OneShot
+  fi
 fi
 
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
-if [ $CREATE_EXCLUDE_FILE = true ] ; then 
-	createExcludeFile OneShot $SYMLINK_NAME
+if [ $CREATE_EXCLUDE_FILE = true ] ; then
+  createExcludeFile OneShot $SYMLINK_NAME
 fi
 
-# Exclude file out of the way, time to figure out if there are any "dropin" scripts that should be used.
+# Exclude file out of the way, time to figure out if there are any "dropin"-
+# scripts that should be used.
 
-# Time to figure out which script we are going to use: and making any preparations:
-manager OneShot  "$SYMLINK_NAME" backup 
+# Time to figure out which script we are going to use and making preparations:
+manager OneShot  "$SYMLINK_NAME" backup
 exit_code=$?
-if [ $exit_code  -eq 0 ] ; then 
-	BACKUP_SCRIPT="$DELEGATE_SCRIPT"
+if [ $exit_code  -eq 0 ] ; then
+  BACKUP_SCRIPT="$DELEGATE_SCRIPT"
 else
-	exit $exitcode
-fi	
+  exit $exitcode
+fi
 
-if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then 
-	echo -e "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
+if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+  echo -e "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
+    $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
 fi
 
 
 EXIT_STATUS=0
 trap '' ERR
-$BACKUP_SCRIPT $BACKUP_OPTIONS  "$TARGET_FOLDER"  "$TODAYS_BACKUP_FOLDER" "$SYMLINK_NAME"
+$BACKUP_SCRIPT $BACKUP_OPTIONS  "$TARGET_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
+  "$SYMLINK_NAME"
 EXIT_STATUS=$?
 
-# We do some cleanup in OneShot.backup.sh 
-if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-	 echo  -e "$PNAME : backup  of $TARGET_FOLDER into $TODAYS_BACKUP_FOLDER complete!"	 | journalThis 5 OneShot
+# We do some cleanup in OneShot.backup.sh
+if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true \
+  || $DEBUG -eq 0 ]] ; then
+   echo  -e "$PNAME : backup  of $TARGET_FOLDER into $TODAYS_BACKUP_FOLDER \
+     complete!"   | journalThis 5 OneShot
 
-elif [[ $EXIT_STATUS -gt 1 ]] ; then 
+elif [[ $EXIT_STATUS -gt 1 ]] ; then
 
-	if [ $EXIT_STATUS -eq 130 ] ; then 
-			echo "$PNAME : User interrupted the operation"
-	else
-			echo "$PNAME : A fatal error occurred."
-	fi
+  if [ $EXIT_STATUS -eq 130 ] ; then
+      echo "$PNAME : User interrupted the operation"
+  else
+      echo "$PNAME : A fatal error occurred."
+  fi
 
-  if [[  -d "$TODAYS_BACKUP_FOLDER" && $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then 
+  if [[  -d "$TODAYS_BACKUP_FOLDER" && \
+    $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then
 
-		if [ $DRYRUN = false ] ; then 
-			if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-				echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-			fi
-			rm -fr "$TODAYS_BACKUP_FOLDER"
-		else
-			echo "$PNAME : Removing todays backup folder due to fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-		fi 
-	fi
+    if [ $DRYRUN = false ] ; then
+      if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+        echo "$PNAME : Removing todays backup folder due to fatal errors:\
+          \n rm -fr $TODAYS_BACKUP_FOLDER"
+      fi
+      rm -fr "$TODAYS_BACKUP_FOLDER"
+    else
+      echo "$PNAME : Removing todays backup folder due to fatal errors:\
+        \n rm -fr $TODAYS_BACKUP_FOLDER"
+    fi
+  fi
 fi
 exit $EXIT_STATUS
