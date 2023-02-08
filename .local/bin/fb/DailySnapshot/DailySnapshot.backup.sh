@@ -15,120 +15,120 @@
 # 27/12: Added "sparsity" doesn't make unneccessary backups anymore.
 # 12/01: Real deal ready for production, for what DailySnapshot backups are concerned.
 
-PNAME=${0##*/}
-CURSCHEME=DailySnapshot
-
+VERSION='v0.0.4'
+PNAME="${0##*/}"
+# extract scheme name like below, due to naming-convention.
+CURSCHEME="${PNAME%%.*}"
 # The piece below are set in with m4, to keep just one piece to
 # maintain.
 
+# We set the path above the delegate, where is were
+# we store the service_functions.file
+# shellcheck disable=SC2001,SC2086  # Escaped by sed
+pthname="$( echo $0  | sed 's/ /\\ /g' )"
+# shellcheck disable=SC2086  # Escaped by sed
+fpth="$(realpath $pthname)"; fpth=${fpth%/*} ; fpth=${fpth%/*}
+# This is an early include guard, before we know if we can run
+# run in this environment at all.
 
-err_report() {
-  echo "$PNAME : Error on line $1"
-  echo "$PNAME : Please report this issue at\
-    'https://github.com/McUsr/FB/issues'"
-}
-
-fatal_err() {
-  if [[ $# -le 2 ]] ; then
-    if [ -t 1 ] ; then
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
-        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... " 1>&2
-    else
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
-        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... "\
-        | systemd-cat -t FolderBackup -p crit
-    fi
-    exit 5
-  fi
-  if [[ $# -eq 3 ]] ; then
-    local err_msg="${1}"
-    local modus="${2}"
-    local scheme="${3}"
-
-    if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME : ${err_msg}\
-      Terminating..."| systemd-cat -t "${scheme}" -p err
-    else
-      echo -e "$PNAME : ${err_msg}\
-        \nTerminating..." >/dev/tty
-    fi
-
-  else
-    local funcname="${1}"
-    local err_msg="${2}"
-    local modus="${3}"
-    local scheme="${4}"
-
-    if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME/$funcname : ${err_msg}\
-      Terminating..."| systemd-cat -t "${scheme}" -p err
-    else
-      echo -e "$PNAME/$funcname ${err_msg}\
-        \nTerminating..." >/dev/tty
-    fi
-  fi
-}
-
-dieIfMandatoryVariableNotSet() {
-  if [[ $# -ne 3 ]] ; then
-    if [ -t 1 ] ; then
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need three parameters:\
-        the variable NAME MODUS SCHEME\nTerminating... " 1>&2
-    else
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need three parameters:\
-        the variable NAME MODUS SCHEME\nTerminating... "\
-        | systemd-cat -t FolderBackup -p crit
-    fi
-    exit 5
-  fi
-  local var_name="${1}"
-  local modus="${2}"
-  local scheme="${3}"
-
-  if [[ !  -v "$var_name" ]] ; then
-    if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME/${FUNCNAME[0]} : The variable $var_name isn't set.\
-      Terminating..."| systemd-cat -t "${scheme}" -p crit
-    else
-      echo -e "$PNAME/${FUNCNAME[0]} : The variable $1 isn't set.\
-        \nTerminating..." >/dev/tty
-    fi
-    exit 255
-  fi
-}
-
-trap 'err_report $LINENO' ERR
-TO_CONSOLE=false
-VERSION='v0.0.3c'
-if [[ -t 1 ]] ; then
-  TO_CONSOLE=true;MODE=DEBUG
+# shellcheck source=/home/mcusr/.local/bin/fb/service_functions.sh
+if [[ -r "$fpth"/service_functions.sh ]] ; then
+  source "$fpth"/service_functions.sh
 else
-  TO_CONSOLE=false;MODE=SERVICE
+  echo -e  "$PNAME : Can't source: $fpth/service_functions.sh\
+    \nTerminates... "
+  exit 255
+fi
+
+VERSION='v0.0.4'
+if [[ -t 1 ]] ; then
+  MODE=DEBUG
+else
+  MODE=SERVICE
 fi
 dieIfMandatoryVariableNotSet FB $MODE $CURSCHEME
 dieIfMandatoryVariableNotSet XDG_BIN_HOME $MODE $CURSCHEME
 dieIfMandatoryVariableNotSet XDG_DATA_HOME $MODE $CURSCHEME
-exit $?
+
 # can't check FB just yet, because it is apt to check for internet first.
 
-if ! isDirectory $XDG_BIN_HOME ; then
-  fatal_error "the Directory \$XDG_BIN_HOME : $XDG_BIN_HOME doesn't\
+if ! isDirectory "$XDG_BIN_HOME" ; then
+  fatal_err "the Directory \$XDG_BIN_HOME : $XDG_BIN_HOME doesn't\
     exist!" "$MODE" "$CURSCHEME"
   exit 255
 fi
 
-if ! isDirectory $XDG_DATA_HOME ; then
-  fatal_error "the Directory \$XDG_DATA_HOME : $XDG_DATA_HOME doesn't\
+if ! isDirectory "$XDG_DATA_HOME" ; then
+  fatal_err "the Directory \$XDG_DATA_HOME : $XDG_DATA_HOME doesn't\
     exist!" "$MODE" "$CURSCHEME"
   exit 255
 fi
 
-exec 4>&2 2> >(while read -r REPLY; do printf >&4 '<3>%s\n' "$REPLY"; done)
-trap 'exec >&2-' EXIT
-# https://serverfault.com/questions/573946/how-can-i-send-a-message-to-the-systemd-journal-from-the-command-line
-DRYRUN=1
+# Vars below up here, to work globally and just not in the if block..
+DEBUG=1
+DRYRUN=false
 # controls whether we are going to print the backup command to the console/journal,
 # (when DRYRUN=0) or if were actually going to perform.
+VERBOSE=false
+
+if [[ "$MODE" == "SERVICE" ]] ; then
+# https://serverfault.com/questions/573946/how-can-i-send-a-message-to-the-systemd-journal-from-the-command-line
+  exec 4>&2 2> >(while read -r REPLY; do printf >&4 '<3>%s\n' "$REPLY"; done)
+  trap 'exec >&2-' EXIT
+
+# Normal argument parsing happens here!
+else
+
+
+if [[ $# -eq 0 ]] ; then
+  echo -e "$PNAME : Too few arguments. At least I need a folder target\
+    to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+ exit 2
+fi
+
+help() {
+cat  << EOF
+
+$PNAME:  Restores a previous folder backup, made with the fb system.
+
+syntax:
+
+  $PNAME [options] <source folder>  <full-symlink-name>  <destination>
+  It is meant to be executed by *fboneshot* and not individually.
+
+  Options:
+
+  -h| --help.    Shows this help.
+  -n| --dry-run  Shows what would have happened
+  -v| --verbose  Shows more detailed output.
+  -V| --version  Shows the version of $PNAME ($VERSION).
+
+EOF
+}
+
+  GETOPT_COMPATIBLE=true
+# time to parse some command line arguments!
+# https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
+  TEMP=$(getopt -o hnvV --longoptions help,verbose,dry-run,version \
+                -n "$PNAME" -- "$@")
+  # shellcheck disable=SC2181 # It's too long to put in  an if test, I feel!
+  if [[ $? != 0 ]] ; then echo "$PNAME : Terminating..." >&2 ; exit 2 ; fi
+
+  # Note the quotes around '$TEMP': they are essential!
+  eval set -- "$TEMP"
+
+  while true; do
+      case "$1" in
+        -h | --help )  help ; exit 0 ;;
+        -n | --dry-run ) DRYRUN=true; shift ;;
+        -v | --verbose ) VERBOSE=true; shift ;;
+        -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
+        -- ) shift; break ;;
+      esac
+  done
+
+fi
+
 DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated by
@@ -139,8 +139,7 @@ TO_CONSOLE=0
 # implicitly by a daemon.
 ARCHIVE_OUTPUT=1
 
-
-
+# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
 if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
   source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
@@ -149,6 +148,7 @@ else
   exit 255
 fi
 
+# shellcheck disable=SC2034  # will be used!
 DAYS_TO_KEEP_BACKUPS=14
 
 # TODO: differ between "REAL" mode and debug mode.
@@ -173,9 +173,9 @@ BACKUP_SCHEME=$1
 SYMLINK_NAME=$2
 
 
-JOBSFOLDER=$XDG_DATA_HOME/fbjobs/$BACKUP_SCHEME
+JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
-TARGET_FOLDER=$(realpath $JOBSFOLDER/$SYMLINK_NAME)
+TARGET_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [ $DEBUG -eq 0 ] ; then
   echo >&4 "<7>${0##*/}: TARGET_FOLDER: $TARGET_FOLDER"
   # debug message
