@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="\"v0.0.3\""
+VERSION="\"v0.0.3c\""
 # fbrestore. 
 # fbrestore Restores an  an adhoc snapshot of a folder - a snapshot. 
 # 2022 (c) Mcusr -- Vim license.
@@ -7,29 +7,29 @@ PNAME=${0##*/}
 SILENCE=0
 
 err_report() {
-	if [ $SILENCE -eq 1 ] ; then 
-		echo "$PNAME : Error on line $1"
-		echo "$PNAME : Please report this issue at 'https://github.com/McUsr/FB/issues'" 
-	fi 
+  if [ $SILENCE -eq 1 ] ; then 
+    echo "$PNAME : Error on line $1"
+    echo "$PNAME : Please report this issue at 'https://github.com/McUsr/FB/issues'" 
+  fi 
 }
 
 trap 'err_report $LINENO' ERR
 
 if [[ ! -v XDG_BIN_HOME ]] ; then 
-	echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME), is the system initialized? You need configure it.\nTerminating..." >/dev/tty
-		exit 255
+  echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME), is the system initialized? You need configure it.\nTerminating..." >/dev/tty
+    exit 255
 fi
 
 if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then 
-	source "$XDG_BIN_HOME"/fb/shared_functions.sh
+  source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
-	echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\nTerminates... " >/dev/tty
-	exit 255
+  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\nTerminates... " >/dev/tty
+  exit 255
 fi 
 
 if [[ ! -v FB  ]] ; then 
-	 	echo "${0##*/}" "The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." >& 2
-		exit 255
+     echo "${0##*/}" "The variable \$FB isn't set, is the system initialized? You need configure it.\nTerminating..." >& 2
+    exit 255
 fi
 
 # We need to check if we have an internet connection 
@@ -41,7 +41,7 @@ consoleFBFolderIsMounted OneShot
 GETOPT_COMPATIBLE=true
 
 if [[ $# -eq 0 ]] ; then 
-	echo -e $PNAME : "Too few arguments. At least I need a backup source to restore from.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+  echo -e $PNAME : "Too few arguments. At least I need a backup source to restore from.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
  exit 2
 fi
 
@@ -84,106 +84,106 @@ DST_FOLDER_SET=false
 
 PARSE_DEBUG=1
 while true; do
-	if [[ $PARSE_DEBUG -eq 0 ]] ; then 
-	echo "while ...."
-		case "$1" in
-			-h | --help ) echo 'h' ; help ; exit 0 ;;
-			-n | --dry-run ) echo '--dry-run' ; DRYRUN=true; shift ;;
-			-v | --verbose ) echo 'verbose ' ; VERBOSE=true; shift ;;
-			-o | --dest-dir ) echo 'dest-dir' ; DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
-			-F | --force ) echo 'FORCE' ; FORCE=true ; shift ;;
-			-V | --version ) echo 'version' ;echo $PNAME : $VERSION ; exit 0 ;;
-			-- ) shift; break ;;
-	#    * ) break ;;
-		esac
-	else 
-		case "$1" in
-			-h | --help )  help ; exit 0 ;;
-			-n | --dry-run ) DRYRUN=true; shift ;;
-			-v | --verbose ) VERBOSE=true; shift ;;
-			-o | --dest-dir ) DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
-			-F | --force ) FORCE=true ; shift ;;
-			-V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
-			-- ) shift; break ;;
-	#    * ) break ;;
-		esac
-	fi
+  if [[ $PARSE_DEBUG -eq 0 ]] ; then 
+  echo "while ...."
+    case "$1" in
+      -h | --help ) echo 'h' ; help ; exit 0 ;;
+      -n | --dry-run ) echo '--dry-run' ; DRYRUN=true; shift ;;
+      -v | --verbose ) echo 'verbose ' ; VERBOSE=true; shift ;;
+      -o | --dest-dir ) echo 'dest-dir' ; DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
+      -F | --force ) echo 'FORCE' ; FORCE=true ; shift ;;
+      -V | --version ) echo 'version' ;echo $PNAME : $VERSION ; exit 0 ;;
+      -- ) shift; break ;;
+  #    * ) break ;;
+    esac
+  else 
+    case "$1" in
+      -h | --help )  help ; exit 0 ;;
+      -n | --dry-run ) DRYRUN=true; shift ;;
+      -v | --verbose ) VERBOSE=true; shift ;;
+      -o | --dest-dir ) DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
+      -F | --force ) FORCE=true ; shift ;;
+      -V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
+      -- ) shift; break ;;
+  #    * ) break ;;
+    esac
+  fi
 done
 
 if [[ $PARSE_DEBUG -eq 0 ]] ; then 
-	echo "$@"
-	echo 'Ended while '
-	echo NARG2 : $#
-	echo D1 : $1
+  echo "$@"
+  echo 'Ended while '
+  echo NARG2 : $#
+  echo D1 : $1
 fi
 
 # Needs to check if variables that holds files starts with one or two dashes.
 # separates between longopts and shortopts for simplicity.
 
 if [[ $DST_FOLDER_SET = false ]] ; then 
-	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-		echo $PNAME : DEST_FOLDER NOT SET 
-	elif [[ $DRYRUN = true ]] ; then
-		echo "$PNAME : Destination folder not set, making one under /tmp."
-	fi
+  if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+    echo $PNAME : DEST_FOLDER NOT SET 
+  elif [[ $DRYRUN = true ]] ; then
+    echo "$PNAME : Destination folder not set, making one under /tmp."
+  fi
 else
 #  echo "testing folder name $DEST_FOLDER" 
-	# Vet it against All the options.
-	for opt in h o d v D F V ; do 
-	 if [[ $DEST_FOLDER = $opt  || $DEST_FOLDER = "-"$opt ]] ; then 
-		 echo -e "$PNAME : The destination folder has an invalid name ($DEST_FOLDER).\n Did you forget to specify one?\nExecute \"$PNAME -h\" for help. Terminating..." >&2
-		 exit 2
-	 fi
-	done 
+  # Vet it against All the options.
+  for opt in h o d v D F V ; do 
+   if [[ $DEST_FOLDER = $opt  || $DEST_FOLDER = "-"$opt ]] ; then 
+     echo -e "$PNAME : The destination folder has an invalid name ($DEST_FOLDER).\n Did you forget to specify one?\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+     exit 2
+   fi
+  done 
 
-	for opt in help dest-dir verbose dry-run force version ; do 
-	 if [[ $DEST_FOLDER = $opt  || $DEST_FOLDER = "--"$opt ]] ; then 
-		 echo -e "$PNAME : The destination folder has an invalid name ($DEST_FOLDER).\n Did you forget to specify one?\nExecute \"$PNAME -h\" for help. Terminating..." >&2
-		 exit 2
-	 fi
+  for opt in help dest-dir verbose dry-run force version ; do 
+   if [[ $DEST_FOLDER = $opt  || $DEST_FOLDER = "--"$opt ]] ; then 
+     echo -e "$PNAME : The destination folder has an invalid name ($DEST_FOLDER).\n Did you forget to specify one?\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+     exit 2
+   fi
  done
 fi
 
 PARSE_DEBUG=1
 if [[ $PARSE_DEBUG -eq 0 ]] ; then 
-	echo DRYRUN : $DRYRUN
-	echo VERBOSE : $VERBOSE
-	echo DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER
-	echo FORCE : $FORCE
+  echo DRYRUN : $DRYRUN
+  echo VERBOSE : $VERBOSE
+  echo DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER
+  echo FORCE : $FORCE
 fi
 
 RESTORE_OPTIONS=
 
 if [[ $DRYRUN = true ]] ; then 
-	RESTORE_OPTIONS+="--dry-run"
+  RESTORE_OPTIONS+="--dry-run"
 fi
 if [[ $VERBOSE = true ]] ; then 
-	RESTORE_OPTIONS+=" --verbose"
+  RESTORE_OPTIONS+=" --verbose"
 fi
 if [[ $FORCE = true ]] ; then 
-	RESTORE_OPTIONS+=" --force"
+  RESTORE_OPTIONS+=" --force"
 fi
 
 if [[ $# -ne 1 ]] ; then 
-	# leniency, if we forgot the -o switch, and arg 2 exists as a folder, and we haven't set a destination, then we will silently let it slide through.
-	if [[ $# -eq 2 && $DST_FOLDER_SET = false && -d "$2" ]] ; then 
-		:
-	else
-		echo -e "$PNAME : Wrong number of   arguments. I need one argument for a backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
-		exit 1
-	fi
+  # leniency, if we forgot the -o switch, and arg 2 exists as a folder, and we haven't set a destination, then we will silently let it slide through.
+  if [[ $# -eq 2 && $DST_FOLDER_SET = false && -d "$2" ]] ; then 
+    :
+  else
+    echo -e "$PNAME : Wrong number of   arguments. I need one argument for a backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+    exit 1
+  fi
 fi
 
 
 # Check out if our source file or folder exists. 
 if [[ ! -r "$1" ]] ; then
-	echo -e $PNAME : "I can\'t seem to find the file or folder  \"$1\".\nTerminating..." >&2
-	exit 1
+  echo -e $PNAME : "I can\'t seem to find the file or folder  \"$1\".\nTerminating..." >&2
+  exit 1
 else
-	BACKUP_SOURCE_REALPATH=$(realpath $1)
-	if [[ $PARSE_DEBUG -eq 0 ]] ; then 
-		echo -e "Found \"$1\"\n (\"$BACKUP_SOURCE_REALPATH\")" >&2
-	fi
+  BACKUP_SOURCE_REALPATH=$(realpath $1)
+  if [[ $PARSE_DEBUG -eq 0 ]] ; then 
+    echo -e "Found \"$1\"\n (\"$BACKUP_SOURCE_REALPATH\")" >&2
+  fi
 fi 
 
 KIND=$(backupKind "$1")
@@ -191,38 +191,38 @@ KIND=$(backupKind "$1")
 # DEBUG_VAR for periodic here.
 
 if [[ "$KIND" = "OneShot" ]] ; then 
-	if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-		echo $PNAME : "Current backup KIND is One Shot Backup."	
-	fi
-	SYMLINK_NAME=$(identifyBackupSourceFolder "OneShot" "$BACKUP_SOURCE_REALPATH" )
+  if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+    echo $PNAME : "Current backup KIND is One Shot Backup."  
+  fi
+  SYMLINK_NAME=$(identifyBackupSourceFolder "OneShot" "$BACKUP_SOURCE_REALPATH" )
   # still need this one for figuring if we are restoring to the
-	# original folder, which we won't without the --force flag.
-	PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
-	# Question is: Do I need anything more than this?
-	# Though, I must indeed veryify that there is a timestamped folder after.
-	TIME_STAMPED_BACKUP_CONTAINING_FOLDER=$(identifyTimeStampedBackupContainingFolder "$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")
-	EXIT_STATUS=$?
-	# Apparaently, it isn't that easy to exit directly, when you're in a subshell
-	if [[ $EXIT_STATUS -ne 0 ]] ; then 
-		trap '' ERR
-	 	exit $EXIT_STATUS
-	fi 
-	if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-		echo $PNAME : "Time stamped backup container: $TIME_STAMPED_BACKUP_CONTAINING_FOLDER"
-	fi
+  # original folder, which we won't without the --force flag.
+  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
+  # Question is: Do I need anything more than this?
+  # Though, I must indeed veryify that there is a timestamped folder after.
+  TIME_STAMPED_BACKUP_CONTAINING_FOLDER=$(identifyTimeStampedBackupContainingFolder "$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")
+  EXIT_STATUS=$?
+  # Apparaently, it isn't that easy to exit directly, when you're in a subshell
+  if [[ $EXIT_STATUS -ne 0 ]] ; then 
+    trap '' ERR
+     exit $EXIT_STATUS
+  fi 
+  if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+    echo $PNAME : "Time stamped backup container: $TIME_STAMPED_BACKUP_CONTAINING_FOLDER"
+  fi
 elif [[ "$KIND" = "Periodic" ]] ; then 
-	PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme $BACKUP_SOURCE_REALPATH )
-	if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then 
-		echo $PNAME : PERIODIC_BACKUP_SCHEME : ">"$PERIODIC_BACKUP_SCHEME"<"
-		echo $PNAME : "Periodic backups NOT IMPLEMENTED YET:"
-		exit 5
-	fi
+  PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme $BACKUP_SOURCE_REALPATH )
+  if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then 
+    echo $PNAME : PERIODIC_BACKUP_SCHEME : ">"$PERIODIC_BACKUP_SCHEME"<"
+    echo $PNAME : "Periodic backups NOT IMPLEMENTED YET:"
+    exit 5
+  fi
 else 
-	# bail out if finding a different kind.
-	# We may do something about this in the futurem, or some kind of translation for names and stuff
-	# for the French! in the Future....far Future...
-	echo -e "$PNAME : WRONG BACKUP KIND DISCOVERED\nWe only handle backups of the \"OneShot\" or \"Periodic\" kind, not \"$KIND\".\nTerminating..."
- exit 2	
+  # bail out if finding a different kind.
+  # We may do something about this in the futurem, or some kind of translation for names and stuff
+  # for the French! in the Future....far Future...
+  echo -e "$PNAME : WRONG BACKUP KIND DISCOVERED\nWe only handle backups of the \"OneShot\" or \"Periodic\" kind, not \"$KIND\".\nTerminating..."
+ exit 2  
 fi
 
 # DETERMINE THE BACKUP-DESTINATION
@@ -230,73 +230,73 @@ fi
 
 MADE_FOLDER=false
 if [[ $DST_FOLDER_SET = false ]] ; then 
-	# We will make a folder under /tmp
-	DEST_FOLDER=/tmp/$SYMLINK_NAME/$TIME_STAMPED_BACKUP_CONTAINING_FOLDER
-	if [[ $DRYRUN = false ]] ; then 
-		if [[ ! -d "$DEST_FOLDER" ]] ; then 
-#			rm -fr /tmp/"$SYMLINK_NAME"/"$TIME_STAMPED_BACKUP_CONTAINING_FOLDER"
-#			if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-#				echo -e "$PNAME : "$DEST_FOLDER" existed\nDeleting it and it's contents."
-#			fi
-			MADE_FOLDER=true
-			mkdir -p "$DEST_FOLDER" 
-		fi
-	else
-		if [[ -d "$DEST_FOLDER" ]] ; then 
-			echo -e "$PNAME : Destination folder existed, maybe with contents."
-			# \n executing: rm -fr /tmp/"$SYMLINK_NAME"/"$TIME_STAMPED_BACKUP_CONTAINING_FOLDER"." 
-		else 
-			echo -e "$PNAME : Ceating time-stamped backup containing  folder,\n executing:  mkdir -p $DEST_FOLDER" 
-		fi
-	fi
+  # We will make a folder under /tmp
+  DEST_FOLDER=/tmp/$SYMLINK_NAME/$TIME_STAMPED_BACKUP_CONTAINING_FOLDER
+  if [[ $DRYRUN = false ]] ; then 
+    if [[ ! -d "$DEST_FOLDER" ]] ; then 
+#      rm -fr /tmp/"$SYMLINK_NAME"/"$TIME_STAMPED_BACKUP_CONTAINING_FOLDER"
+#      if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+#        echo -e "$PNAME : "$DEST_FOLDER" existed\nDeleting it and it's contents."
+#      fi
+      MADE_FOLDER=true
+      mkdir -p "$DEST_FOLDER" 
+    fi
+  else
+    if [[ -d "$DEST_FOLDER" ]] ; then 
+      echo -e "$PNAME : Destination folder existed, maybe with contents."
+      # \n executing: rm -fr /tmp/"$SYMLINK_NAME"/"$TIME_STAMPED_BACKUP_CONTAINING_FOLDER"." 
+    else 
+      echo -e "$PNAME : Ceating time-stamped backup containing  folder,\n executing:  mkdir -p $DEST_FOLDER" 
+    fi
+  fi
 
 else
-	# There is set  a destination folder on the command line.
-	if [[ "$DEST_FOLDER" = "$PATH_TO_SOURCE_FOR_BACKUP" ]] ; then  
+  # There is set  a destination folder on the command line.
+  if [[ "$DEST_FOLDER" = "$PATH_TO_SOURCE_FOR_BACKUP" ]] ; then  
 
-		if [[ $FORCE = false ]] ; then 
-		
-			# DRYRUN not considered here, since the result is the same.
+    if [[ $FORCE = false ]] ; then 
+    
+      # DRYRUN not considered here, since the result is the same.
 
-			echo -e "$PNAME : You want to to restore the backup into the original folder.\nYou need to apply the '--force' option on the command line to achieve that.\nTerminating..."
-			exit 2
-		fi
-	else
-		# no protection from doing stupid things as to restore/dump a backup into the $HOME folder
-		if [[ $DRYRUN = false  ]] ; then 
-			if [ ! -d "$DEST_FOLDER" ] ; then 
-				if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-					echo $PNAME : mkdir -p "$DEST_FOLDER" 
-				fi
-				MADE_FOLDER=true
-				mkdir -p "$DEST_FOLDER"
-			else 
-				if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
-					echo "$PNAME : Dest folder for restore: $DEST_FOLDER existed. -No unlinking of it before the restore!"  
-				fi
-			fi
-		else
-			if [ ! -d "$DEST_FOLDER" ] ; then 
-				MADE_FOLDER=true
-				echo "$PNAME : mkdir -p $DEST_FOLDER" 
-			fi
-		fi
-	fi
+      echo -e "$PNAME : You want to to restore the backup into the original folder.\nYou need to apply the '--force' option on the command line to achieve that.\nTerminating..."
+      exit 2
+    fi
+  else
+    # no protection from doing stupid things as to restore/dump a backup into the $HOME folder
+    if [[ $DRYRUN = false  ]] ; then 
+      if [ ! -d "$DEST_FOLDER" ] ; then 
+        if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+          echo $PNAME : mkdir -p "$DEST_FOLDER" 
+        fi
+        MADE_FOLDER=true
+        mkdir -p "$DEST_FOLDER"
+      else 
+        if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then 
+          echo "$PNAME : Dest folder for restore: $DEST_FOLDER existed. -No unlinking of it before the restore!"  
+        fi
+      fi
+    else
+      if [ ! -d "$DEST_FOLDER" ] ; then 
+        MADE_FOLDER=true
+        echo "$PNAME : mkdir -p $DEST_FOLDER" 
+      fi
+    fi
+  fi
 fi
  
 
 manager OneShot  "$SYMLINK_NAME" restore 
 EXIT_STATUS=$?
 if [ $EXIT_STATUS  -eq 0 ] ; then 
-	RESTORE_SCRIPT="$DELEGATE_SCRIPT"
+  RESTORE_SCRIPT="$DELEGATE_SCRIPT"
 else
-	exit $EXIT_STATUS
-fi	
+  exit $EXIT_STATUS
+fi  
 
 
 EXIT_STATUS=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then 
-	echo -e "$PNAME : EXECUTING:\n$RESTORE_SCRIPT $RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $DEST_FOLDER\n" | journalThis 7 OneShot
+  echo -e "$PNAME : EXECUTING:\n$RESTORE_SCRIPT $RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $DEST_FOLDER\n" | journalThis 7 OneShot
 fi
 
 EXIT_STATUS=0
@@ -307,26 +307,26 @@ EXIT_STATUS=$?
 # We do some cleanup in OneShot.restore.sh 
 if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
 
-	echo  -e "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into $DEST_FOLDER complete!"	 | journalThis 5 OneShot
+  echo  -e "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into $DEST_FOLDER complete!"   | journalThis 5 OneShot
 
 elif [ $EXIT_STATUS -gt 1 ] ; then 
 
-	if [ $EXIT_STATUS -eq 130 ] ; then 
-			echo "$PNAME : User interrupted the operation"
-	else
-			echo "$PNAME : A fatal error occurred."
-	fi
-	if [[ $MADE_FOLDER = true && -d "$DEST_FOLDER" ]] ; then 
+  if [ $EXIT_STATUS -eq 130 ] ; then 
+      echo "$PNAME : User interrupted the operation"
+  else
+      echo "$PNAME : A fatal error occurred."
+  fi
+  if [[ $MADE_FOLDER = true && -d "$DEST_FOLDER" ]] ; then 
 
-		if [ $DRYRUN = false ] ; then 
-			if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
-				echo "$PNAME : Removing  folder to restore into  due fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-			fi
-			rm -fr "$DEST_FOLDER"
-		else 
-			echo "$PNAME : Removing  folder to restore into  due fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
-		fi
-	fi
+    if [ $DRYRUN = false ] ; then 
+      if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then 
+        echo "$PNAME : Removing  folder to restore into  due fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
+      fi
+      rm -fr "$DEST_FOLDER"
+    else 
+      echo "$PNAME : Removing  folder to restore into  due fatal errors:\n rm -fr $TODAYS_BACKUP_FOLDER"
+    fi
+  fi
 
 fi
 exit $EXIT_STATUS
