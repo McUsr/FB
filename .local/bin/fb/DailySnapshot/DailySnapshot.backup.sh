@@ -4,17 +4,24 @@
 # This script serves as a template for dropin scripts.
 #
 # This script gets executed every time the timer interval specified in this
-# case DailySnapshot.timer fires and is made for  being  started by the ../governor.sh
+# case DailySnapshot.timer fires and is made for  being  started by
+# the ../governor.sh
 # the name of the script should give an idea as to what you are backing up.
 
 # You need to edit it to align with the folder you share with Linux for backup
-# purposes, and with the folder you want to make an hourly backup of.  you also
+# purposes, and with the folder you want to make an hourly backup of.
+# you also
 # need to install notify-send.
 # https://www.reddit.com/r/Crostini/comments/zl5nte/sending_notifications_to_chromeos_desktop_from/
 #
 # 27/12: Added "sparsity" doesn't make unneccessary backups anymore.
-# 12/01: Real deal ready for production, for what DailySnapshot backups are concerned.
+# 12/01: Real deal ready for production, for what DailySnapshot
+# backups are concerned.
 
+# shellcheck disable=SC2034  # will be used!
+DAYS_TO_KEEP_BACKUPS=14
+# anything less or equal to 0 effectively disables backup.
+# Up here for convenience, if that is what you want to change.
 VERSION='v0.0.4'
 PNAME="${0##*/}"
 # extract scheme name like below, due to naming-convention.
@@ -40,7 +47,6 @@ else
   exit 255
 fi
 
-VERSION='v0.0.4'
 if [[ -t 1 ]] ; then
   MODE=DEBUG
 else
@@ -80,21 +86,39 @@ if [[ "$MODE" == "SERVICE" ]] ; then
 else
 
 
-if [[ $# -eq 0 ]] ; then
-  echo -e "$PNAME : Too few arguments. At least I need a folder target\
-    to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+if [[ $# -lt 2 ]] ; then
+  echo -e "$PNAME : Too few arguments. At least I need a backup-scheme\
+    and a full-symlink to the source for the backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
  exit 2
 fi
+
+# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
+if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
+  source "$XDG_BIN_HOME"/fb/shared_functions.sh
+else
+  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
+    \nTerminates... "
+  exit 255
+fi
+
+consoleHasInternet $CURSCHEME
+
+consoleFBFolderIsMounted $CURSCHEME
 
 help() {
 cat  << EOF
 
-$PNAME:  Restores a previous folder backup, made with the fb system.
+$PNAME:  Creates a periodic  backup, made with the fb system services.
 
 syntax:
 
-  $PNAME [options] <source folder>  <full-symlink-name>  <destination>
-  It is meant to be executed by *fboneshot* and not individually.
+  From cli during testing:
+  $PNAME [options] <backup scheme>  <full-symlink-name>
+
+  In production:
+  $PNAME [options] <backup scheme>  <full-symlink-name>
+  It is meant to be executed through *fbgovernor* and not individually,
+  in production..
 
   Options:
 
@@ -129,60 +153,80 @@ EOF
 
 fi
 
-DEBUG=0
-#
-# prints out debug messages to the console/journal if its on when instigated by
-# systemd --user.
-TO_CONSOLE=0
-# controls whether debug output will be sent to the journal when the script is called
-# from the terminal, and output be sent to the journal anyway, when the script is run
-# implicitly by a daemon.
-ARCHIVE_OUTPUT=1
+if [[ $# -ne 2 ]] ; then
+    if [[ "$MODE" == "SERVICE" ]] ; then
+      notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory\
+        parameters: A backup scheme, and a job-folder, Hopefully you are\
+        executing from the commandline. Exiting hard."
 
-# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
-if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
-  source "$XDG_BIN_HOME"/fb/shared_functions.sh
-else
-  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
-    \nTerminates... "
-  exit 255
-fi
-
-# shellcheck disable=SC2034  # will be used!
-DAYS_TO_KEEP_BACKUPS=14
-
-# TODO: differ between "REAL" mode and debug mode.
-if [ $# -ne 2 ] ; then
-    if [[ $TO_CONSOLE == false ]] ; then
-      notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory parameters: A backup scheme, and a job-folder, Hopefully you are executing from the commandline. Exiting hard."
+      echo >&4 "<2>${0##*/} : I didn't get two mandatory parameters: A backup\
+        scheme, and a job-folder, Hopefully you are executing from the\
+        commandline. Exiting hard."
+      exit 255
+   else
+      echo "${0##*/} : I didn't get two mandatory parameters: A backup\
+        scheme, and a job-folder, Hopefully you are executing from the\
+        commandline. Exiting hard."
+      exit 2
     fi
-    # TODO : journal message.
-    # A criticial error.
-    # I think it will be good with date and folder as variables, and the scheme as target.
-
-    echo >&4 "<2>${0##*/} : I didn't get two mandatory parameters: A backup scheme, and a job-folder, Hopefully you are executing from the commandline. Exiting hard."
-    exit 255
-
 fi
 
-# ----------------------------------------------------------------------------
-# parsing of options happens here!
-# ----------------------------------------------------------------------------
 
-BACKUP_SCHEME=$1
-SYMLINK_NAME=$2
+BACKUP_SCHEME="${1}"
+SYMLINK_NAME="${2}"
 
 
+HAVING_ERRORS=false
+# For the dry-run.
+
+# Controls whether debug output will be sent to the journal when the script is
+# called from the terminal, and output be sent to the journal anyway, when
+# the script is run implicitly by a daemon.
+ARCHIVE_OUTPUT=1
 JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
+# we regenerate the folder where the symlinks are
+# In the install script.
+
+if [[ ! -d $JOBSFOLDER ]] ; then
+    if [[ "$MODE" == "SERVICE" ]] ; then
+      notify-send "Folder Backup: ${0##*/}" "The folder $JOBFOLDER doesn't\
+         exist. Hopefully you are executing from the commandline and\
+         misspelled $BACKUP_SCHEME."
+      echo >&4 "<0>${0##*/}: The folder $JOBFOLDER doesn't exist. Hopefully\
+        you are executing from the commandline and misspelled $BACKUP_SCHEME."
+      exit 255
+    else
+      # TODO: FATAL_ERR
+    fi
+    # A critical error
+fi
+
+
+DEBUG=1
+
+if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+  echo >&4 "<7>${0##*/}: JOBSFOLDER: $JOBSFOLDER"
+  # a debug message
+fi
+
+
+
 TARGET_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
-if [ $DEBUG -eq 0 ] ; then
+if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
   echo >&4 "<7>${0##*/}: TARGET_FOLDER: $TARGET_FOLDER"
   # debug message
 fi
-THIS_FOLDER_BUCKET=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
-if [ $DEBUG -eq 0 ] ; then
-  echo >&4 "<5>${0##*/} : the backups of $TARGET_FOLDER are stored in: $THIS_FOLDER_BUCKET"
+
+BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
+# This is done in the fbsnapshot utility, and not in the
+# OneShot.backup.sh, The "architecture" is "twisted".
+
+# TODO: Maybe have a dbg_msg, ala fatal_error, that takes care of
+# all the stuff that we otherwise have to litter our code with?
+if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+  echo >&4 "<5>${0##*/} : the backups of $TARGET_FOLDER are stored in:\
+    $BACKUP_CONTAINER"
   # TODO: Maybe raise this to notice.
 
 fi
@@ -194,106 +238,101 @@ fi
 # the things up, so we just silently create it.
 # we are here to solve problems, not create them.
 
-if [ ! -d $THIS_FOLDER_BUCKET ] ; then
-  mkdir -p $THIS_FOLDER_BUCKET
-  if [ $DEBUG -eq 0 ] ; then
-    echo >&4 "<7>${0##*/} : $THIS_FOLDER_BUCKET didn\'t exist"
+# TODO: something for dryrun here, but we keep the bucket?
+# so not inflicted by dry-run?
+
+if [[ ! -d $BACKUP_CONTAINER ]] ; then
+  mkdir -p $BACKUP_CONTAINER
+  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    echo >&4 "<7>${0##*/} : $BACKUP_CONTAINER didn\'t exist"
     # A debug message
   fi
 else
-  if [ $DEBUG -eq 0 ] ; then
-    echo >&4 "<7>${0##*/} : $THIS_FOLDER_BUCKET DID  exist"
+  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    echo >&4 "<7>${0##*/} : $BACKUP_CONTAINER DID  exist"
    # A debug message
   fi
 fi
 
 # we generate todays folder name.
-TODAYS_FOLDER=$THIS_FOLDER_BUCKET/$(baseNameDateStamped $SYMLINK_NAME)
+TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)"
 
-# we regenerate the folder where the symlinks are
-# THIS part isn't in the OneShot script.
-# there is  alot that doesn't need to be in the OneShot script,
-# But, on the other hand, if the OneShot is executed repeatedly,
-# Then maybe the find -cnewer is smart, after all?
-
-
-
-if [ ! -d $JOBSFOLDER ] ; then
-     notify-send "Folder Backup: ${0##*/}" "The folder $JOBFOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
-    echo >&4 "<0>${0##*/}: The folder $JOBFOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
-    exit 255
-    # A critical error
-fi
-
-if [ $DEBUG -eq 0 ] ; then
-  echo >&4 "<7>${0##*/}: JOBSFOLDER: $JOBSFOLDER"
-  # a debug message
-fi
 
 MAKE_BACKUP=1
 # MAKE_BACKUP helps us differ between the case that we need to
-# make TODAYS_FOLDER, or not, because if we make it, then there is
+# make TODAYS_BACKUP_FOLDER, or not, because if we make it, then there is
 # no reason to perform a find -newer, we'll make a backup anyway.
 
 # So we can differ between first run of today,
 # and later ones, because we need to rotate backups if
 # it is.
-MADE_TODAYS_FOLDER=1
-if [ ! -d $TODAYS_FOLDER ] ; then
-  mkdir -p $TODAYS_FOLDER
-  MADE_TODAYS_FOLDER=0
+MADE_TODAYS_BACKUP_FOLDER=1
+if [[ ! -d $TODAYS_BACKUP_FOLDER ]] ; then
+  mkdir -p $TODAYS_BACKUP_FOLDER
+  MADE_TODAYS_BACKUP_FOLDER=0
 
-  if [ $DEBUG -eq 0 ] ; then
-    echo >&4 "<7>${0##*/}: $TODAYS_FOLDER didn\'t exist, que to make backup"
+  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    echo >&4 "<7>${0##*/}: $TODAYS_BACKUP_FOLDER didn\'t exist, que to make \
+      backup"
     # debug message
   fi
   MAKE_BACKUP=0
 else
-  if [ $DEBUG -eq 0 ] ; then
-    echo >&4 "<7>${0##*/}: $TODAYS_FOLDER exists, NO que to make backup"
+  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    echo >&4 "<7>${0##*/}: $TODAYS_BACKUP_FOLDER exists, NO que to make \
+      backup"
     # debug
   fi
-  modfiles=`find -H $JOBSFOLDER/$SYMLINK_NAME -cnewer $TODAYS_FOLDER`
-    if [ $DEBUG -eq 0 ] ; then
+  modfiles=`find -H $JOBSFOLDER/$SYMLINK_NAME -cnewer $TODAYS_BACKUP_FOLDER`
+    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
       echo >&4 "<7>${0##*/}: +"$modfiles"+"
       # debug message
     fi
-  if [ ! -z "$modfiles" ] ; then
+  if [[ ! -z "$modfiles" ]] ; then
     # there are changed files here, and we should perform a backup
-    if [ $DEBUG -eq 0 ] ; then
+    if [ $DEBUG -eq 0 || $VERBOSE == true ] ; then
 
-      echo >&4 "<5>${0##*/}: find: There are modified files in target folder: $TARGET_FOLDER and we will perform a $BACKUP_SCHEME backup."
+      echo >&4 "<5>${0##*/}: find: There are modified files in target folder:\
+         $TARGET_FOLDER and we will perform a $BACKUP_SCHEME backup."
      fi
     MAKE_BACKUP=0
   else
-    if [ $DEBUG -eq 0 ] ; then
-      echo >&4 "<5>${0##*/}: find: There are no changed files in target folder: $TARGET_FOLDER."
+    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+      echo >&4 "<5>${0##*/}: find: There are no changed files in target \
+        folder: $TARGET_FOLDER."
       # notice message
     fi
   fi
 fi
 
-if [  $MAKE_BACKUP -eq 0 ] ; then
+if [[  $MAKE_BACKUP -eq 0 ]] ; then
     # there are changed files here, and we should perform a backup
     # we extract the real path, pointed to by the symlink, which we
     # will make a backup of.
 
 
-    if [ $DRYRUN -eq 0 ] ; then
-      echo >&4 "<5>${0##*/}: sudo tar -zvcf $TODAYS_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz -C $TARGET_FOLDER ."
+    if [[ $DRYRUN -eq 0 ]] ; then
+      echo >&4 "<5>${0##*/}: sudo tar -zvcf \
+        $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
+        -C $TARGET_FOLDER ."
       # notice message
     else
-      if [ $ARCHIVE_OUTPUT -eq 0 ] ; then
-        sudo tar -zvcf $TODAYS_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz -C $TARGET_FOLDER . >&4
+      if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
+        sudo tar -zvcf \
+          $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
+          -C $TARGET_FOLDER . >&4
         # the output sent as a notice message.
       else
-        sudo tar -zvcf $TODAYS_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz -C $TARGET_FOLDER . >/dev/null
+        sudo tar -zvcf \
+          $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
+          -C $TARGET_FOLDER . >/dev/null
       fi
     fi
 
-    # TODO: More work on the notify-send message, and needs to send a message to the Journal as well.
+    # TODO: More work on the notify-send message,
+    #  and needs to send a message to the Journal as well.
     # Needs to learn the journalctl better first.
-    if [ $DRYRUN -ne 0 ] ; then
+    if [[ $DRYRUN -ne 0 ]] ; then
       notify-send "${0##*/}" "Hourly backup complete!"
       echo >&4 "<5>${0##*/}: Hourly backup complete!"
       # notice message
@@ -301,26 +340,27 @@ if [  $MAKE_BACKUP -eq 0 ] ; then
 
     # touch $TARGET_FOLDER
 
-    # Line above, when an  existing file have just been updated, or when
-    # No no files have been added to the the archive, at least when you see
-    # for yourself that the modification date of the $TARGET_FOLDER doesn't change.
-    # I think that most archiving utilities at least have an option for unlinking
-    # before updating, but if that isn't the case, the touch command is always an
-    # option.
+# Line above, when an  existing file have just been updated, or when
+# No no files have been added to the the archive, at least when you see
+# for yourself that  modification date of the $TARGET_FOLDER doesn't change.
+# I think that most archiving utilities at least have an option for unlinking
+# before updating, but if that isn't the case, the touch command is always an
+# option.
 else
     notify-send "${0##*/}" "Nothing to hourly backup!"
     echo >&4 "<5>${0##*/}: Nothing to hourly backup!"
     # notice message
 fi
 
- if [ $MADE_TODAYS_FOLDER -eq 0 ] ; then
+ if [[ $MADE_TODAYS_BACKUP_FOLDER -eq 0 ]] ; then
    :
     # Figure out how many daily folder we got now.
     # DAYS_TO_KEEP_BACKUPS=14
-    # $THIS_FOLDER_BUCKET
+    # $BACKUP_CONTAINER
     # jeg trenger å sile directories på fil navn på riktig  format, og om er
     # directory. så vi ikke gjør noen tabber.
-    # lista jeg sitter igjen med er den jeg teller opp for å se om count >= DAYS_TO_KEEP_BACKUPS
+    # lista jeg sitter igjen med er den jeg teller opp for å se om
+    #  count >= DAYS_TO_KEEP_BACKUPS
     # senker antallet ned til 14.
 
     # trenger basename fra symlink
@@ -334,7 +374,7 @@ fi
 
     # we removes every directory that supercedes the chosen number.
 
-    # we trenger å prepende THIS_FOLDER_BUCKET to basename for ls command.
+    # we trenger å prepende BACKUP_CONTAINER to basename for ls command.
     # ls -ld homepage* | sed -n '/^d/ s/\(.*\)\(homepage-[1,2][0,9][0-9][0-9]-[0,1][0-9]-[0-3][0-9]\)/\2/p' | wc -l
     # kan sette IFS to newline for henter inn i variabel?
  fi
