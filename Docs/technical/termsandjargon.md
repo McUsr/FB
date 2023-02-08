@@ -1,7 +1,7 @@
 Terms and jargon used in the Documentation for FB
 -------------------------------------------------
 
-v0.0.3
+v0.0.4
 
 **State:** *Unfinished*
 
@@ -13,6 +13,21 @@ minimize ambiguity and confusion.
 	A **backup** is the result of a backup job, a backup has
 	been taken of a source folder, and put in a destination
 	folder.
+
+* **BACKUP\_CONTAINER** [*variable-name*]
+The directory within a backup-scheme/kind (OneShot),
+with the same name as the full-symlink-name, and it serves
+as a container for all the i directories that have the
+folders name and the date stamp , holding the backups that
+were made on that given date (See: **TODAYS\_BACKUP\_FOLDER**)
+
+* **backup-rotation**
+	When we have reached the treshold for the number of days
+	with backups we have, (not necessarily on consecutive
+	dates), we purge the folder with backups   from  the
+	oldest date when we have made a new one. We never rotate
+	backups taken with `fbsnapshot`.
+
 
 * **backup-script** The script that executes the actual
 	backup of a folder, the most low-level of scripts through
@@ -43,23 +58,22 @@ minimize ambiguity and confusion.
 --->
 
 * **Container**. A **Container** for backups.
-The `TIME_STAMPED_BACKUP_CONTAINING_FOLDER`: the folder
-containing backups from that date onwards, depending on
-the **scheme**.
+  The `TIME_STAMPED_BACKUP_CONTAINING_FOLDER`: the folder
+	containing backups from that date onwards, depending on
+	the **scheme**.
 
-* **Delegate** A class of scripts that actually performs a backup
-operation, whether it is taking a backup, or restoring a
-backup. The **delegate** is chosen by the  *manager*,
-called by an  *executive*.
+* **date-stamp** A date-stamp are used for folders, a date
+	stamp is on *iso 8601* format. **Ex:** `yyyy-mm-dd`
+	(See: **time-stamp**)
 
-* **Executioner** See: *delegate*. 
+* **Delegate** The actual executionor of the job, whether
+	the job is performed on behalf of a manager?, called by the
+	governor, or by a fbsnapshot.
 
-* **Executive** The script that controls a *job*, calls the
-*manager* if need be that dispatches the correct *delegate*.
-An executive is the top level layer of all the routines that
-works on the the system, the user commands, and the scripts
-that gets called by the services.
-
+* **Executioner** It's the *delegate*, that performs the
+	actual job, on the behalf of the **Governor**, that
+	qualifies and selects what to be done, and then gets the
+	**Executioner** to do it.
 
 * **Full-symlink-name** The **full-symlink-name** is a
 	*transformation of the full path to the target of the
@@ -81,14 +95,17 @@ that gets called by the services.
 
 	A **job** has a status, it can be **active** or
 	**paused**.
+
+* **JOBS_FOLDER** [*var-name*]
 	
 * **KIND** (Backup kind.) Denotes if it is a `OneShot` or a
 	`Periodical` backup kind.
 
-* **Manager** The manager, is the single script for all
-*jobs*/executives that gets sourced in, and chooses which
-delegate to choose.
-
+* **Modes** The scripts that runs from services, all
+	supports two modes, "SERVICE_MODE" when they are running
+	from a service, and "DEBUG_MODE" when they are run from
+	the command line, in a state of beeing customized, tested,
+	or debugged.
 
 * **snapshot** This word has two different meanings. 
   I use it for a full backup at a given point in time, as to
@@ -103,30 +120,28 @@ delegate to choose.
 	kind of *time-period* is used, and the *type* of the
 	backup.  Valid choices are: 
 
+  
+	* HourlySnapshot -- Not every hour, every two hours, or what
+you set the interval to, should you wish, but  more than
+one snapshot (full backup), (tarball) per day.
+
+	* HourlyDifferential -- one full backup, then differentials
+		during the day.
+
+	* HourlyIncremental -- one full backup then incrementals
+		during the day.
+
 	* DailyFull -- One Tarball per day.
-
-	* DailySnapshot -- more than one full backupp (tarball) per day.
-
-	* DailyDifferential -- one full backup, then differentials
-		during the day.
-	
-	* DailyIncremental -- one full backup then incrementals
-		during the day.
 
 	* WeeklyFull -- one full backup (tarball) on mondays?
 
-	* WeeklySnapshot --one full backup (tarball) on monday?
-
-   	* WeeklyDifferential -- one full backup (tarball) on
+ 	* WeeklyDifferential -- one full backup (tarball) on
 		 the first mondays Then a differential backup throughout the
 		up coming  weeks.
 
 	* WeeklyIncremental -- one full backup (tarball) on
 		the first monday? Then a incremental backup through the 
 		upcoming weeks.
-
-	* MonthlyFull-- one full backup (tarball) on the first of
-		the month?
 
 	* MontlySnapshot --one full backup (tarball) on the first
 		of the month.
@@ -152,6 +167,19 @@ delegate to choose.
 	* Weekly a `calendar-intervalled` backup.
 
 	* Monthly a `calendar-intervalled` backup.
+	
+* **Time-stamp** A **time-stamp** has the time of day
+embedded, in additon to just the **date-stamp**.
+Ex: `yyyy-mm-ddThh:mm`.  (See: **date-stamp**)
 
-  Last updated:23-02-03 11:20
+* **TODAYS\_BACKUP\_FOLDER** [*variable-name*]
+Is the folder that contains the backups for a given date,
+whether they consists of a single timestamped file, or
+several. **TODAYS\_BACKUP\_FOLDER** by itself, is named by the
+basename of the folder it is to backup, and the  datestamp.
+ **TODAYS\_BACKUP\_FOLDER** resides within
+**TODAYS\_BACKUP\_FOLDER**. (See:**BACKUP_CONTAINER**)
+
+
+Last updated:23-02-08 20:33
 
