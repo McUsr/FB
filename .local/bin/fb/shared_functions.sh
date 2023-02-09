@@ -10,7 +10,6 @@ export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
 # ok_version()
 # returns 0 if the bash version >= 4.15, because  the one with arrays.
 # https://wiki.bash-hackers.org/scripting/bashchanges
-  local man_var="$2"
 ok_version() {
   if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]] ; then
     return 1
@@ -94,37 +93,115 @@ hasInternet() {
 # and times out if we haven't got it still, after 5 minutes.
 # from the command line.
 # TODO: ADD PROGRESS-BAR
+# AND: the progress bar beeing the reason for a separate routine.
 consoleHasInternet() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/consoleHasInternet  I need a parameter for the\
+    echo -e "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
       BACKUP_SCHEME in use!\nTerminating... " 1>&2
     exit 5
   fi
 
-local CTR=0
+local ctr=0
   while : ; do
     if hasInternet ; then
-      if [[ $CTR -gt 0 ]] ; then
-        echo "${0##*/}  :Your internet connection is back. Continuing." \
-          | journalThis 5 "$1"
+      if [[ $ctr -gt 0 ]] ; then
+        echo "${0##*/}/${FUNCNAME[0]}  :Your internet connection is back.\
+          Continuing." | journalThis 5 "$1"
 
       fi
       break
     else
-      CTR=$(( CTR + 1 ))
-      if [[ $CTR -eq 5 ]] ; then
-        echo  "${0##*/} : No internet connection in 5 minutes. Giving up." \
-          | journalThis 2 "$1"
+      ctr=$(( ctr + 1 ))
+      if [[ $ctr -eq 5 ]] ; then
+        echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5 minutes.\
+          Giving up."  | journalThis 2 "$1"
         exit 255
       else
-        echo  "${0##*/} : You have no internet connection. Retrying in\
-          1 minute." | journalThis 5 "$1"
+        echo  "${0##*/}/${FUNCNAME[0]} : You have no internet connection.\
+          Retrying in 1 minute." | journalThis 5 "$1"
         sleep 60
       fi
     fi
   done
 }
 
+# point in logging stuff we are dealing with interactively?
+# TODO: Ha annen counter, og mindre sleep, slik at vi 
+# tester hvert halv-minutt.
+serviceHasInternet() {
+  if [[ $# -ne 1 ]] ; then
+    if [[ ! -t 1 ]] ; then
+      notify-send "${0##*/}/${FUNCNAME[0]}" "I need a parameter for the \
+BACKUP_SCHEME in use!\nTerminating... "
+    fi
+    echo -e "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
+      BACKUP_SCHEME in use!\nTerminating... " | journalThis 5 FolderBackup
+    exit 5
+  fi
+  local inet_ctr=0 s_amount=10 first_time=true passed_three=false
+  while : ; do
+    if hasInternet ; then
+      if [[ $inet_ctr -gt 0 ]] ; then
+        if [[ ! -t 1 ]] ; then
+          notify-send "${0##*/}/${FUNCNAME[0]}" "Your internet connection is \
+back. Continuing." &
+        else
+          echo >/dev/tty
+        fi
+         echo "${0##*/}/${FUNCNAME[0]}  :Your internet connection is back. \
+Continuing..."  | journalThis 5 "$1"  &
+      fi
+      break
+    else
+      if [[ $s_amount == 10 ||  $(( s_amount % 60 )) == 0 ]] ; then
+        inet_ctr=$(( inet_ctr + 1 ))
+      fi
+      if [ $inet_ctr -eq 6 ] ; then
+        if [[ ! -t 1 ]] ; then
+          notify-send  "${0##*/}/${FUNCNAME[0]}" "No internet connection in 5\
+ minutes. Giving up...."
+        else
+          echo  >/dev/tty
+        fi
+        echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5\
+minutes. Giving up..."  | journalThis 2 "$1" &
+        exit 255
+      else
+        tree_m=$(( inet_ctr % 4 ))
+        if [[ $first_time == true &&  $inet_ctr -eq  1  || $tree_m -eq 0 ]] ;\
+        then
+          if [[ $first_time == true ]] ; then
+            first_time=false
+          fi
+          if [[ $passed_three == false ]] ; then
+            if [[ ! -t 1 ]] ; then
+              notify-send "${0##*/}/${FUNCNAME[0]}" "You have no internet\
+ connection. Retrying in 3 minutes..." &
+            else
+              echo  >/dev/tty
+            fi
+            echo  "${0##*/}/${FUNCNAME[0]} : You have no internet\
+ connection. Retrying in 3 minutes..."  | journalThis 2 "$1" &
+          fi
+          if [[ $tree_m -eq 0 ]] ; then
+            passed_three=true
+          fi
+        fi
+        s_amount=$(( s_amount + 10 ))
+
+        if [[ -t 1 ]] ; then
+          # scales things? when no notify-send overhead.
+          sleep 0.5
+        else
+          sleep 0.355
+        fi
+        if [[ -t 1 ]] ; then
+          echo -n "..." >/dev/tty
+        fi
+      fi
+    fi
+  done
+}
 
 # consoleFolderIsMounted()
 # checks if our Destination folder is mounted,
