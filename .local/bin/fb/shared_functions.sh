@@ -87,48 +87,38 @@ hasInternet() {
     return 1
   fi
 }
+# export -f hasInternet
+
+progress_bar() {
+  trap 'export toquit=true' TERM
+  toquit=false
+  while true ; do
+    printf "%s" "." >/dev/tty
+    sleep 3
+    if [[ $toquit == true ]] ; then
+      exit 0
+    fi
+  done
+}
+
+# export -f progress_bar
+
+servHasInetCtrlC() {
+  if [[ $pbar_pid -ne 0 ]] ; then
+    kill $pbar_pid ; sleep 1 ; echo >/dev/tty
+  fi
+  kill $$
+}
+# export -f servHasInetCtrlC
 
 # consoleHasInternet()
 # checks if we have our Internet connection
 # and times out if we haven't got it still, after 5 minutes.
 # from the command line.
-# TODO: ADD PROGRESS-BAR
-# AND: the progress bar beeing the reason for a separate routine.
 consoleHasInternet() {
-  if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
-      BACKUP_SCHEME in use!\nTerminating... " 1>&2
-    exit 5
-  fi
+trap 'servHasInetCtrlC' INT
 
-local ctr=0
-  while : ; do
-    if hasInternet ; then
-      if [[ $ctr -gt 0 ]] ; then
-        echo "${0##*/}/${FUNCNAME[0]}  :Your internet connection is back.\
-          Continuing." | journalThis 5 "$1"
-
-      fi
-      break
-    else
-      ctr=$(( ctr + 1 ))
-      if [[ $ctr -eq 5 ]] ; then
-        echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5 minutes.\
-          Giving up."  | journalThis 2 "$1"
-        exit 255
-      else
-        echo  "${0##*/}/${FUNCNAME[0]} : You have no internet connection.\
-          Retrying in 1 minute." | journalThis 5 "$1"
-        sleep 60
-      fi
-    fi
-  done
-}
-
-# point in logging stuff we are dealing with interactively?
-# TODO: Ha annen counter, og mindre sleep, slik at vi 
-# tester hvert halv-minutt.
-serviceHasInternet() {
+  SECONDS=0
   if [[ $# -ne 1 ]] ; then
     if [[ ! -t 1 ]] ; then
       notify-send "${0##*/}/${FUNCNAME[0]}" "I need a parameter for the \
@@ -138,10 +128,16 @@ BACKUP_SCHEME in use!\nTerminating... "
       BACKUP_SCHEME in use!\nTerminating... " | journalThis 5 FolderBackup
     exit 5
   fi
-  local inet_ctr=0 s_amount=10 first_time=true passed_three=false
+  local inet_gone=false first_time=true passed_three=false
+  declare -g pbar_pid=0
   while : ; do
     if hasInternet ; then
-      if [[ $inet_ctr -gt 0 ]] ; then
+      if [[ $inet_gone == true ]] ; then
+
+        if [[ -t 1 && $pbar_pid -ne 0 ]] ; then
+          kill $pbar_pid; sleep 1
+        fi
+
         if [[ ! -t 1 ]] ; then
           notify-send "${0##*/}/${FUNCNAME[0]}" "Your internet connection is \
 back. Continuing." &
@@ -153,55 +149,47 @@ Continuing..."  | journalThis 5 "$1"  &
       fi
       break
     else
-      if [[ $s_amount == 10 ||  $(( s_amount % 60 )) == 0 ]] ; then
-        inet_ctr=$(( inet_ctr + 1 ))
-      fi
-      if [ $inet_ctr -eq 6 ] ; then
+      if [[ $SECONDS -ge  300 ]] ; then
         if [[ ! -t 1 ]] ; then
           notify-send  "${0##*/}/${FUNCNAME[0]}" "No internet connection in 5\
  minutes. Giving up...."
         else
+          kill $pbar_pid; sleep 1; pbar_pid=0
           echo  >/dev/tty
         fi
         echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5\
 minutes. Giving up..."  | journalThis 2 "$1" &
         exit 255
+        if [[ -t 1 ]] ; then echo >/dev/tty ; fi 
       else
-        tree_m=$(( inet_ctr % 4 ))
-        if [[ $first_time == true &&  $inet_ctr -eq  1  || $tree_m -eq 0 ]] ;\
-        then
-          if [[ $first_time == true ]] ; then
-            first_time=false
-          fi
+        if [[ $inet_gone == false || $SECONDS -ge 180 ]] ; then
+
           if [[ $passed_three == false ]] ; then
+            passed_three=$inet_gone
             if [[ ! -t 1 ]] ; then
               notify-send "${0##*/}/${FUNCNAME[0]}" "You have no internet\
  connection. Retrying in 3 minutes..." &
             else
-              echo  >/dev/tty
+              if [[  $pbar_pid -ne 0 ]] ; then
+                kill $pbar_pid; sleep 1; pbar_pid=0
+                echo  >/dev/tty
+              fi
             fi
             echo  "${0##*/}/${FUNCNAME[0]} : You have no internet\
  connection. Retrying in 3 minutes..."  | journalThis 2 "$1" &
           fi
-          if [[ $tree_m -eq 0 ]] ; then
-            passed_three=true
+          inet_gone=true
+          if [[ -t 1 && $pbar_pid -eq 0 ]] ; then
+            progress_bar &
+            pbar_pid=$!
           fi
         fi
-        s_amount=$(( s_amount + 10 ))
-
-        if [[ -t 1 ]] ; then
-          # scales things? when no notify-send overhead.
-          sleep 0.5
-        else
-          sleep 0.355
-        fi
-        if [[ -t 1 ]] ; then
-          echo -n "..." >/dev/tty
-        fi
+        sleep 2
       fi
     fi
   done
 }
+# export -f consoleHasInternet
 
 # consoleFolderIsMounted()
 # checks if our Destination folder is mounted,
@@ -600,7 +588,7 @@ journalThis() {
   fi
 }
 
-
+export -f journalThis
 # manager()
 # find the correct script/dropin-script to execute if any:
 # Passes the DELEGATE back to the caller by the global  DELEGATE_SCRIPT variable.
