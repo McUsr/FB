@@ -1,12 +1,13 @@
 #!/bin/bash
+PNAME=${0##*/}
 err_report() {
-  echo "${0##*/} : Error on line $1"
-  echo "${0##*/} : Please report this issue at \
+  echo "$PNAME : Error on line $1"
+  echo "$PNAME : Please report this issue at \
     'https://github.com/McUsr/FB/issues'"
 }
 
 trap 'err_report $LINENO' ERR
-VERSION="\"v0.0.3b\""
+VERSION="\"v0.0.3c\""
 if [[ ! -v FB ]] ; then
      echo "${0##*/}" "The variable \$FB isn't set, is the system initialized?\
  You need configure it.\nTerminating..." | journalThis 2
@@ -19,7 +20,8 @@ else
   echo -e  "Can't source: ~/.local/bin/fb/shared_functions.sh\nTerminates... "
   exit 255
 fi
-PNAME=${0##*/}
+consoleHasInternet OneShot
+consoleFBfolderIsMounted OneShot
 GETOPT_COMPATIBLE=true
 
 if [[ $# -eq 0 ]] ; then
@@ -64,37 +66,17 @@ FORCE=false
 # echo NARG1 : $#
 
 while true; do
-  if [[ $DEBUG -eq 0 ]] ; then
-  echo "while ...."
-    case "$1" in
-      -h | --help ) echo 'h' ; help ; exit 0 ;;
-      -n | --dry-run ) echo '--dry-run' ; DRYRUN=true; shift ;;
-      -v | --verbose ) echo '--verbose ' ; VERBOSE=true; shift ;;
-      -F | --force ) echo 'force' ; FORCE=true; shift ;;
-      -V | --version ) echo 'version' ;echo $PNAME : $VERSION ; exit 0 ;;
-      -- ) shift; break ;;
-  #    * ) break ;;
-    esac
-  else
-    case "$1" in
-      -h | --help )  help ; exit 0 ;;
-      -n | --dry-run ) DRYRUN=true; shift ;;
-      -v | --verbose ) VERBOSE=true; shift ;;
-      -F | --force )  FORCE=true; shift ;;
-      -V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
-      -- ) shift; break ;;
-  #    * ) break ;;
-    esac
-  fi
+  case "$1" in
+    -h | --help )  help ; exit 0 ;;
+    -n | --dry-run ) DRYRUN=true; shift ;;
+    -v | --verbose ) VERBOSE=true; shift ;;
+    -F | --force )  FORCE=true; shift ;;
+    -V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
+    -- ) shift; break ;;
+#    * ) break ;;
+  esac
 done
 HAVING_ERRORS=false
-PARSE_DEBUG=1
-if [[ $PARSE_DEBUG -eq 0 ]] ; then
-  echo "$@"
-  echo 'Ended while '
-  echo NARG2 : $#
-  echo D1 : $1
-fi
 
 if [[ $# -ne 2 ]] ; then
   echo -e $PNAME : "Wrong number of  few arguments. I need one argument for \
