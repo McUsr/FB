@@ -4,22 +4,22 @@
 PNAME=${0##*/}
 err_report() {
   echo "$PNAME : Error on line $1"
-  echo "$PNAME : Please report this issue at\
-    'https://github.com/McUsr/FB/issues'"
+  echo "$PNAME : Please report this issue at \
+'https://github.com/McUsr/FB/issues'"
 }
 
 trap 'err_report $LINENO' ERR
 VERSION='v0.0.3c'
 if [[ ! -v FB ]] ; then
-     echo -e "$PNAME The variable \$FB isn't set, is the system initialized?\
-       You need configure it.\nTerminating..." | journalThis 2 OneShot
+     echo -e "$PNAME The variable \$FB isn't set, is the system initialized?\n
+You need configure it.\nTerminating..." | journalThis 2 OneShot
     exit 255
 fi
 
 if [[ ! -d "$FB" ]] ; then
-     echo -e "$PNAME" "The folder  $FB  can't be found!\nThe Google Drive\
-       folder is probably not shared with with Linux. Isn't set, is the\
-       system initialized? Maybe you need to configure it.\nTerminating..."\
+     echo -e "$PNAME" "The folder  $FB  can't be found!\nThe Google Drive \
+folder is probably not shared with with Linux. Isn't set, is the \
+system initialized? Maybe you need to configure it.\nTerminating..."\
        | journalThis 2 OneShot
     exit 255
 fi
@@ -29,15 +29,20 @@ if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
   source "$XDG_BIN_HOME"/fb/shared_functions.sh
 else
   echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
-    \nTerminates... "
+\nTerminates... "
   exit 255
 fi
+
+
+consoleHasInternet OneShot
+consoleFBfolderIsMounted OneShot
+
 # shellcheck disable=SC2034  # warning not relevant, var read by getopt(3)
 GETOPT_COMPATIBLE=true
 
 if [[ $# -eq 0 ]] ; then
-  echo -e "$PNAME : Too few arguments. At least I need a folder target\
-    to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+  echo -e "$PNAME : Too few arguments. At least I need a folder target \
+to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
  exit 2
 fi
 DEBUG=1
@@ -89,10 +94,10 @@ DEBUG=1
 
 
 if [[ $# -ne 3 ]] ; then
-  echo -e "$PNAME : Wrong number of  few arguments. I need one argument for\
-    the folder to backup, the full symlink name, \nand the  path to the\
-    destination folder of the backup operation.\
-    \nExecute \"$PNAME -h\" for help. Terminating..." >&2
+  echo -e "$PNAME : Wrong number of  few arguments. I need one argument for \
+the folder to backup, the full symlink name, \nand the  path to the \
+destination folder of the backup operation. \
+\nExecute \"$PNAME -h\" for help. Terminating..." >&2
   exit 2
 fi
 
@@ -107,8 +112,8 @@ if [[ -d "$1" ]] ; then
       HAVING_ERRORS=true
     else
       # same whether dry-run, verbose, or not.
-      echo -e "$PNAME : The target of the backup is not allowed to be inside\
-        $FB.\nTerminating..."
+      echo -e "$PNAME : The target of the backup is not allowed to be inside \
+$FB.\nTerminating..."
       exit 2
     fi
   else
@@ -196,13 +201,15 @@ ctrl_c() {
   rm -fr "$DRY_RUN_FOLDER"
 }
 
-  TAR_BALL_NAME="$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+  TAR_BALL_NAME=\
+"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f\
       $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
   #  | journalThis 7 OneShot
-    sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$EXCLUDE_OPTIONS" -C "$TARGET_FOLDER" .
+    sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$EXCLUDE_OPTIONS" \
+-C "$TARGET_FOLDER" .
    #   | journalThis 7 OneShot
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
         rm -fr "$DRY_RUN_FOLDER"
@@ -213,15 +220,17 @@ ctrl_c() {
       echo "$PNAME : rm -fr $DRY_RUN_FOLDER"
     fi
   else
-    echo -e "$PNAME :\
-      DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
+    echo -e "$PNAME \
+: DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
     echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS -f\
       $TAR_BALL_NAME  -C $TARGET_FOLDER . "
     echo -e "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
 else
 # DRYRUN == false
-  TAR_BALL_NAME="$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
+  TAR_BALL_NAME=\
+"$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
+
   trap "HAVING_ERRORS=true;ctrl_c" INT
 ctrl_c() {
   echo trapped ctrl-c
@@ -232,7 +241,8 @@ ctrl_c() {
       echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
         -f $TAR_BALL_NAME  -C $TARGET_FOLDER" .
     fi
-    sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C "$TARGET_FOLDER" .
+    sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C\
+"$TARGET_FOLDER" .
     EXIT_STATUS=$?
    #   | journalThis 7 OneShot
     if [[ $EXIT_STATUS -gt 1 ]] ; then
