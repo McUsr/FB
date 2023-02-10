@@ -701,7 +701,7 @@ BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
 
     if [[ $OPERATION != "backup" && $OPERATION != "restore" ]] ; then
       echo -e "$PNAME/manager() : Wrong value for \$OPERATION, MUST  be\
-        either\"backup\" or \"restore\".\nTerminates..."\
+either\"backup\" or \"restore\".\nTerminates..."\
         | journalThis 2 "$BACKUP_SCHEME"
     exit 5
     fi
