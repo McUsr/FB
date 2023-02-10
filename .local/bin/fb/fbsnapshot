@@ -7,7 +7,7 @@ PNAME=${0##*/}
 SILENCE=0
 
 err_report() {
-  if [ $SILENCE -eq 0 ] ; then
+  if [[ $SILENCE -eq 0 ]] ; then
     echo "$PNAME : Error on line $1"
     echo "$PNAME : Please report this issue at\
       'https://github.com/McUsr/FB/issues'"
@@ -56,7 +56,7 @@ fi
 
 consoleHasInternet OneShot
 
-consoleFBFolderIsMounted OneShot
+consoleFBfolderIsMounted OneShot
 
 GETOPT_COMPATIBLE=true
 
@@ -91,11 +91,14 @@ Syntax:
 EOF
 }
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
-TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,\
-  verbose,version -n "$PNAME" -- "$@")
+TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,verbose,version  -n "$PNAME" -- "$@")
 
-if [ $? != 0 ] ; then echo "$PNAME -h | --help for help :  Terminating..."\
-  | journalThis 2 OneShot ; exit 2 ; fi
+if [[ $? != 0 ]] ; then
+  echo >/dev/ttyBiscuits in the Attic
+  echo "$PNAME -h | --help for help :  Terminating..."\
+  | journalThis 2 OneShot ;
+  exit 2
+fi
 
 SILENCE=1
 # Note the quotes around '$TEMP': they are essential!
@@ -104,6 +107,7 @@ DRYRUN=false
 VERBOSE=false
 CREATE_EXCLUDE_FILE=false
 
+echo >/dev/tty "DBG: $@"
 
 while true; do
   case "$1" in
@@ -120,7 +124,7 @@ done
 
 # We need to collect the options we should pass along.
 
-if [ $# -ne 1 ] ; then
+if [[ $# -ne 1 ]] ; then
     echo -e "$PNAME: I didn't get a mandatory parameter. A source-folder to \
       back up.\n\"$PNAME -h\" for help.\nTerminating..." \
       | journalThis 2 OneShot
@@ -128,10 +132,10 @@ if [ $# -ne 1 ] ; then
 fi
 BACKUP_OPTIONS=
 
-if [ $DRYRUN = true ] ; then
+if [[ $DRYRUN = true ]] ; then
   BACKUP_OPTIONS+="--dry-run"
 fi
-if [ $VERBOSE = true ] ; then
+if [[ $VERBOSE = true ]] ; then
   BACKUP_OPTIONS+=" --verbose"
 fi
 
@@ -146,7 +150,7 @@ if [[ $DEBUG -eq 0  || $VERBOSE = true ]] ; then
   echo "$PNAME : TARGET_FOLDER: $TARGET_FOLDER" | journalThis 7 OneShot
 fi
 
-if [ ! -d $TARGET_FOLDER ] ; then
+if [[ ! -d $TARGET_FOLDER ]] ; then
   echo "$PNAME : $TARGET_FOLDER isn't a directory. Terminating..." \
     | journalThis 2 OneShot
   exit 1
@@ -171,7 +175,7 @@ fi
 # the things up, so we just silently create it.
 # we are here to solve problems, not create them.
 
-if [ ! -d "$BACKUP_CONTAINER" ] ; then
+if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
   # selv om det er DRYRUN så beholder vi denne!
   mkdir -p "$BACKUP_CONTAINER"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
@@ -188,13 +192,13 @@ fi
 # we generate todays folder name. which is todays 'daily' backup folder.
 TODAYS_BACKUP_FOLDER=$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)
 CREATED_TODAYS_BACKUP_FOLDER=1
-if [ ! -d "$TODAYS_BACKUP_FOLDER" ] ; then
+if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then
     echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
       exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." \
       | journalThis 7 OneShot
   fi
-  if [ $DRYRUN = false ] ; then
+  if [[ $DRYRUN = false ]] ; then
     CREATED_TODAYS_BACKUP_FOLDER=0
     mkdir -p "$TODAYS_BACKUP_FOLDER"
   else
@@ -211,7 +215,7 @@ fi
 
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
-if [ $CREATE_EXCLUDE_FILE = true ] ; then
+if [[ $CREATE_EXCLUDE_FILE = true ]] ; then
   createExcludeFile OneShot $SYMLINK_NAME
 fi
 
@@ -221,7 +225,7 @@ fi
 # Time to figure out which script we are going to use and making preparations:
 manager OneShot  "$SYMLINK_NAME" backup
 exit_code=$?
-if [ $exit_code  -eq 0 ] ; then
+if [[ $exit_code  -eq 0 ]] ; then
   BACKUP_SCRIPT="$DELEGATE_SCRIPT"
 else
   exit $exitcode
@@ -247,7 +251,7 @@ if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true \
 
 elif [[ $EXIT_STATUS -gt 1 ]] ; then
 
-  if [ $EXIT_STATUS -eq 130 ] ; then
+  if [[ $EXIT_STATUS -eq 130 ]] ; then
       echo "$PNAME : User interrupted the operation"
   else
       echo "$PNAME : A fatal error occurred."
@@ -256,7 +260,7 @@ elif [[ $EXIT_STATUS -gt 1 ]] ; then
   if [[  -d "$TODAYS_BACKUP_FOLDER" && \
     $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then
 
-    if [ $DRYRUN = false ] ; then
+    if [[ $DRYRUN = false ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo "$PNAME : Removing todays backup folder due to fatal errors:\
           \n rm -fr $TODAYS_BACKUP_FOLDER"
