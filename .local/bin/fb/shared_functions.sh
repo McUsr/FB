@@ -293,25 +293,31 @@ export -f consoleFBfolderIsMounted
 # Figures out which KIND of backup we are restoring,
 # RETURNS: 'OneShot', or 'Periodical', so we know what to do in 'fbrestore'
 backupKind() {
-  if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an \
- argument: backup/kind/scheme \nTerminates" >&2 ; exit 5 ; fi
+  if [[ $# -ne 1 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]} : Need an  argument: \
+backup/kind/scheme \nTerminates" >&2 ;
+    exit 5
+  fi
   local  ORIG="$1" REPLACED="${1/$FB/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
-the defined location.\nTerminating..."
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup \
+isn't within  the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't complete with a path to\
-      the actual backup.\n($FB isn't specific enough,\nthe path must include\
-      the folder from which to restore.)\nTerminating..."
+    echo -e >/dev/tty "${0##*/} : The path to the backup isn't complete with \
+a path to the actual backup.\n($FB isn't specific enough,\nthe path must \
+include the folder from which to restore.)\nTerminating..."
     exit 2
   fi
   OLDIFS=$IFS
-  IFS=/
-  set -- "$REPLACED"
+  export IFS='/'
+# shellcheck disable=SC2086 # NO QUOTING == disastrous!
+  set -- $REPLACED
+
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left of the delimiter.
-  if [[  -n "$1"  ]] ; then echo -e "${0##*/} : The path to the backup \
+  if [[  -n "$1"  ]] ; then
+    echo -e >/dev/tty "${0##*/} : The path to the backup \
 starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
 \$FB\n($FB)\n in the path to the backup ($ORIG)?\nTerminating..."
   exit 2
@@ -342,7 +348,8 @@ periodicBackupScheme() {
   fi
   OLDIFS=$IFS
   IFS=/
-  set -- "$REPLACED"
+# shellcheck disable=SC2086 # NO QUOTING == disastrous!
+  set -- $REPLACED
 # the path starts with a delimiter so $1 will contain '' for the empty element
 # at front to the left of the delimiter.  shellcheck disable=SC2157 # code is
 # irrelevant because we may get '' out of the set command.
@@ -374,32 +381,34 @@ periodicBackupScheme() {
 identifyBackupSourceFolder() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
 \nTerminating..."
     exit 5
   fi
 
-  local  ORIG="$2"
+  local ORIG="$2"
   local BIT_TO_REMOVE=$FB/$1
-   local REPLACED="${2/$BIT_TO_REMOVE/}"
+  local REPLACED="${2/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e  "${0##*/} : The path to the backup isn't within  the defined\
-location.\nTerminating..."
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
+the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't complete with a path to \
-the actual backup.\n($FB/$1 isn't specific enough,\nthe path must \
-include the folder from which to restore.)\nTerminating..."
-    exit 2 fi
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't complete \
+with a path to the actual backup.\n($FB/$1 isn't specific enough,\nthe path \
+must include the folder from which to restore.)\nTerminating..."
+    exit 2
+  fi
   OLDIFS=$IFS
-  IFS=/
-  set -- "$REPLACED"
+  export IFS=/
+# shellcheck disable=SC2086 # NO QUOTING == disastrous!
+  set -- $REPLACED
   # the path starts with a delimiter, so $1 will contain '' for the empty
   #  element at front to the left of the delimiter.
-  if [[ -n "$1"  ]] ; then
-    echo -e "${0##*/} : The path to the backup starting with the PREFIX \
-doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n in the \
-path to the backup ($ORIG)?\nTerminating..."
+  if [[ -n $1 && "$1" != "\""  ]] ; then
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup starting with \
+the PREFIX doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n \
+in the  path to the backup ($ORIG)?\nTerminating..."
     exit 2
   fi
   export IFS=$OLDIFS
@@ -449,7 +458,6 @@ identifyBackupContainerByTimeStampedFolder() {
 ${FUNCNAME[0]}\nTerminating..."
     exit 5
   fi
-
   local ORIG="$2"
   local DEESCAPED_ORIG BIT_TO_REMOVE DEESCAPED_BIT_TO_REMOVE REPLACED
   DEESCAPED_ORIG="$( echo "$ORIG" | sed -ne 's:\\::g' -e 'p' )"
@@ -477,10 +485,12 @@ timestamped folder that contains the actual files containing the backup.)\
     exit 2
   fi
   OLDIFS=$IFS
-  IFS=/
-  set -- "$REPLACED"
+  export IFS='/'
+# shellcheck disable=SC2086 # NO QUOTING == disastrous!
+  set -- $REPLACED
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left  of the delimiter.
+  echo >/dev/tty "1 : ,$1,"
   if [[ -n "$1"  ]] ; then
     echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path to the backup starting with\
  the PREFIX doesn't start with '/'.\n\ Is it a slash amiss after \$FB\n\
