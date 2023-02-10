@@ -1,4 +1,4 @@
-#  -- !/bin/bash
+# -- !/bin/bash
 
 export ROOTFOLDERS="OneShot Periodic"
 
@@ -8,7 +8,8 @@ export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
 
 
 # ok_version()
-# returns 0 if the bash version >= 4.15, because  the one with arrays.
+# returns 0 if the bash version >= 4.2, because that's
+# the one with arrays. declare -g, and test -v
 # https://wiki.bash-hackers.org/scripting/bashchanges
 ok_version() {
   if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]] ; then
@@ -21,27 +22,27 @@ ok_version() {
 
 
 # brokenSymlink()
-# Alert's us if a symlink in a symlink folder is broken,
+# Alerts and dies if a symlink in a symlink folder is broken,
 # Probably due to the fact that we have moved the directory
-# somewhere else, or deleted it. TODO: Get that into the
-# error message as well.
-
-# TODO: Fix for console
+# somewhere else, or deleted it.
+# Works in SERVICE_MODE and DEBUG_MODE.
+# TODO: rename to 'dieIfBrokenSymlink` and die.
 
 brokenSymlink() {
 if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
   argument\nTerminates" >&2 ; exit 5 ; fi
-# TODO:
-# Add the missing code.
-    echo "The symlink $1/$2 is broken! No backups are made for  $2 before it\
-      is fixed."  | systemd-cat -t "$3" -p crit
+  if [[ ! -t 1 ]] ; then 
     notify-send "$3" "The symlink $1/$2 is broken! No backups are made for $2\
       before it is fixed."
+  fi
+   echo "The symlink $1/$2 is broken! No backups are made for $2 before it\
+      is fixed."  | systemd-cat -t "$3" -p crit
 }
 
 
 # isASymlink()
-# returns if the parameter is a symlink.
+# RETURNS 0 if the parameter is a symlink.
+# PARAMETER: A symlink
 # ( I need the full path to the file, to be able to check it. {realpath} )
 isASymlink() {
 if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
@@ -50,7 +51,9 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   return $?
 }
 
-
+# isUnbrokenSymlink()
+# RETURNS 0 if the  the symlink is okay.
+# PARAMETER: A symlink
 isUnbrokenSymlink() {
 if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
@@ -60,10 +63,10 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   return 0
 }
 
-if [[ 0 -eq 1 ]] ; then 
+if [[ 0 -eq 1 ]] ; then
 # isDirectory()
-# just returns whether the parameter given is a
-# directory, or not.
+# RETURNS 0 if is a directory, !0 if not.
+# PARAMETER: Path.
 isDirectory() {
 if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
@@ -73,12 +76,10 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 fi
 
 # hasInternet()
-# The governor checks if there is an internet-
-# connection to back up to, since we are based
-# on backing up to our GoogleDrive.
-# ping can be installed by:
+# RETURNS 0 if we're connected, 1 if note
+# Needs ping which can be installed by:
 # sudo apt install iputils-ping
-# should it be amiss on your system.
+# `which ping` checks if it is already on your system.
 
 hasInternet() {
   if ping -c 1 -q google.com >&/dev/null ; then
@@ -89,6 +90,9 @@ hasInternet() {
 }
 # export -f hasInternet
 
+
+# progress_bar()
+# shows a "progress bar" for routines that takes time.
 progress_bar() {
   trap 'export toquit=true' TERM
   toquit=false
@@ -101,20 +105,23 @@ progress_bar() {
   done
 }
 
-# export -f progress_bar
+export -f progress_bar
 
+# servHasInetCtrlC() 
+# interrupt handler that sees to that the "progress_bar" stops.
 servHasInetCtrlC() {
   if [[ $pbar_pid -ne 0 ]] ; then
-    kill $pbar_pid ; sleep 1 ; echo >/dev/tty
+    kill "$pbar_pid" ; sleep 1 ; echo >/dev/tty
   fi
   kill $$
 }
-# export -f servHasInetCtrlC
+export -f servHasInetCtrlC
 
 # consoleHasInternet()
 # checks if we have our Internet connection
 # and times out if we haven't got it still, after 5 minutes.
-# from the command line.
+# both SERVICE_MODE and DEBUG_MODE
+# dies, TODO:  Maybe die in the name.
 consoleHasInternet() {
 trap 'servHasInetCtrlC' INT
 
@@ -128,9 +135,9 @@ BACKUP_SCHEME in use!\nTerminating... "
       BACKUP_SCHEME in use!\nTerminating... " | journalThis 5 FolderBackup
     exit 5
   fi
-  local inet_gone=false first_time=true passed_three=false
+  local inet_gone=false passed_three=false
   declare -g pbar_pid=0
-  while : ; do
+  while true ; do
     if hasInternet ; then
       if [[ $inet_gone == true ]] ; then
 
@@ -160,7 +167,7 @@ Continuing..."  | journalThis 5 "$1"  &
         echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5\
 minutes. Giving up..."  | journalThis 2 "$1" &
         exit 255
-        if [[ -t 1 ]] ; then echo >/dev/tty ; fi 
+        if [[ -t 1 ]] ; then echo >/dev/tty ; fi
       else
         if [[ $inet_gone == false || $SECONDS -ge 180 ]] ; then
 
@@ -189,41 +196,91 @@ minutes. Giving up..."  | journalThis 2 "$1" &
     fi
   done
 }
+
 # export -f consoleHasInternet
 
 # consoleFolderIsMounted()
-# checks if our Destination folder is mounted,
-# and times out if it still isn't after 6 minutes.
-# from the command line.
-# TODO: ADD PROGRESS-BAR
-consoleFBFolderIsMounted() {
+# Checks if our Destination folder is mounted, and times out if it still isn't
+# after 5 minutes.  from the command line.
+# both SERVICE_MODE and DEBUG_MODE
+# dies, TODO:  Maybe die in the name.
+consoleFBfolderIsMounted() {
+trap 'servHasInetCtrlC' INT
+# borrowed from consoleHasInternet
+  SECONDS=0
   if [[ $# -ne 1 ]] ; then
+    if [[ ! -t 1 ]] ; then
+      notify-send "${0##*/}/${FUNCNAME[0]}()"  "I need a parameter for the \
+BACKUP_SCHEME in use!\nTerminating... "
+    fi
     echo -e "${0##*/}/consoleFBFolderIsMounted()  I need a parameter for the\
       BACKUP_SCHEME in use!\nTerminating... " 1>&2
     exit 5
   fi
-local  MNT_CTR=0
-  while : ; do
+
+  local  no_mounted_folder=false passed_three=false
+  while true ; do
     if [[  -d "$FB" ]] ; then
-        if [[ $MNT_CTR -gt 0 ]] ; then
-          echo "${0##*/} : You have successfully mounted \$FB: $FB\
-            Continuing." | journalThis 5 "$1"
+        if [[ $no_mounted_folder == true ]] ; then
+
+          if [[ -t 1 && $pbar_pid -ne 0 ]] ; then
+            kill $pbar_pid; sleep 1
+          fi
+
+          if [[ ! -t 1 ]] ; then
+            notify-send "${0##*/}/${FUNCNAME[0]}" "You have successfully \
+mounted \$FB: $FB Continuing..." &
+        else
+          echo >/dev/tty
+        fi
+        echo -e "${0##*/} : You have successfully mounted \$FB:\n$FB\n\
+Continuing..." | journalThis 5 "$1" &
         fi
         break
     else
-      MNT_CTR=$(( MNT_CTR + 1 ))
-      if [[ $CTR -eq 3 ]] ; then
-        echo  "${0##*/} : No mounted folder \$FB: $FB in 6 minutes.\
-          Giving up." | journalThis 2 "$1"
+      if [[ $SECONDS -ge 300 ]] ; then
+        if [[ ! -t 1 ]] ; then
+          notify-send "${0##*/}/${FUNCNAME[0]}" "No mounted folder \$FB: \
+$FB in 5 minutes. Giving up..." | journalThis 2 "$1"
+        else
+          kill $pbar_pid; sleep 1; pbar_pid=0
+          echo  >/dev/tty
+        fi
+        echo -e "${0##*/}/${FUNCNAME[0]} : No mounted folder \$FB:\n $FB in \
+5 minutes. Giving up..." | journalThis 2 "$1"
         exit 255
+        if [[ -t 1 ]] ; then echo >/dev/tty ; fi
       else
-        echo "${0##*/} You have forgotten to mount/create the root\
-          backupfolder \$FB: $FB. Retrying in 3 minutes"  | journalThis 5 "$1"
-        sleep 180
+        if [[ $no_mounted_folder == false || $SECONDS -ge 180 ]] ; then
+
+          if [[ $passed_three == false ]] ; then
+            passed_three=$no_mounted_folder
+            if [[ ! -t 1 ]] ; then
+              notify-send  "${0##*/}/${FUNCNAME[0]}" "You have forgotten to \
+mount/create the root  backupfolder \$FB: $FB. Retrying in 3 minutes..."
+            else
+              if [[  $pbar_pid -ne 0 ]] ; then
+                kill $pbar_pid; sleep 1; pbar_pid=0
+                echo  >/dev/tty
+              fi
+            fi
+            echo "${0##*/}/${FUNCNAME[0]} You have forgotten to mount/create \
+the root \ backupfolder \$FB: $FB. Retrying in 3 minutes" \
+| journalThis 5 "$1"
+          fi
+          no_mounted_folder=true
+          if [[ -t 1 && $pbar_pid -eq 0 ]] ; then
+            progress_bar &
+            pbar_pid=$!
+          fi
+        fi
+        sleep 2
       fi
     fi
   done
 }
+
+export -f consoleFBfolderIsMounted
 
 # TODO: Error output to journal-ctl for backupKind and periodic BackupScheme:
 # I might use the methods I learned with regards to redirecting, the thing
@@ -231,16 +288,17 @@ local  MNT_CTR=0
 # flavors, daemon and console, due to journalling.  - not sure if it is
 # necessary when it comes to daemons.
 
+
 # backupKind()
 # Figures out which KIND of backup we are restoring,
-# 'OneShot', or 'Periodical', so we know what to do in 'fbrestore'
-
+# RETURNS: 'OneShot', or 'Periodical', so we know what to do in 'fbrestore'
 backupKind() {
-  local  ORIG="$1"
-   local REPLACED="${1/$FB/}"
+  if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an \
+ argument: backup/kind/scheme \nTerminates" >&2 ; exit 5 ; fi
+  local  ORIG="$1" REPLACED="${1/$FB/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within  the defined\
-      location.\nTerminating..."
+    echo -e "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
+the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
     echo -e "${0##*/} : The path to the backup isn't complete with a path to\
@@ -253,20 +311,22 @@ backupKind() {
   set -- "$REPLACED"
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left of the delimiter.
-  if [[  -n "$1"  ]] ; then echo -e "${0##*/} : The path to the backup starting
-    with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \$FB
-    ($FB)\n in the path to\ the backup ($ORIG)?\nTerminating..."
-    exit 2
+  if [[  -n "$1"  ]] ; then echo -e "${0##*/} : The path to the backup \
+starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
+\$FB\n($FB)\n in the path to the backup ($ORIG)?\nTerminating..."
+  exit 2
   fi
   export IFS=$OLDIFS
   echo "$2"
 }
 
 # periodicBackupScheme
-# Returns the 'Periodic' Backup Schme for a folder, so that the type of
+# RETURNS: the 'Periodic' Backup Scheme for a folder, so that the type of
 # restore can be identified by fbrestore.
 
 periodicBackupScheme() {
+  if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an \
+ argument: backup/kind/scheme \nTerminates" >&2 ; exit 5 ; fi
   local  ORIG="$1"
   local BIT_TO_REMOVE=$FB/Periodic
    local REPLACED="${1/$BIT_TO_REMOVE/}"
@@ -314,8 +374,8 @@ periodicBackupScheme() {
 identifyBackupSourceFolder() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/} : I really need two arguments for\
-      identifyBackupSourceFolder()\nTerminating..."
+    echo -e "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+\nTerminating..."
     exit 5
   fi
 
@@ -324,23 +384,22 @@ identifyBackupSourceFolder() {
    local REPLACED="${2/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
     echo -e  "${0##*/} : The path to the backup isn't within  the defined\
-      location.\nTerminating..."
+location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't complete with a path to\
-      the actual backup.\n($FB/$1 isn't specific enough,\nthe path must\
-          include the folder from which to restore.)\nTerminating..."
-    exit 2
-  fi
+    echo -e "${0##*/} : The path to the backup isn't complete with a path to \
+the actual backup.\n($FB/$1 isn't specific enough,\nthe path must \
+include the folder from which to restore.)\nTerminating..."
+    exit 2 fi
   OLDIFS=$IFS
   IFS=/
   set -- "$REPLACED"
   # the path starts with a delimiter, so $1 will contain '' for the empty
   #  element at front to the left of the delimiter.
   if [[ -n "$1"  ]] ; then
-    echo -e "${0##*/} : The path to the backup starting with the PREFIX\
-      doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n in the\
-      path to the backup ($ORIG)?\nTerminating..."
+    echo -e "${0##*/} : The path to the backup starting with the PREFIX \
+doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n in the \
+path to the backup ($ORIG)?\nTerminating..."
     exit 2
   fi
   export IFS=$OLDIFS
@@ -353,17 +412,18 @@ identifyBackupSourceFolder() {
 
 validateFormatOfTimeStampedBackupContainingFolder() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/validateFormatOfTimeStampedBackupContainingFolder() :\
-      \nI really need one argument for\
-      identifyTimeStampedBackupContainingFolder()\nTerminating..."
+    echo -e "${0##*/}/${FUNCNAME[0]} :\nI really need one argument. \
+\nTerminating..."
   fi
    echo "$1" |  grep '.*[-][1-2][09][0-9][0-9][-][01][1-9][-][0-3][0-9]'\
      >/dev/null
    return $?
 }
 
+
+
 # identifyTimeStampedBackupContainingFolder()
-# Parameters: Stem consisting of backup kind and eventually a scheme,
+# PARAMETERS: Stem consisting of backup kind and eventually a scheme,
 # and the bucket (a folder named by its full symlink name,
 # consisting of the full path to the to the source-folder).
 # AND THE FULL PATH TO THE BACKUP AS PARAMETER2!
@@ -380,11 +440,13 @@ validateFormatOfTimeStampedBackupContainingFolder() {
 # '/pathtoFB/Periodic/DailySnapshot/var-html/html-2023-01-08/'
 # RETURNS: '/var/html'
 identifyTimeStampedBackupContainingFolder() {
-# Container
+
+# TODO: BACKUP_CONTAINER better than:
+# TimeStampedBackupContainingFolder
 
   if [[ $# -ne 2 ]] ; then
     echo -e "${0##*/} : I really need two arguments for\
-      identifyTimeStampedBackupContainingFolder()\nTerminating..."
+${FUNCNAME[0]}\nTerminating..."
     exit 5
   fi
 
@@ -392,7 +454,8 @@ identifyTimeStampedBackupContainingFolder() {
   local DEESCAPED_ORIG BIT_TO_REMOVE DEESCAPED_BIT_TO_REMOVE REPLACED
   DEESCAPED_ORIG="$( echo "$ORIG" | sed -ne 's:\\::g' -e 'p' )"
   BIT_TO_REMOVE="$FB/$1"
-  DEESCAPED_BIT_TO_REMOVE="$(echo "$BIT_TO_REMOVE" | sed -ne 's:\\::g' -e 'p')"
+  DEESCAPED_BIT_TO_REMOVE=\
+"$(echo "$BIT_TO_REMOVE" | sed -ne 's:\\::g' -e 'p')"
   local DBG_ESC=1
   if [[ $DBG_ESC -eq 0 ]] ; then
     echo ORIG : "$ORIG" >/dev/tty
@@ -406,11 +469,11 @@ identifyTimeStampedBackupContainingFolder() {
       location.\nTerminating..." >&2
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e "${0##*/}/identifyTimeStampedBackupContainingFolder() : \nThe path\
-      to the backup isn't complete with a path to the actual backup.\n($FB/$1\
-      isn't specific enough,\nthe path must include the folder from which to\
-      restore,\n and a timestamped folder that contains the actual files\
-      containing the  backup.)\nTerminating..." >&2
+    echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path\ to the backup isn't \
+complete with a path to the actual backup.\n($FB/$1\ isn't specific \
+enough,\nthe path must include the folder from which to restore,\n and a \
+timestamped folder that contains the actual files containing the backup.)\
+\nTerminating..." >&2
     exit 2
   fi
   OLDIFS=$IFS
@@ -419,10 +482,9 @@ identifyTimeStampedBackupContainingFolder() {
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left  of the delimiter.
   if [[ -n "$1"  ]] ; then
-    echo -e "${0##*/}/identifyTimeStampedBackupContainingFolder() : \nThe\
-      path to the backup starting with the PREFIX doesn't start with '/'.\n\
-      Is it a slash amiss after \$FB ($FB)\n in the path to the backup\
-      ($ORIG)?\nTerminating..." >&2
+    echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path to the backup starting with\
+ the PREFIX doesn't start with '/'.\n\ Is it a slash amiss after \$FB\n\
+($FB)\n in the path to the backup\ ($ORIG)?\nTerminating..." >&2
     exit 2
   fi
   export IFS=$OLDIFS
@@ -430,16 +492,17 @@ identifyTimeStampedBackupContainingFolder() {
   if validateFormatOfTimeStampedBackupContainingFolder "$2" ; then
     echo "$2" | sed -ne 's:^\.:\\.:' -e 'p'
   else
-    echo -e "${0##*/}/identifyTimeStampedBackupContainingFolder() : \nThe name\
-      of the folder that is supposed to be a timestamped folder,\n that\
-      consists of the name of the original folder and a timestamp, isn't on\
-      the correct format.\n($2)?\nTerminating..." >&2
+    echo -e "${0##*/}/${FUNCNAME[0]} : \nThe name of the folder that is \
+supposed to be a timestamped folder,\n that consists of the name of the \
+original folder and a timestamp, isn't on the correct format.\
+\n($2)?\nTerminating..." >&2
     exit 2
   fi
 }
 
 # baseFromFullSymlinkName()
-# returns the base folder name from a full symlink-name.
+# RETURNS: the base folder name from a full symlink-name.
+# PARAMETER: full-symlink-name
 # Ex: `baseFromFullSymlinkName usr-share-fonts`
 # returns `fonts`
 # and before that, I have to figure out todays name.
@@ -451,8 +514,8 @@ echo "$1" |  sed -n  's:^.*[-]::p'
 
 # baseNameDateStamped()
 # returns the base folder name from a full symlink-name with
-# an iso8601 datestamp appended.
-# Ex: `baseNameDateStamped usr-share-fonts`
+# Todays iso8601 datestamp appended.
+# Ex: `baseNameDateStamped usr-share-fonts-`
 # returns `fonts-2023-01-12`
 baseNameDateStamped() {
 if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
@@ -461,11 +524,11 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   echo $(echo "$1" |  sed -n  's:^.*[-]::p')-$(date +"%Y-%m-%d")
 }
 
-# baseNameDateStamped()
+# baseNameTimeStamped()
 # returns the base folder name from a full symlink-name with
-# an iso8601 datestamp appended.
+# an iso8601 datestamp and time appended.
 # Ex: `baseNameDateStamped usr-share-fonts`
-# returns `fonts-2023-01-12`
+# returns `fonts-2023-01-12T12:14`
 baseNameTimeStamped() {
 if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
@@ -491,7 +554,8 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # $HOME//docs/tech is a legal path.
 # where the superfluous '/' is simply
 # ignored.
-
+# TODO: FIX FOR invisible names?
+# TODO: TEST AND FIX BEFORE USE.
 validPathOrFileName() {
   grep -En '^/?(([A-Za-z]|[-_+.])+/?)+$' &>/dev/null
   return $?
@@ -504,10 +568,15 @@ validPathOrFileName() {
 # we have indeed the level0 snar file.
 
 function hasLevel0SnarFile() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+      parameter.\nTerminating"
+    exit 5
+  fi
   if [[ ! -f "$1" ]] ; then
-    echo -e "${0##*/} : I can't find the file $1, something is terribly wrong.\
-     \nTerminating..."
-    # Dette går til critical error i log, men avstedkommer også en notification.
+    echo -e "${0##*/} : I can't find the file $1, something is terribly \
+wrong.\nTerminating..."
+    # Will be passed ont crit err in log, but will also make a notifcation.
     exit 9
   fi
 }
@@ -520,6 +589,11 @@ function hasLevel0SnarFile() {
 # it, that doesn't exist.
 
 nextSnarFile() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+      parameter.\nTerminating"
+    exit 5
+  fi
   IFS='.'
   set "$1"
   newNum=1
@@ -540,13 +614,14 @@ nextSnarFile() {
 
 fullPathSymlinkName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/fullPathSymlinkName: I need exactly 1\
+    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
   local fn
   fn=$(realpath "$1")
-  echo "$fn" | sed -ne 's:^/::' -e 's:/:-:g' -e 's:^\.:\\.:' -e 's:[-]\(\.\):-\\\1:' -e 'p'
+  echo "$fn" | sed -ne 's:^/::' -e 's:/:-:g' -e 's:^\.:\\.:' \
+    -e 's:[-]\(\.\):-\\\1:' -e 'p'
 }
 
 # pathFromFullSymlinkName(){
@@ -560,7 +635,8 @@ pathFromFullSymlinkName() {
       \nTerminating"
     exit 5
   fi
-  echo "$1" | sed -ne  's:^:/:' -e 's:-:/:g' -e ':/(.*/)$:\1\/:g' -e 's:\\::' -e 'p'
+  echo "$1" | sed -ne  's:^:/:' -e 's:-:/:g' -e ':/(.*/)$:\1\/:g' \
+    -e 's:\\::' -e 'p'
 }
 
 # journalThis()
@@ -577,12 +653,14 @@ pathFromFullSymlinkName() {
 journalThis() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/}/journalThis(): I really need two parameters.\nTerminating"
+    echo -e "${0##*/}/journalThis(): I really need two \
+parameters.\nTerminating..."
     exit 5
   fi
   if [[ -v LOG_TO_JOURNAL && $LOG_TO_JOURNAL = true ]] ; then
 # shellcheck disable=SC2086 # code is irrelevant because in sed expression.
-    tee /dev/tty | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' | systemd-cat -t "$2"
+    tee /dev/tty | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
+      | systemd-cat -t "$2"
   else
     cat >/dev/tty
   fi
@@ -591,7 +669,7 @@ journalThis() {
 export -f journalThis
 # manager()
 # find the correct script/dropin-script to execute if any:
-# Passes the DELEGATE back to the caller by the global  DELEGATE_SCRIPT variable.
+# Passes the DELEGATE back to the caller by  global  DELEGATE_SCRIPT variable.
 # PARAMETERS (mandatory!)
 # BACKUP_SCHEME, or kind what considers OneShot.
 # SYMLINK_NAME
@@ -602,8 +680,8 @@ manager() {
   local CANDIDATE_SCRIPT
 
   if [[ $# -ne 3 ]] ; then
-    echo -e "$PNAME/manager() : Wrong number of arguments, I need\
-      BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..."\
+    echo -e "$PNAME/manager() : Wrong number of arguments, I need \
+BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
       | journalThis 2 "$BACKUP_SCHEME"
     exit 5
   else
@@ -619,7 +697,8 @@ manager() {
     fi
   fi
 
-  CANDIDATE_SCRIPT="$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME"."$OPERATION".sh
+  CANDIDATE_SCRIPT=\
+"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
     # same if with DRYRUN or VERBOSE
@@ -635,9 +714,10 @@ manager() {
         | journalThis 7 "$BACKUP_SCHEME"
     fi
   fi
-# Da place to look for a general replacement is in the $BACKUP_SCHEME.d folder.
+# Looking for a GENERAL replacement is in the $BACKUP_SCHEME.d folder.
 
-  CANDIDATE_SCRIPT="$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+  CANDIDATE_SCRIPT=\
+"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
       echo "$PNAME/manager() :  I have a readable backup script:\
@@ -657,11 +737,12 @@ manager() {
       fi
     fi
   elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-    echo "$PNAME/manager() : I didn't find  a GENERAL backup dropin script at:\
-      $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+    echo "$PNAME/manager() : I didn't find  a GENERAL backup dropin script \
+at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
   fi
-# da place to look for a general replacement is in the $BACKUP_SCHEME.d folder.
-  CANDIDATE_SCRIPT="$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME".$OPERATION.sh
+# Looking for a LOCAL replacement is in the $BACKUP_SCHEME.d folder.
+  CANDIDATE_SCRIPT=\
+"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
@@ -747,7 +828,7 @@ dieIfNotValidFullSymlinkName() {
 
 # dieIfNotValidFbFolderName()
 # returns 0 if the folder name within XDG_BIN_HOME/fb given, is a valid one
-# TODO: We must premake the folders?
+# TODO: We must premake the folders? Better name, including bin?
 
 dieIfNotValidFbFolderName() {
 
@@ -838,7 +919,9 @@ hasExcludeFile() {
 
 
     if  excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
-      export EXCLUDE_FILE=$XDG_BIN_HOME/fb/$backup_scheme/"$symlink_name".d/exclude.file
+      export EXCLUDE_FILE=\
+"$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
+
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
         echo -e "$PNAME : We have an \"exclude.file\" file:\
           \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
