@@ -439,7 +439,7 @@ validateFormatOfTimeStampedBackupContainingFolder() {
 # identifyTimeStampedBackupContainingFolder 'Periodic/DailySnapshot/var-html/'\
 # '/pathtoFB/Periodic/DailySnapshot/var-html/html-2023-01-08/'
 # RETURNS: '/var/html'
-identifyTimeStampedBackupContainingFolder() {
+identifyBackupContainerByTimeStampedFolder() {
 
 # TODO: BACKUP_CONTAINER better than:
 # TimeStampedBackupContainingFolder
