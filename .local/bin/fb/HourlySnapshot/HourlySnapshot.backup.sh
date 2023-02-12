@@ -37,10 +37,14 @@ pthname="$( echo $0  | sed 's/ /\\ /g' )"
 fpth="$(realpath $pthname)"; fpth=${fpth%/*} ; fpth=${fpth%/*}
 # This is an early include guard, before we know if we can run
 # run in this environment at all.
-
+if [[ 0 -eq 1 ]] ; then 
 # shellcheck source=/home/mcusr/.local/bin/fb/service_functions.sh
+  :
+fi
+
 if [[ -r "$fpth"/service_functions.sh ]] ; then
-  source "$fpth"/service_functions.sh
+. service_functions.sh
+#  source "$fpth"/service_functions.sh
 else
   echo -e  "$PNAME : Can't source: $fpth/service_functions.sh\
     \nTerminates... "
@@ -48,13 +52,14 @@ else
 fi
 
 if [[ -t 1 ]] ; then
-  MODE=DEBUG
+  MODE=CONSOLE
 else
   MODE=SERVICE
 fi
-dieIfMandatoryVariableNotSet FB $MODE $CURSCHEME
-dieIfMandatoryVariableNotSet XDG_BIN_HOME $MODE $CURSCHEME
-dieIfMandatoryVariableNotSet XDG_DATA_HOME $MODE $CURSCHEME
+
+dieIfMandatoryVariableNotSet FB "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
 
 # can't check FB just yet, because it is apt to check for internet first.
 
@@ -70,11 +75,23 @@ if ! isDirectory "$XDG_DATA_HOME" ; then
   exit 255
 fi
 
+# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
+if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
+  source "$XDG_BIN_HOME"/fb/shared_functions.sh
+else
+  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
+    \nTerminates... "
+  exit 255
+fi
+
+consoleHasInternet "$CURSCHEME"
+consoleFBFolderIsMounted "$CURSCHEME"
+
 # Vars below up here, to work globally and just not in the if block..
 DEBUG=1
 DRYRUN=false
-# controls whether we are going to print the backup command to the console/journal,
-# (when DRYRUN=0) or if were actually going to perform.
+# controls whether we are going to print the backup command to the
+# console/journal, (when DRYRUN=0) or if were actually going to perform.
 VERBOSE=false
 
 if [[ "$MODE" == "SERVICE" ]] ; then
@@ -85,25 +102,13 @@ if [[ "$MODE" == "SERVICE" ]] ; then
 # Normal argument parsing happens here!
 else
 
+  if [[ $# -lt 2 ]] ; then
+    echo -e "$PNAME : Too few arguments. At least I need a backup-scheme\
+and a full-symlink to the source for the backup.\nExecute \"$PNAME -h\" for \
+help. Terminating..." >&2
+   exit 2
+  fi
 
-if [[ $# -lt 2 ]] ; then
-  echo -e "$PNAME : Too few arguments. At least I need a backup-scheme\
-    and a full-symlink to the source for the backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
- exit 2
-fi
-
-# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
-if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
-  source "$XDG_BIN_HOME"/fb/shared_functions.sh
-else
-  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
-    \nTerminates... "
-  exit 255
-fi
-
-consoleHasInternet $CURSCHEME
-
-consoleFBFolderIsMounted $CURSCHEME
 
 help() {
 cat  << EOF
@@ -152,25 +157,25 @@ EOF
   done
 
 fi
-
+# End of command line parsing.
 if [[ $# -ne 2 ]] ; then
     if [[ "$MODE" == "SERVICE" ]] ; then
-      notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory\
-        parameters: A backup scheme, and a job-folder, Hopefully you are\
-        executing from the commandline. Exiting hard."
+      notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory \
+parameters: A backup scheme, and a job-folder, Hopefully you are \
+executing from the commandline. Exiting hard."
 
-      echo >&4 "<2>${0##*/} : I didn't get two mandatory parameters: A backup\
-        scheme, and a job-folder, Hopefully you are executing from the\
-        commandline. Exiting hard."
-      exit 255
+      echo >&4 "<2>${0##*/} : I didn't get two mandatory parameters: A backup \
+scheme, and a job-folder, Hopefully you are executing from the \
+commandline. Exiting hard."
    else
-      echo "${0##*/} : I didn't get two mandatory parameters: A backup\
-        scheme, and a job-folder, Hopefully you are executing from the\
-        commandline. Exiting hard."
-      exit 2
-    fi
+      echo "${0##*/} : I didn't get two mandatory parameters: A backup \
+scheme, and a job-folder, Hopefully you are executing from the \
+commandline. Exiting hard."
+  fi
+  exit 255
 fi
 
+# Getting and validating parameters
 
 BACKUP_SCHEME="${1}"
 SYMLINK_NAME="${2}"
@@ -183,40 +188,31 @@ HAVING_ERRORS=false
 # called from the terminal, and output be sent to the journal anyway, when
 # the script is run implicitly by a daemon.
 ARCHIVE_OUTPUT=1
+
 JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
 # we regenerate the folder where the symlinks are
 # In the install script.
 
-if [[ ! -d $JOBSFOLDER ]] ; then
-    if [[ "$MODE" == "SERVICE" ]] ; then
-      notify-send "Folder Backup: ${0##*/}" "The folder $JOBFOLDER doesn't\
-         exist. Hopefully you are executing from the commandline and\
-         misspelled $BACKUP_SCHEME."
-      echo >&4 "<0>${0##*/}: The folder $JOBFOLDER doesn't exist. Hopefully\
-        you are executing from the commandline and misspelled $BACKUP_SCHEME."
-      exit 255
-    else
-      # TODO: FATAL_ERR
-    fi
-    # A critical error
-fi
-
+dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$MODE" 
 
 DEBUG=1
 
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<7>${0##*/}: JOBSFOLDER: $JOBSFOLDER"
+  echo >&4 "<7>${PNAME}: JOBSFOLDER: $JOBSFOLDER"
   # a debug message
 fi
 
 
-
+# TODO: sjekk om innenfor FB som i OneShot.backup.
 TARGET_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<7>${0##*/}: TARGET_FOLDER: $TARGET_FOLDER"
+  echo >&4 "<7>${PNAME} TARGET_FOLDER: $TARGET_FOLDER"
   # debug message
 fi
+
+# TODO: In theory we should check if the Periodic,
+# and the backup scheme exists.
 
 BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
 # This is done in the fbsnapshot utility, and not in the
@@ -225,7 +221,7 @@ BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
 # TODO: Maybe have a dbg_msg, ala fatal_error, that takes care of
 # all the stuff that we otherwise have to litter our code with?
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<5>${0##*/} : the backups of $TARGET_FOLDER are stored in:\
+  echo >&4 "<5>${PNAME} : the backups of $TARGET_FOLDER are stored in:\
     $BACKUP_CONTAINER"
   # TODO: Maybe raise this to notice.
 
@@ -241,21 +237,21 @@ fi
 # TODO: something for dryrun here, but we keep the bucket?
 # so not inflicted by dry-run?
 
-if [[ ! -d $BACKUP_CONTAINER ]] ; then
-  mkdir -p $BACKUP_CONTAINER
+if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
+  mkdir -p "$BACKUP_CONTAINER"
   if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${0##*/} : $BACKUP_CONTAINER didn\'t exist"
+    echo >&4 "<7>${PNAME} : $BACKUP_CONTAINER didn\'t exist"
     # A debug message
   fi
 else
   if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${0##*/} : $BACKUP_CONTAINER DID  exist"
+    echo >&4 "<7>${PNAME} : $BACKUP_CONTAINER DID  exist"
    # A debug message
   fi
 fi
 
 # we generate todays folder name.
-TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)"
+TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER"/$(baseNameDateStamped "$SYMLINK_NAME")
 
 
 MAKE_BACKUP=1
@@ -268,31 +264,31 @@ MAKE_BACKUP=1
 # it is.
 MADE_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d $TODAYS_BACKUP_FOLDER ]] ; then
-  mkdir -p $TODAYS_BACKUP_FOLDER
+  mkdir -p "$TODAYS_BACKUP_FOLDER"
   MADE_TODAYS_BACKUP_FOLDER=0
 
   if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${0##*/}: $TODAYS_BACKUP_FOLDER didn\'t exist, que to make \
+    echo >&4 "<7>${PNAME}: $TODAYS_BACKUP_FOLDER didn\'t exist, que to make \
       backup"
     # debug message
   fi
   MAKE_BACKUP=0
 else
   if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${0##*/}: $TODAYS_BACKUP_FOLDER exists, NO que to make \
+    echo >&4 "<7>${PNAME}: $TODAYS_BACKUP_FOLDER exists, NO que to make \
       backup"
     # debug
   fi
-  modfiles=`find -H $JOBSFOLDER/$SYMLINK_NAME -cnewer $TODAYS_BACKUP_FOLDER`
+  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$TODAYS_BACKUP_FOLDER")
     if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-      echo >&4 "<7>${0##*/}: +"$modfiles"+"
+      echo >&4 "<7>${PNAME}: +$modfiles+"
       # debug message
     fi
-  if [[ ! -z "$modfiles" ]] ; then
+  if [[  -n "$modfiles" ]] ; then
     # there are changed files here, and we should perform a backup
-    if [ $DEBUG -eq 0 || $VERBOSE == true ] ; then
+    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
 
-      echo >&4 "<5>${0##*/}: find: There are modified files in target folder:\
+      echo >&4 "<5>${PNAME}: find: There are modified files in target folder:\
          $TARGET_FOLDER and we will perform a $BACKUP_SCHEME backup."
      fi
     MAKE_BACKUP=0
@@ -310,22 +306,21 @@ if [[  $MAKE_BACKUP -eq 0 ]] ; then
     # we extract the real path, pointed to by the symlink, which we
     # will make a backup of.
 
-
     if [[ $DRYRUN -eq 0 ]] ; then
-      echo >&4 "<5>${0##*/}: sudo tar -zvcf \
-        $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
+      echo >&4 "<5>${PNAME}: sudo tar -zvcf \
+        $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz \
         -C $TARGET_FOLDER ."
       # notice message
     else
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
         sudo tar -zvcf \
-          $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
-          -C $TARGET_FOLDER . >&4
+          "$TODAYS_BACKUP_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz \
+          -C "$TARGET_FOLDER" . >&4
         # the output sent as a notice message.
       else
         sudo tar -zvcf \
-          $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped $SYMLINK_NAME )-backup.tar.gz \
-          -C $TARGET_FOLDER . >/dev/null
+          "$TODAYS_BACKUP_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz \
+          -C "$TARGET_FOLDER" . >/dev/null
       fi
     fi
 
@@ -333,8 +328,8 @@ if [[  $MAKE_BACKUP -eq 0 ]] ; then
     #  and needs to send a message to the Journal as well.
     # Needs to learn the journalctl better first.
     if [[ $DRYRUN -ne 0 ]] ; then
-      notify-send "${0##*/}" "Hourly backup complete!"
-      echo >&4 "<5>${0##*/}: Hourly backup complete!"
+      notify-send "${PNAME}" "Hourly backup complete!"
+      echo >&4 "<5>${PNAME}: Hourly backup complete!"
       # notice message
     fi
 
@@ -347,8 +342,8 @@ if [[  $MAKE_BACKUP -eq 0 ]] ; then
 # before updating, but if that isn't the case, the touch command is always an
 # option.
 else
-    notify-send "${0##*/}" "Nothing to hourly backup!"
-    echo >&4 "<5>${0##*/}: Nothing to hourly backup!"
+    notify-send "${PNAME}" "Nothing to hourly backup!"
+    echo >&4 "<5>${PNAME}: Nothing to hourly backup!"
     # notice message
 fi
 
@@ -379,4 +374,4 @@ fi
     # kan sette IFS to newline for henter inn i variabel?
  fi
 
-echo >&2 "${0##*/}: The backup-rotation routine remains to be implemented"
+echo >&2 "${PNAME}: The backup-rotation routine remains to be implemented"
