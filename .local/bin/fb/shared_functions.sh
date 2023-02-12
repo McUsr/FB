@@ -1,4 +1,4 @@
-# -- !/bin/bash
+#!/bin/bash
 
 export ROOTFOLDERS="OneShot Periodic"
 
@@ -21,23 +21,6 @@ ok_version() {
 
 
 
-# brokenSymlink()
-# Alerts and dies if a symlink in a symlink folder is broken,
-# Probably due to the fact that we have moved the directory
-# somewhere else, or deleted it.
-# Works in SERVICE_MODE and DEBUG_MODE.
-# TODO: rename to 'dieIfBrokenSymlink` and die.
-
-brokenSymlink() {
-if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
-  argument\nTerminates" >&2 ; exit 5 ; fi
-  if [[ ! -t 1 ]] ; then 
-    notify-send "$3" "The symlink $1/$2 is broken! No backups are made for $2\
-      before it is fixed."
-  fi
-   echo "The symlink $1/$2 is broken! No backups are made for $2 before it\
-      is fixed."  | systemd-cat -t "$3" -p crit
-}
 
 
 # isASymlink()
@@ -279,6 +262,7 @@ the root \ backupfolder \$FB: $FB. Retrying in 3 minutes" \
     fi
   done
 }
+
 
 export -f consoleFBfolderIsMounted
 
@@ -965,8 +949,8 @@ hasExcludeFile() {
 # GLOBAL: uses  THE_EDITOR with the correct editor, if any.
 
 createExcludeFile() {
-  if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
-    arguments\nTerminates" >&2 ; exit 5 ; fi
+  if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two \
+arguments\nTerminates" >&2 ; exit 5 ; fi
   # visual first, editor after.
   dieIfNotValidFbFolderName "$1"
   SCHEME=$1
