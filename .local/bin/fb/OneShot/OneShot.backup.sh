@@ -24,6 +24,7 @@ system initialized? Maybe you need to configure it.\nTerminating..."\
     exit 255
 fi
 
+
 # shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
 if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
   source "$XDG_BIN_HOME"/fb/shared_functions.sh
@@ -175,7 +176,7 @@ SYMLINK_NAME="$3"
 # time to look for any exclude files
 
 if hasExcludeFile OneShot "$SYMLINK_NAME" ; then
- if [[ $VERBOSE = true ]] ; then
+ if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
    echo "$PNAME : I have an exclude file : $EXCLUDE_FILE "
    cat "$EXCLUDE_FILE"
  fi
