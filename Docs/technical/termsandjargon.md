@@ -15,11 +15,12 @@ minimize ambiguity and confusion.
 	folder.
 
 * **BACKUP\_CONTAINER** [*variable-name*]
-The directory within a backup-scheme/kind (OneShot),
-with the same name as the full-symlink-name, and it serves
-as a container for all the i directories that have the
-folders name and the date stamp , holding the backups that
-were made on that given date (See: **TODAYS\_BACKUP\_FOLDER**)
+The directory,inside the **fb\_folder\_structure** within a
+backup-scheme/kind (f.ex: OneShot), with the same name as
+the **full-symlink-name**, and it serves as a container for all
+the directories that have the folders name and the date
+stamp , holding the backups that were made on that given
+date (See: **TODAYS\_BACKUP\_FOLDER**)
 
 * **backup-rotation**
 	When we have reached the treshold for the number of days
@@ -74,6 +75,9 @@ were made on that given date (See: **TODAYS\_BACKUP\_FOLDER**)
 	actual job, on the behalf of the **Governor**, that
 	qualifies and selects what to be done, and then gets the
 	**Executioner** to do it.
+
+* **fb\_folder\_structure**
+TODO:
 
 * **Full-symlink-name** The **full-symlink-name** is a
 	*transformation of the full path to the target of the
@@ -181,5 +185,5 @@ basename of the folder it is to backup, and the  datestamp.
 **TODAYS\_BACKUP\_FOLDER**. (See:**BACKUP_CONTAINER**)
 
 
-Last updated:23-02-08 20:33
+Last updated:23-02-10 12:21
 
