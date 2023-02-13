@@ -22,8 +22,6 @@ ok_version() {
 }
 
 
-
-
 # isASymlink()
 # RETURNS 0 if the parameter is a symlink.
 # PARAMETER: A symlink
@@ -35,6 +33,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   return $?
 }
 
+
 # isUnbrokenSymlink()
 # RETURNS 0 if the  the symlink is okay.
 # PARAMETER: A symlink
@@ -45,6 +44,28 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
     return 1
   fi
   return 0
+}
+
+
+# isWithinPath ()
+# PARAMETERS: path1, path2
+# Checks if path1 is within path2.
+
+isWithinPath (){ 
+
+  if [[ $# -ne 2 ]] ; then
+    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two paths as \
+      arguments.\nTerminating..."
+    exit 5
+  fi
+  local probe="{1/$2/}"
+  if [[ "$probe" != "${1}" ]] ; then
+    # If the probe is shorter, then $2 was chopped off the start of $1
+    # because $2 was a  path that contained $1.
+    return 0
+  else
+    return 1
+  fi
 }
 
 if [[ 0 -eq 1 ]] ; then
@@ -114,9 +135,13 @@ trap 'servHasInetCtrlC' INT
     if [[ ! -t 1 ]] ; then
       notify-send "${0##*/}/${FUNCNAME[0]}" "I need a parameter for the \
 BACKUP_SCHEME in use!\nTerminating... "
-    fi
     echo -e "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
       BACKUP_SCHEME in use!\nTerminating... " | journalThis 5 FolderBackup
+    else
+      echo -e >&2 "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
+      BACKUP_SCHEME in use!\nTerminating... " 
+
+    fi
     exit 5
   fi
   local inet_gone=false passed_three=false
@@ -201,7 +226,7 @@ BACKUP_SCHEME in use!\nTerminating... "
       BACKUP_SCHEME in use!\nTerminating... " 1>&2
     exit 5
   fi
-
+if-1
   local  no_mounted_folder=false passed_three=false
   while true ; do
     if [[  -d "$FB" ]] ; then
@@ -848,6 +873,7 @@ dieIfNotValidFbFolderName() {
     # error_code 2, because can be user set from the command line.
   fi
 }
+
 
 # excludeFileHasContents()
 # We check if it is isn't empty, and if it is, then we check if
