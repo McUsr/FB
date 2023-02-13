@@ -16,9 +16,10 @@ ok_version() {
     return 1
   elif [[ ${BASH_VERSINFO[0]} -lt 4 ]]  ; then
     return 1
+  else
+    return 0
   fi
 }
-
 
 
 
@@ -414,7 +415,6 @@ validateFormatOfTimeStampedBackupContainingFolder() {
 }
 
 
-
 # identifyTimeStampedBackupContainingFolder()
 # PARAMETERS: Stem consisting of backup kind and eventually a scheme,
 # and the bucket (a folder named by its full symlink name,
@@ -541,6 +541,8 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   echo "$1"  | sed -n 's,\(.*[-][^.]\+\).*,\1,p'
 }
+
+
 # validPathOrFileName()
 # Returns 0 if the path is legal
 # it returns true for two / in a row,
