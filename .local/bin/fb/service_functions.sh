@@ -56,6 +56,20 @@ fatal_err() {
   fi
 }
 
+# dieIfNotDirectoryExist()
+# dies if a fb system directory doesn't exist,
+dieIfNotDirectoryExist() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "$PNAME/${FUNCNAME[0]} : Need  one \
+argument, a directory to test if exists.\nTerminates..." >&2
+    exit 5
+  fi
+if [[ ! -d "${1}" ]] ; then
+  fatal_err "the Directory ${1} : doesn't \
+exist!" "$MODE" "$CURSCHEME"
+  exit 255
+fi
+}
 
 # dieIfJobsFolderDontExist()
 # PARAMETERS: jobsfolder, backupscheme, mode
@@ -67,10 +81,10 @@ dieIfJobsFolderDontExist(){
       \nTerminating..." >&2
     exit 5
   fi
-  local jobsfolder="${1}" backup_scheme="${2}" mode="${3}"
+  local jobsfolder="${1}" backup_scheme="${2}" MODE="${3}"
 
   if [[ ! -d $jobsfolder ]] ; then
-      if [[ "$mode" == "SERVICE" ]] ; then
+      if [[ "$MODE" == "SERVICE" ]] ; then
         notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The folder \
 $jobsfolder doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled $backup_scheme."
@@ -146,7 +160,7 @@ newestDirectory() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$mode" == "SERVICE" ]] ; then
+    if [[ "$MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -188,7 +202,7 @@ oldestDirectory() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$mode" == "SERVICE" ]] ; then
+    if [[ "$MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -230,7 +244,7 @@ backupDirectoryCount() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$mode" == "SERVICE" ]] ; then
+    if [[ "$MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -262,7 +276,7 @@ assertBackupContainer() {
   if [[ ! -d "${1}" ]] ; then
     mkdir -p "${1}"
     if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-      if [[ "$mode" == "SERVICE" ]] ; then
+      if [[ "$MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} didn\'t exist"
       else
 # shellcheck disable=SC2086  # will be used!
@@ -271,7 +285,7 @@ assertBackupContainer() {
     fi
   else
     if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-      if [[ "$mode" == "SERVICE" ]] ; then
+      if [[ "$MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} DID  exist"
       else
         echo >&2 "${PNAME}/${FUNCNAME[0]} : ${1} DID  exist"
