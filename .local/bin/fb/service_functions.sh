@@ -356,3 +356,25 @@ is fixed."  | systemd-cat -t "$3" -p crit
 is fixed."
   fi
 }
+
+
+# dieIfBrokenSymlink()
+# PARAMETERS: JOBS_FOLDER SYMLINK BACKUP_SCHEME
+# terminates if the 
+dieIfBrokenSymlink() {
+
+  if [[ $# -ne 3 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]} : Need three arguments: \
+The jobs folder,a symlink to validate, and backupscheme.\nTerminates" >&2 ;
+    exit 5
+  fi
+  if ! isUnbrokenSymlink "${1}/{2}" ; then 
+    brokenSymlink "${1}" "${2}" "${3}" 
+    if [ ! -t 1 ] ; then  
+      # SERVICE MODE
+      exit 255
+    else
+      exit 5
+    fi
+  fi
+}
