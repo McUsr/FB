@@ -147,7 +147,7 @@ $backup_scheme."
 # dieIfMandatoryVariableNotSet()
 # dies If a variable isn't set.
 
-
+# TODO: Notification?
 dieIfMandatoryVariableNotSet() {
   if [[ $# -ne 3 ]] ; then
     if [ -t 1 ] ; then
@@ -347,9 +347,12 @@ brokenSymlink() {
 if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
   argument\nTerminates" >&2 ; exit 5 ; fi
   if [[ ! -t 1 ]] ; then
-    notify-send "$3" "The symlink $1/$2 is broken! No backups are made for $2\
-      before it is fixed."
+    notify-send "$3" "The symlink $1/$2 is broken! No backups are made for $2 \
+before it is fixed."
+   echo "The symlink $1/$2 is broken! No backups are made for $2 before it \
+is fixed."  | systemd-cat -t "$3" -p crit
+  else
+   echo >&2 "The symlink $1/$2 is broken! No backups are made for $2 before it \
+is fixed."
   fi
-   echo "The symlink $1/$2 is broken! No backups are made for $2 before it\
-      is fixed."  | systemd-cat -t "$3" -p crit
 }
