@@ -13,6 +13,19 @@ err_report() {
 
 trap 'err_report $LINENO' ERR
 
+# notifyErr()
+# PARAMETERS: prog/funcstr errstring.
+# Sends an error notification and  a journal entry .
+# USAGE: notifyErr "error message " |  journalThis 5 FolderBackup
+notifyErr() {
+    if [[ $# -ne 2 ]] ; then
+      echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+  \nTerminating..."
+      exit 5
+    fi
+  notify-send "${1} ${2}\nTerminating... "
+  echo -e "${1}} ${2}\nTerminating... " 
+}
 
 # TODO: Descriptin.
 fatal_err() {
