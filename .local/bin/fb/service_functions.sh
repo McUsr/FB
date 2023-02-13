@@ -69,6 +69,34 @@ fatal_err() {
   fi
 }
 
+
+# dieIfSourceIsWithinFBTree()
+# PARAMETERS: path1: curent schem
+# GLOBALS: FB, MODE, VERBOSE
+# This will end the same way,if DRYRUN, so not considering.
+
+dieIfSourceIsWithinFBTree() {
+
+  if [[ $# -ne 2 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]} : Need two  arguments: \
+A backup source folder to check If is within \$FB\n\n
+And the current scheme\nTerminates" >&2 ;
+    exit 5
+  fi
+  if isWithinPath "${1}" "$FB" ; then
+
+    if [[ $MODE == "SERVICE"  ]] ; then
+      notifyErr "$PNAME/${FUNCNAME[0]}" " : The target of the backup is not \
+allowed to be inside  $FB." |  journalThis 5 "${2}" -p crit
+      exit 255
+    else
+      echo -e "$PNAME/${FUNCNAME[0]} : The target of the backup is not \
+allowed to be inside \ $FB.\nTerminating..."
+      exit 5
+    fi
+  fi
+}
+
 # dieIfNotDirectoryExist()
 # dies if a fb system directory doesn't exist,
 dieIfNotDirectoryExist() {
