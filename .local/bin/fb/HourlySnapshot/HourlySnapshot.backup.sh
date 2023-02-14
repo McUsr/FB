@@ -18,78 +18,112 @@
 # 12/01: Real deal ready for production, for what DailySnapshot
 # backups are concerned.
 
-# shellcheck disable=SC2034  # will be used!
-DAYS_TO_KEEP_BACKUPS=14
-# anything less or equal to 0 effectively disables backup.
-# Up here for convenience, if that is what you want to change.
+# pathToSourcedFiles()
+# A staple from now on, can't source this one.
+# Does as it says.
+
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
+if [[ $DEBUG -ne 0  ]] ; then
+# dieIfCantSourceShellLibrary()
+# sources the ShellLibraries
+# so we can perform the rest of the tests.
+# TODO: Think of modus.
+# dieIfCantSourceShellLibrary() {
+#   if [[ $# -ne 1 ]] ; then
+#     echo -e "$PNAME/${FUNCNAME[0]} : Need an\
+#     argument, an existing fb shell library file!\nTerminates..." >&2
+#     exit 5
+#   fi
+#   if [[ -r "${1}" ]] ; then
+#     source "${1}"
+#   #  source "$fpth"/service_functions.sh
+#   else
+#     echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+#       \nTerminates... " >&2
+#     exit 255
+#   fi
+# }
+:
+fi
+# the variables below are configuration variables you can
+# use, especially when invoking indirectly by the governor,
+# as a service.
+
+DRYRUN=false
+DEBUG=0
+# shellcheck disable=SC2034
+ARCHIVE_OUTPUT=1
+
+PNAME=${0##*/}
 VERSION='v0.0.4'
-PNAME="${0##*/}"
-# extract scheme name like below, due to naming-convention.
 CURSCHEME="${PNAME%%.*}"
-# The piece below are set in with m4, to keep just one piece to
-# maintain.
 
-# We set the path above the delegate, where is were
-# we store the service_functions.file
-# shellcheck disable=SC2001,SC2086  # Escaped by sed
-pthname="$( echo $0  | sed 's/ /\\ /g' )"
-# shellcheck disable=SC2086  # Escaped by sed
-fpth="$(realpath $pthname)"; fpth=${fpth%/*} ; fpth=${fpth%/*}
-# This is an early include guard, before we know if we can run
-# run in this environment at all.
-if [[ 0 -eq 1 ]] ; then 
-# shellcheck source=/home/mcusr/.local/bin/fb/service_functions.sh
-  :
-fi
-
-if [[ -r "$fpth"/service_functions.sh ]] ; then
-. service_functions.sh
-#  source "$fpth"/service_functions.sh
-else
-  echo -e  "$PNAME : Can't source: $fpth/service_functions.sh\
-    \nTerminates... "
-  exit 255
-fi
+# shellcheck disable=SC2034
+DAYS_TO_KEEP_BACKUPS=14
 
 if [[ -t 1 ]] ; then
-  MODE=CONSOLE
+  MODE="DEBUG"
 else
-  MODE=SERVICE
+  MODE="SERVICE"
+fi
+# bootstrapping libraries before figuring system paths.
+fbBinDir="$(pathToSourcedFiles)"
+
+if [[ $DEBUG -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
+else
+# shellcheck source=service_functions.sh
+  source "$fbBinDir"/service_functions.sh
 fi
 
+# asserting system/configuration context.
 dieIfMandatoryVariableNotSet FB "$MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
 
-# can't check FB just yet, because it is apt to check for internet first.
 
-if ! isDirectory "$XDG_BIN_HOME" ; then
-  fatal_err "the Directory \$XDG_BIN_HOME : $XDG_BIN_HOME doesn't\
-    exist!" "$MODE" "$CURSCHEME"
-  exit 255
-fi
+dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
-if ! isDirectory "$XDG_DATA_HOME" ; then
-  fatal_err "the Directory \$XDG_DATA_HOME : $XDG_DATA_HOME doesn't\
-    exist!" "$MODE" "$CURSCHEME"
-  exit 255
-fi
-
-# shellcheck source=/home/mcusr/.local/bin/fb/shared_functions.sh
-if [[ -r "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
-  source "$XDG_BIN_HOME"/fb/shared_functions.sh
+if [[ $DEBUG -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
 else
-  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
-    \nTerminates... "
-  exit 255
+# shellcheck source=shared_functions.sh
+  source "$fbBinDir"/shared_functions.sh
 fi
+
 
 consoleHasInternet "$CURSCHEME"
-consoleFBFolderIsMounted "$CURSCHEME"
+consoleFBfolderIsMounted "$CURSCHEME"
+
+# Whatever the context, we need at least two parameters.
+
+if [[ $# -lt 2 ]] ; then
+  if [[ $MODE == "SERVICE" ]] ; then
+    notify-send "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
+run propely. Terminating..."
+
+    echo -e  "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
+run propely.\nTerminating..." | systemd-cat -t "$CURSCHEME" -p crit
+    exit 255
+  elif [[ $# -eq 0 ]] ; then 
+    echo -e "$PNAME : I need at least one argument \
+to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
+    exit 2
+  # else If MODE=DEBUG && $# -eq 1 -> maybe -h.
+  fi
+fi
 
 # Vars below up here, to work globally and just not in the if block..
-DEBUG=1
-DRYRUN=false
+DEBUG=0
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
 VERBOSE=false
@@ -135,6 +169,7 @@ syntax:
 EOF
 }
 
+# shellcheck disable=SC2034
   GETOPT_COMPATIBLE=true
 # time to parse some command line arguments!
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
@@ -158,6 +193,7 @@ EOF
 
 fi
 # End of command line parsing.
+
 if [[ $# -ne 2 ]] ; then
     if [[ "$MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory \
@@ -178,38 +214,70 @@ fi
 # Getting and validating parameters
 
 BACKUP_SCHEME="${1}"
+
 SYMLINK_NAME="${2}"
 
 
+# shellcheck disable=SC2034
 HAVING_ERRORS=false
 # For the dry-run.
 
-# Controls whether debug output will be sent to the journal when the script is
-# called from the terminal, and output be sent to the journal anyway, when
-# the script is run implicitly by a daemon.
-ARCHIVE_OUTPUT=1
+# Controls whether the  output (file listing) from tar will be sent to the
+# journal when the script is run as a service.
+# output is not normally sent to the journal from the CONSOLE/debug mode, ONLY
+# when we simulate a "real" run of a service.  Then output will be sent to the
+# journal anyway, when the script is run implicitly by a daemon. But not the
+# ARCHIVE output, that is a choice.  And it is maybe best to have it on, so tha
+# the user can turn it off.  The level of VERBOSITY is another option that will
+# kick in, once ARCHIVE_OUPUT is true (0).
+
+
+
+##### Qualify the jobs folder
 
 JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
 # we regenerate the folder where the symlinks are
 # In the install script.
 
-dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$MODE" 
-
-DEBUG=1
+dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$MODE"
 
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<7>${PNAME}: JOBSFOLDER: $JOBSFOLDER"
+  if [[ $MODE == "SERVICE" ]] ; then
+    echo >&4 "<7>${PNAME}: JOBSFOLDER: $JOBSFOLDER"
+  else
+    echo >&2 "${PNAME}: JOBSFOLDER: $JOBSFOLDER"
+  fi
   # a debug message
 fi
 
+#####  Qualify the targets folder
 
 # TODO: sjekk om innenfor FB som i OneShot.backup.
+# TARGET FOLDER er et dårlig navn. SOURCE FOLDER bedre.
+# må sjekke at ikke er innefor, fordi det er galt!
+
+# TODO: I need to check if the symlink is all right!
+
+dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$BACKUP_SCHEME"
+
 TARGET_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<7>${PNAME} TARGET_FOLDER: $TARGET_FOLDER"
+  echo  "${PNAME} TARGET_FOLDER: $TARGET_FOLDER"
   # debug message
 fi
+
+echo "$TARGET_FOLDER"
+
+dieIfSourceIsWithinFBTree "$TARGET_FOLDER" "$BACKUP_SCHEME"
+
+if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;  then
+  echo -e "$PNAME : The target folder is NOT inside $FB.\n($1)."
+elif [[ $DRYRUN = true ]] ; then
+  echo -e "$PNAME : The target folder is NOT inside $FB.\n($1)."
+# else we're passing through further down the road.
+fi
+
 
 # TODO: In theory we should check if the Periodic,
 # and the backup scheme exists.
@@ -218,160 +286,318 @@ BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
 # This is done in the fbsnapshot utility, and not in the
 # OneShot.backup.sh, The "architecture" is "twisted".
 
+assertBackupContainer "$BACKUP_CONTAINER"
+
 # TODO: Maybe have a dbg_msg, ala fatal_error, that takes care of
 # all the stuff that we otherwise have to litter our code with?
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo >&4 "<5>${PNAME} : the backups of $TARGET_FOLDER are stored in:\
-    $BACKUP_CONTAINER"
-  # TODO: Maybe raise this to notice.
-
-fi
-
-# It might be the first time, for some weird reason
-# we but just we! the DailySnapshot NOT this DailySnapshotBackup
-# can be called from the OneShot routine.
-# or we can somehow had our own idea of how to start
-# the things up, so we just silently create it.
-# we are here to solve problems, not create them.
-
-# TODO: something for dryrun here, but we keep the bucket?
-# so not inflicted by dry-run?
-
-if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
-  mkdir -p "$BACKUP_CONTAINER"
-  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${PNAME} : $BACKUP_CONTAINER didn\'t exist"
-    # A debug message
-  fi
-else
-  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${PNAME} : $BACKUP_CONTAINER DID  exist"
-   # A debug message
-  fi
-fi
-
-# we generate todays folder name.
-TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER"/$(baseNameDateStamped "$SYMLINK_NAME")
-
-
-MAKE_BACKUP=1
-# MAKE_BACKUP helps us differ between the case that we need to
-# make TODAYS_BACKUP_FOLDER, or not, because if we make it, then there is
-# no reason to perform a find -newer, we'll make a backup anyway.
-
-# So we can differ between first run of today,
-# and later ones, because we need to rotate backups if
-# it is.
-MADE_TODAYS_BACKUP_FOLDER=1
-if [[ ! -d $TODAYS_BACKUP_FOLDER ]] ; then
-  mkdir -p "$TODAYS_BACKUP_FOLDER"
-  MADE_TODAYS_BACKUP_FOLDER=0
-
-  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${PNAME}: $TODAYS_BACKUP_FOLDER didn\'t exist, que to make \
-      backup"
-    # debug message
-  fi
-  MAKE_BACKUP=0
-else
-  if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-    echo >&4 "<7>${PNAME}: $TODAYS_BACKUP_FOLDER exists, NO que to make \
-      backup"
-    # debug
-  fi
-  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$TODAYS_BACKUP_FOLDER")
-    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-      echo >&4 "<7>${PNAME}: +$modfiles+"
-      # debug message
-    fi
-  if [[  -n "$modfiles" ]] ; then
-    # there are changed files here, and we should perform a backup
-    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-
-      echo >&4 "<5>${PNAME}: find: There are modified files in target folder:\
-         $TARGET_FOLDER and we will perform a $BACKUP_SCHEME backup."
-     fi
-    MAKE_BACKUP=0
+  if [[ $MODE == "SERVICE"  ]] ; then
+    echo >&4 "<7>${PNAME} : the backups of $TARGET_FOLDER are stored in:\
+$BACKUP_CONTAINER"
   else
-    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-      echo >&4 "<5>${0##*/}: find: There are no changed files in target \
-        folder: $TARGET_FOLDER."
-      # notice message
-    fi
+    echo >&2 "${PNAME} : the backups of $TARGET_FOLDER are stored in:\
+$BACKUP_CONTAINER"
+  fi
+  # TODO: Maybe raise this to notice.
+fi
+
+# its time to get the latest directory from the backup container and 
+# check the time stamp.
+
+
+MUST_MAKE_TODAYS_FOLDER=1
+MUST_MAKE_BACKUP=1
+echo "\$BACKUP_CONTAINER : $BACKUP_CONTAINER"
+# we generate todays folder name.
+
+TODAYS_BACKUP_FOLDER_NAME=\
+"$BACKUP_CONTAINER"/$(baseNameDateStamped "$SYMLINK_NAME")
+emptyBackupFolder=false
+
+if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
+  echo "TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME didn't exist!"
+  probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
+  echo "probeDir =>$probeDir<="
+  if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then 
+      probeDir=""
+  fi
+else
+  probeDir="$TODAYS_BACKUP_FOLDER_NAME"
+  echo "dt: $probeDir"
+
+  if ( ! compgen -G "$probeDir/*" >/dev/null); then
+    emptyBackupFolder=true
   fi
 fi
 
-if [[  $MAKE_BACKUP -eq 0 ]] ; then
-    # there are changed files here, and we should perform a backup
-    # we extract the real path, pointed to by the symlink, which we
-    # will make a backup of.
+echo "probeDir = : $probeDir"
 
-    if [[ $DRYRUN -eq 0 ]] ; then
-      echo >&4 "<5>${PNAME}: sudo tar -zvcf \
-        $TODAYS_BACKUP_FOLDER/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz \
-        -C $TARGET_FOLDER ."
-      # notice message
-    else
-      if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
-        sudo tar -zvcf \
-          "$TODAYS_BACKUP_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz \
-          -C "$TARGET_FOLDER" . >&4
-        # the output sent as a notice message.
-      else
-        sudo tar -zvcf \
-          "$TODAYS_BACKUP_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz \
-          -C "$TARGET_FOLDER" . >/dev/null
+if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
+  # echo "newest dir doesn't exist." Means we have no folders to compare with.
+  # so this is the first backup!
+  echo "no files in probedir"
+  MUST_MAKE_TODAYS_FOLDER=0
+  MUST_MAKE_BACKUP=0
+else
+  echo "we might have  modified files"
+  echo "probedir = $probeDir"
+  # we need to compare timestamps.
+  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir")
+  if [[ -n "$modfiles"  ]] ; then
+    echo "Must make backup"
+    # there are files to back up.
+    MUST_MAKE_BACKUP=0
+    if [[ "$probeDir" != "$TODAYS_BACKUP_FOLDER_NAME" ]] ; then
+      MUST_MAKE_TODAYS_FOLDER=0
+    fi
+  else
+    echo "no new files"
+    # But, maybe the reason is, there are no files there?
+
+  fi
+fi
+
+if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
+
+  if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
+    mkdir -p "$TODAYS_BACKUP_FOLDER_NAME"
+  fi
+
+  if hasExcludeFile "$BACKUP_SCHEME" "$SYMLINK_NAME" ; then
+    if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+
+      if [[ $MODE != "SERVICE"  ]] ; then
+        echo "$PNAME : I have an exclude file : $EXCLUDE_FILE "
+        cat "$EXCLUDE_FILE"
       fi
     fi
+    EXCLUDE_OPTIONS="--exclude-from=$EXCLUDE_FILE"
+  else
+    EXCLUDE_OPTIONS=
+  fi
 
-    # TODO: More work on the notify-send message,
-    #  and needs to send a message to the Journal as well.
-    # Needs to learn the journalctl better first.
-    if [[ $DRYRUN -ne 0 ]] ; then
-      notify-send "${PNAME}" "Hourly backup complete!"
-      echo >&4 "<5>${PNAME}: Hourly backup complete!"
-      # notice message
+  if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+    VERBOSE_OPTIONS="-v -v"
+  else
+    VERBOSE_OPTIONS="-v"
+  fi
+
+  EXIT_STATUS=0
+
+  if [[ $DRYRUN == true  ]] ; then
+
+    if [[ $MODE != "SERVICE"  ]] ; then
+      trap "HAVING_ERRORS=true;ctrl_c" INT
+      ctrl_c() {
+        echo "$PNAME : trapped ctrl-c - interrupted tar command!"
+        echo "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
+        rm -fr "$DRY_RUN_FOLDER"
+      }
     fi
 
-    # touch $TARGET_FOLDER
+    DRY_RUN_FOLDER=$(mktemp -d "/tmp/$BACKUP_SCHEME.backup.sh.XXX")
 
-# Line above, when an  existing file have just been updated, or when
-# No no files have been added to the the archive, at least when you see
-# for yourself that  modification date of the $TARGET_FOLDER doesn't change.
-# I think that most archiving utilities at least have an option for unlinking
-# before updating, but if that isn't the case, the touch command is always an
-# option.
-else
-    notify-send "${PNAME}" "Nothing to hourly backup!"
-    echo >&4 "<5>${PNAME}: Nothing to hourly backup!"
-    # notice message
+    TAR_BALL_NAME=\
+"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+
+    if [[ $MODE == "SERVICE"  ]] ; then
+       notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER ."   | journalThis 7 "$BACKUP_SCHEME"
+
+      if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
+        if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+          sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
+-C "$TARGET_FOLDER" . | journalThis 7 "$BACKUP_SCHEME"
+        else
+          sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
+"$EXCLUDE_OPTIONS" -C "$TARGET_FOLDER" . | journalThis 7 "$BACKUP_SCHEME"
+        fi
+      else
+        if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+          sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
+-C "$TARGET_FOLDER" "."
+        else
+          sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
+"$EXCLUDE_OPTIONS" -C "$TARGET_FOLDER" . >/dev/null
+        fi
+      fi
+
+    else
+
+       echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
+
+      if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+        sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME"  \
+-C "$TARGET_FOLDER" "."
+      else
+        sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
+"$EXCLUDE_OPTIONS" -C "$TARGET_FOLDER" "."
+      fi
+
+    fi
+
+    EXIT_STATUS=$?
+
+    if [[ $EXIT_STATUS -gt 1 ]] ; then
+      echo "$PNAME : exit status after tar commmand = $EXIT_STATUS"
+    fi
+   #   | journalThis 7 $BACKUP_SCHEME
+    if [[ -d "$DRY_RUN_FOLDER" ]] ; then
+        rm -fr "$DRY_RUN_FOLDER"
+    fi
+    if [[ $MODE == "SERVICE"  ]] ; then
+      notifyErr "$PNAME" " : rm -fr $DRY_RUN_FOLDER" | journalThis 7 "$BACKUP_SCHEME"
+    else
+      echo >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
+    fi
+
+  else  # DRYRUN == false
+
+    if [[ $MODE != "SERVICE"  ]] ; then
+      trap "HAVING_ERRORS=true;ctrl_c" INT
+      ctrl_c() {
+        echo trapped ctrl-c
+        echo rm -f "$TAR_BALL_NAME"
+        rm -f "$TAR_BALL_NAME"
+      }
+    fi
+
+    TAR_BALL_NAME=\
+"$TODAYS_BACKUP_FOLDER_NAME"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+
+    if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+      echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
+        -f $TAR_BALL_NAME  -C $TARGET_FOLDER" .
+    fi
+      if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+        sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
+-C "$TARGET_FOLDER" .
+      else
+        sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f \
+"$TAR_BALL_NAME" -C "$TARGET_FOLDER" .
+      fi
+    EXIT_STATUS=$?
+   #   | journalThis 7 $BACKUP_SCHEME
+    if [[ $EXIT_STATUS -gt 1 ]] ; then
+
+      if [[ $MODE == "SERVICE"   ]] ; then
+        notifyErr "$PNAME" " : exit status after tar commmand (fatal error)\
+= $EXIT_STATUS" | journalThis 3 "$BACKUP_SCHEME"
+      else
+        echo >&2 "$PNAME : exit status after tar commmand (fatal error)\
+= $EXIT_STATUS"
+      fi
+
+      if [[ -f "$TAR_BALL_NAME" ]] ; then
+        if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+          if [[ "$MODE" == "SERVICE"  ]] ; then
+            notifyErr "$PNAME" " : A tarball was made, probably full of errors\
+\n rm -f $TAR_BALL_NAME" | journalThis 7 "$BACKUP_SCHEME"
+          else
+            echo -e  >&2 "$PNAME : A tarball was made, probably full of errors\
+\n rm -f $TAR_BALL_NAME"
+
+          fi
+        fi
+
+        rm -f "$TAR_BALL_NAME"
+
+        if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+          if [[ "$MODE" == "SERVICE"  ]] ; then
+            notifyErr "$PNAME" " : Removing the tar ball we  made: \
+$TAR_BALL_NAME "| journalThis 3 "$BACKUP_SCHEME"
+          else
+            echo >&2 "$PNAME" " : Removing the tar ball we  made: \
+$TAR_BALL_NAME "
+          fi
+        fi
+        if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
+          if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
+            if [[ "$MODE" == "SERVICE"  ]] ; then
+              notifyErr "$PNAME" " : Removing the backup folder made: \
+$TODAYS_BACKUP_FOLDER_NAME "| journalThis 3 "$BACKUP_SCHEME"
+            else
+              echo >&2 "$PNAME" " : Removing the backup folder made: \
+$TODAYS_BACKUP_FOLDER_NAME "
+            fi
+          fi
+          rmdir -fr "$TODAYS_BACKUP_FOLDER_NAME"
+          MUST_MAKE_TODAYS_FOLDER=1
+          # TODO: fylle inn med verbose/debug messages på steder som dette
+          # teste ut hva vi har så langt med dryrun.
+        fi
+      fi
+    elif [[ $EXIT_STATUS -eq 0 ]] ; then
+      echo -e "\n($TAR_BALL_NAME)\n"
+    fi
+  fi
 fi
 
- if [[ $MADE_TODAYS_BACKUP_FOLDER -eq 0 ]] ; then
-   :
-    # Figure out how many daily folder we got now.
-    # DAYS_TO_KEEP_BACKUPS=14
-    # $BACKUP_CONTAINER
-    # jeg trenger å sile directories på fil navn på riktig  format, og om er
-    # directory. så vi ikke gjør noen tabber.
-    # lista jeg sitter igjen med er den jeg teller opp for å se om
-    #  count >= DAYS_TO_KEEP_BACKUPS
-    # senker antallet ned til 14.
 
-    # trenger basename fra symlink
+if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
+  && $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
 
-    # ls file name <glob>
+  # Is the number of backups we have bigger than  $DAYS_TO_KEEP_BACKUPS?
 
-    # inn i sed som filtrerer på korrekt dato format.
-    # fed into a loop, som sjekker om directory.
-    # misfits gets removed.
-    # then we count.
 
-    # we removes every directory that supercedes the chosen number.
+  echo "\$TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME"
+  while true ; do
 
-    # we trenger å prepende BACKUP_CONTAINER to basename for ls command.
-    # ls -ld homepage* | sed -n '/^d/ s/\(.*\)\(homepage-[1,2][0,9][0-9][0-9]-[0,1][0-9]-[0-3][0-9]\)/\2/p' | wc -l
-    # kan sette IFS to newline for henter inn i variabel?
- fi
+  folderCount="$(backupDirectoryCount "$BACKUP_CONTAINER")"
 
-echo >&2 "${PNAME}: The backup-rotation routine remains to be implemented"
+    if [[ $folderCount -gt $DAYS_TO_KEEP_BACKUPS  ]] ; then
+      # we need to remove the oldest one.
+      dirToRemove="$(oldestDirectory "$BACKUP_CONTAINER")"
+      if [[ -z "$dirToRemove" ]] ; then
+        #  idk if this even is possible.
+        if [[ "$MODE" == "SERVICE" ]] ; then
+          notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup \
+  container ${BACKUP_CONTAINER} doesn't have any older folders than itself! \
+  You need to investigate the situation, to remedy it!"
+          echo >&4 "<0>${0##*/}/${FUNCNAME[0]}: The backup \
+  container ${BACKUP_CONTAINER} doesn't have any older folders than itself! \
+  You need to investigate the situation, to remedy it."
+        else
+          echo >&2 "${0##*/}/${FUNCNAME[0]}: The backup \
+  container ${BACKUP_CONTAINER} doesn't have any older folders than itself! \
+  You need to investigate the situation, to remedy it!"
+        fi
+      else
+        if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+          if [[ "$MODE" == "SERVICE" ]] ; then
+            notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "Removing the \
+  old backup ${dirToRemove} by rotation."
+            echo >&4 "<0>${0##*/}/${FUNCNAME[0]}: Removing the \
+  old backup ${dirToRemove} by rotation."
+          else
+            echo >&2 "${0##*/}/${FUNCNAME[0]}: Removing the \
+  old backup ${dirToRemove} by rotation."
+          fi
+        fi
+ 
+        if !  rm -fr "$dirToRemove" ; then
+          if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+            if [[ "$MODE" == "SERVICE" ]] ; then
+              notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "Removing the \
+    old backup ${dirToRemove} by rotation FAILED\nTerminates..."
+              echo -e >&4 "<0>${0##*/}/${FUNCNAME[0]}: Removing the \
+    old backup ${dirToRemove} by rotation FAILED\nTerminates..."
+            else
+              echo -e >&2 "${0##*/}/${FUNCNAME[0]}: Removing the \
+    old backup ${dirToRemove} by rotation FAILED\nTerminates..."
+            fi
+          fi
+
+          exit 1
+        else
+          folderCount=$((folderCount - 1))
+        fi
+      fi
+
+    fi
+    if [[ $folderCount -le $DAYS_TO_KEEP_BACKUPS ]] ; then
+        break
+    fi
+  done
+fi
