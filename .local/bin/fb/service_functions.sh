@@ -112,6 +112,36 @@ exist!" "$MODE" "$CURSCHEME"
 fi
 }
 
+# dieIfNotBinFolderExist
+#  Or return the folder if that isn't the case.
+# PARAMETER: a valid scheme.
+dieIfNotBinFolderExist() {
+
+  if [[ $# -ne 1 ]] ; then
+
+    if [[ "$MODE" == "DEBUG" ]] ; then 
+      echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
+backup-scheme \nTerminates..." >&2 ;
+      exit 5
+    else
+      notifyErr "$PNAME/${FUNCNAME[0]}" ": Need an  argument: \
+backup-scheme \nTerminating..." | journalThis 2 FolderBackup
+      exit 255
+    fi
+  fi
+  if [[ ! -d "$XDG_BIN_HOME"/fb/"${1}" ]] ; then
+    if [[ "$MODE" == "DEBUG" ]] ; then 
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} :the system  Directory $XDG_BIN_HOME\
+/fb/${1} : doesn't exist!\nTerminating..."
+      exit 5
+    else
+      notifyErr "$PNAME/${FUNCNAME[0]}" "The system  Directory $XDG_BIN_HOME\
+/fb/${1} : doesn't  exist!\nTerminating..." journalThis 2 "${1}"
+      exit 255
+    fi
+  fi
+}
+
 # dieIfJobsFolderDontExist()
 # PARAMETERS: jobsfolder, backupscheme, mode
 # The jobs folder is the folder where the symlinks are stored,
