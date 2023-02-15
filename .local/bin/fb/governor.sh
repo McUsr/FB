@@ -18,31 +18,98 @@
 # Config vars you can set to mostly control output.
 DEBUG=0
 
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
+
+if [[ $DEBUG -ne 0  ]] ; then
+# dieIfCantSourceShellLibrary()
+# sources the ShellLibraries
+# so we can perform the rest of the tests.
+# TODO: Think of modus.
+# dieIfCantSourceShellLibrary() {
+#   if [[ $# -ne 1 ]] ; then
+#     echo -e "$PNAME/${FUNCNAME[0]} : Need an\
+#     argument, an existing fb shell library file!\nTerminates..." >&2
+#     exit 5
+#   fi
+#   if [[ -r "${1}" ]] ; then
+#     source "${1}"
+#   #  source "$fpth"/service_functions.sh
+#   else
+#     echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+#       \nTerminates... " >&2
+#     exit 255
+#   fi
+# }
+:
+fi
 # Program vars, read only, 
 
 PNAME=${0##*/}
 VERSION='v0.0.4'
 CURSCHEME="${PNAME%%.*}"
 
-if [[ $# -ne 1 ]] ; then
-     notify-send "Folder Backup: ${0##*/}" "I didn't get a mandatory parameter. Hopefully you are executing from the commandline."
-    # As Critical Error, if no tty. or just give a shit, and send the error anyway.
-    exit 2
+if [[ -t 1 ]] ; then
+  MODE="DEBUG"
+else
+  MODE="SERVICE"
 fi
+
+# bootstrapping libraries before figuring system paths.
+fbBinDir="$(pathToSourcedFiles)"
+
+if [[ $DEBUG -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
+else
+# shellcheck source=service_functions.sh
+  source "$fbBinDir"/service_functions.sh
+fi
+
+if [[ $# -ne 1 ]] ; then
+
+  if [[ $MODE == "SERVICE" ]] ; then
+    notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme).\
+\nTerminating..." | journalThis 2 FolderBackup
+    exit 255
+  else
+    echo -e >&2 "$PNAME : I didn't get a mandatory parameter.\
+.. Enter: \"$PNAME -h\" for help.\nTerminating..."
+  exit 2
+  fi
+fi
+
+dieIfMandatoryVariableNotSet FB "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
+
+
+dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_DATA_HOME"
+
+if [[ $DEBUG -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
+else
+# shellcheck source=shared_functions.sh
+  source "$fbBinDir"/shared_functions.sh
+fi
+
+
+consoleHasInternet "$CURSCHEME"
+consoleFBfolderIsMounted "$CURSCHEME"
 
 BACKUP_SCHEME=$1
 
 JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
+dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$MODE"
 # We should check if the job folder exist
-
-if [[ ! -d "$JOBS_FOLDER" ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-
-     notify-send "Folder Backup: ${0##*/}" "The folder $JOBS_FOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
-    # As Critical Error, if no tty. or just give a shit, and send the error anyway.
-    exit 2
-fi
 
 # And the bin folder.
 
