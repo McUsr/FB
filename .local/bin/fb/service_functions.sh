@@ -27,47 +27,6 @@ notifyErr() {
   echo -e "${1}} ${2}\nTerminating... " 
 }
 
-# TODO: Descriptin.
-fatal_err() {
-  if [[ $# -le 2 ]] ; then
-    if [ -t 1 ] ; then
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
-        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... " 1>&2
-    else
-      echo -e "${0##*/}/${FUNCNAME[0]}  I need at least three parameters:\
-        the variable ERROR_MESSAGE MODUS BACKUP-SCHEME\nTerminating... "\
-        | systemd-cat -t FolderBackup -p crit
-    fi
-    exit 5
-  fi
-  if [[ $# -eq 3 ]] ; then
-    local err_msg="${1}"
-    local modus="${2}"
-    local scheme="${3}"
-
-    if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME : ${err_msg}\
-      Terminating..."| systemd-cat -t "${scheme}" -p err
-    else
-      echo -e "$PNAME : ${err_msg}\
-        \nTerminating..." >/dev/tty
-    fi
-
-  else
-    local funcname="${1}"
-    local err_msg="${2}"
-    local modus="${3}"
-    local scheme="${4}"
-
-    if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME/$funcname : ${err_msg}\
-      Terminating..."| systemd-cat -t "${scheme}" -p err
-    else
-      echo -e "$PNAME/$funcname ${err_msg}\
-        \nTerminating..." >/dev/tty
-    fi
-  fi
-}
 
 
 # dieIfSourceIsWithinFBTree()
@@ -131,9 +90,6 @@ exist!\nTerminating..."
 exist!\nTerminating..." | journalThis 2 FolderBackup
       exit 255
     fi
-    fatal_err "the Directory ${1} : doesn't \
-  exist!" "$MODE" "$CURSCHEME"
-    exit 255
   fi
 }
 
