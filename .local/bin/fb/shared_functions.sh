@@ -58,7 +58,7 @@ isWithinPath (){
       arguments.\nTerminating..."
     exit 5
   fi
-  local probe="{1/$2/}"
+  local probe="${1/$2/}"
   if [[ "$probe" != "${1}" ]] ; then
     # If the probe is shorter, then $2 was chopped off the start of $1
     # because $2 was a  path that contained $1.
@@ -226,7 +226,6 @@ BACKUP_SCHEME in use!\nTerminating... "
       BACKUP_SCHEME in use!\nTerminating... " 1>&2
     exit 5
   fi
-if-1
   local  no_mounted_folder=false passed_three=false
   while true ; do
     if [[  -d "$FB" ]] ; then
@@ -856,8 +855,9 @@ dieIfNotValidFbFolderName() {
   if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : I need 1\
     argument.\nTerminates" >&2 ; exit 5 ; fi
   local validFbFolderNames
-  validFbFolderNames=( OneShot DailySnapshot DailyIncremental WeeklySnapshot\
-    WeeklyIncremental WeeklyDifferential MonthlySnapshot MonthlyDifferential\
+  validFbFolderNames=( OneShot HourlySnapshot HourlyIncremental \
+    HourlyDifferential DailyFull WeeklyFull  WeeklyIncremental \
+    WeeklyDifferential MonthlyFull MonthlyDifferential \
     MonthlyIncremental )
   FOUND_SCHEME=1
   for backup_category in "${validFbFolderNames[@]}" ; do
