@@ -15,9 +15,16 @@
 # Using the XDG_DATA_HOME, would give some leeway as to avoiding hard_coding of paths.
 # We are still using this with service. SnapShot
 
+# Config vars you can set to mostly control output.
 DEBUG=0
 
-if [ $# -ne 1 ] ; then
+# Program vars, read only, 
+
+PNAME=${0##*/}
+VERSION='v0.0.4'
+CURSCHEME="${PNAME%%.*}"
+
+if [[ $# -ne 1 ]] ; then
      notify-send "Folder Backup: ${0##*/}" "I didn't get a mandatory parameter. Hopefully you are executing from the commandline."
     # As Critical Error, if no tty. or just give a shit, and send the error anyway.
     exit 2
@@ -29,10 +36,10 @@ JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
 # We should check if the job folder exist
 
-if [ ! -d $JOBS_FOLDER ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+if [[ ! -d "$JOBS_FOLDER" ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
 
-     notify-send "Folder Backup: ${0##*/}" "The folder $JOBFOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
+     notify-send "Folder Backup: ${0##*/}" "The folder $JOBS_FOLDER doesn't exist. Hopefully you are executing from the commandline and misspelled $BACKUP_SCHEME."
     # As Critical Error, if no tty. or just give a shit, and send the error anyway.
     exit 2
 fi
@@ -41,19 +48,21 @@ fi
 
 BIN_FOLDER=$HOME/.local/bin/fb/$BACKUP_SCHEME
 
-if [ ! -d $BIN_FOLDER ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+if [[ ! -d "$BIN_FOLDER" ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
      notify-send "Folder Backup: ${0##*/}" "The folder $BIN_FOLDER doesn't exist. The system must be inconsistent since $BACKUP_SCHEME don't exist."
     # As Critical Error, if no tty. or just give a shit, and send the error anyway.
     # Or, someone tried to invoke the governor with a badly spelled backup scheme.
     exit 2
 fi
 
-JOB_LIST=$(ls -1 $JOBS_FOLDER | sed -n '/.pause/ !p')
+# JOB_LIST=$(ls -1 $JOBS_FOLDER | sed -n '/.pause/ !p')
+JOB_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
+# TODO: implement all over.
 
-if [ -z "$JOB_LIST" ] ; then
+if [[ -z "$JOB_LIST" ]] ; then
   # We have nothing to  do, and die silently.
-  if [ $DEBUG -eq 0 ] ; then
+  if [[ $DEBUG -eq 0 ]] ; then
     echo "No symlinks, nothing to do."
   fi
   # TODO:, Her sender vi notification om at bør sjekke journal ctl, og stoppe service.
@@ -72,8 +81,8 @@ fi
 # my own, with maybe even an extra layer of service for those kinds of events.
 # the thing is, is that I'm waiting for a copy of the parent environment to be read in.
 
-if [ x"$FB" = x ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+if [[ -v FB  ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
      notify-send "${0##*/}" "The variable \$FB isn't set, is the system initialized? you may want to use \'fbctl stop $BACKUP_SCHEME\' to stop the system while you configure it."
      sleep 180
     exit 255
@@ -86,19 +95,19 @@ source /home/mcusr/.local/bin/fb/shared_functions.sh
 INET_CTR=0
 while : ; do
   if hasInternet ; then
-    if [ $INET_CTR -gt 0 ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+    if [[ $INET_CTR -gt 0 ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
       notify-send "${0##*/}" "Your internet connection is back. Continuing."
     fi
     break
   else
     INET_CTR=$(( $INET_CTR + 1 ))
-    if [ $INET_CTR -eq 3 ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+    if [[ $INET_CTR -eq 3 ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
        notify-send  "${0##*/}" "No internet connection in 6 minutes. Giving up."
       exit 255
     else
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
       notify-send "${0##*/}" "You have no internet connection. Retrying in 3 minutes"
       sleep 180
     fi
@@ -107,20 +116,20 @@ done
 
 MNT_CTR=0
 while : ; do
-  if [  -d $FB ] ; then
-      if [ $MNT_CTR -gt 0 ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+  if [[  -d $FB ]] ; then
+      if [[ $MNT_CTR -gt 0 ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
         notify-send "${0##*/}" "You have successfully mounted \$FB: $FB Continuing."
       fi
       break
   else
     MNT_CTR=$(( $MNT_CTR + 1 ))
-    if [ $CTR -eq 3 ] ; then
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+    if [[ $CTR -eq 3 ]] ; then
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
       notify-send "${0##*/}" "No mounted folder \$FB: $FB in 6 minutes. Giving up."
       exit 255
     else
-  # TODO: [ -t 1 ] // executed from a terminal, no notify!
+  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
       notify-send "${0##*/}" "You have forgotten to mount/create the root backupfolder \$FB. Retrying in 3 minutes"
      sleep 180
     fi
@@ -136,14 +145,14 @@ mkdir -p "$FB/Periodic"
 mkdir -p $FB/Periodic/$BACKUP_SCHEME
 
 DEST_SCHEME_FOLDER="$FB/Periodic/$BACKUP_SCHEME"
-if [ ! -d "$DEST_SCHEME_FOLDER" ] ; then
+if [[ ! -d "$DEST_SCHEME_FOLDER" ]] ; then
   mkdir -p "$DEST_SCHEME_FOLDER"
   # we can go silent about this, or we can just send a message.
-  if [ $DEBUG -eq 0 ] ; then
+  if [[ $DEBUG -eq 0 ]] ; then
     echo "$DEST_SCHEME_FOLDER didn't exist, que to make backup"
   fi
 else
-  if [ $DEBUG -eq 0 ] ; then
+  if [[ $DEBUG -eq 0 ]] ; then
     echo "$DEST_SCHEME_FOLDER exists, NO que to make backup"
   fi
 fi
@@ -157,16 +166,16 @@ fi
 
 for symlink in $JOB_LIST ; do
   if isASymlink $JOBS_FOLDER/$symlink ; then
-    if [ $DEBUG -eq 0 ] ; then
+    if [[ $DEBUG -eq 0 ]] ; then
       echo $symlink is a symlink
     fi
     if isUnbrokenSymlink $JOBS_FOLDER/$symlink ; then
-      if [ $DEBUG -eq 0 ] ; then
+      if [[ $DEBUG -eq 0 ]] ; then
         echo the symlink $symlink is unbroken
       fi
       # we need the real path
       target_folder=`realpath $JOBS_FOLDER/$symlink`
-      if [ $DEBUG -eq 0 ] ; then
+      if [[ $DEBUG -eq 0 ]] ; then
         echo Realpath is $target_folder
       fi
       # exists, when unbroken link. maybe want to backup a mysql file,
@@ -191,17 +200,17 @@ for symlink in $JOB_LIST ; do
       # The last test before we actually do something is to check if
       # if there is an accompanying **$symlink.pause** file, which means
       # that the backup-job for this folder is temporarily paused.
-      if [ ! -f $JOBS_FOLDER/$symlink.pause ] ; then
+      if [[ ! -f $JOBS_FOLDER/$symlink.pause ]] ; then
         DEST_CONTAINER=$DEST_SCHEME_FOLDER/$symlink
         # Alt med DEST_CONTAINER skal over i fbinst e.l fbctl
-        if [ ! -d $DEST_CONTAINER ] ; then
+        if [[ ! -d $DEST_CONTAINER ]] ; then
           mkdir -p $DEST_CONTAINER
           # we can go silent about this, or we can just send a message.
-          if [ $DEBUG -eq 0 ] ; then
+          if [[ $DEBUG -eq 0 ]] ; then
             echo "$DEST_CONTAINER didn't exist, que to make backup"
           fi
         else
-          if [ $DEBUG -eq 0 ] ; then
+          if [[ $DEBUG -eq 0 ]] ; then
             echo "$DEST_CONTAINER exists, NO que to make backup"
           fi
         fi
@@ -209,21 +218,21 @@ for symlink in $JOB_LIST ; do
 # Manager level:
 
         dropin_script=$BIN_FOLDER/$symlink.d/dropinBackup.sh
-        if [ $DEBUG -eq 0 ] ; then
+        if [[ $DEBUG -eq 0 ]] ; then
           echo "dropin_script:>$dropin_script<is this"
           echo "BIN_FOLDER: $BIN_FOLDER: is the value"
           echo "BACKUP_SCHEME: $BACKUP_SCHEME: is the value!"
         fi
         regular_script="$BIN_FOLDER/$BACKUP_SCHEME"Backup.sh
 
-        if [ $DEBUG -eq 0 ] ; then
+        if [[ $DEBUG -eq 0 ]] ; then
           echo "regular_script:>$regular_script<is this"
         fi
 
-        if [  -x $dropin_script ] ; then
+        if [[  -x $dropin_script ]] ; then
             $dropin_script $BACKUP_SCHEME $symlink
-        elif [ -x $regular_script ] ; then
-          if [ $DEBUG -eq 0 ] ; then
+        elif [[ -x $regular_script ]] ; then
+          if [[ $DEBUG -eq 0 ]] ; then
             echo $regular_script $BACKUP_SCHEME $symlink
            echo running....
           fi
@@ -240,12 +249,13 @@ for symlink in $JOB_LIST ; do
         echo "I found a $JOBS_FOLDER/$symlink.pause file and skips this job ... for now."
       fi
     else
-      if [ $DEBUG -eq 0 ] ; then
+      if [[ $DEBUG -eq 0 ]] ; then
         echo the symlink $symlink is broken
       fi
       # this goes to the journal land a notification is sent.
-      brokenSymlink $JOBS_FOLDER $symlink "$BACKUP_SCHEME:${0##*/}"
+      brokenSymlink "$JOBS_FOLDER" "$symlink" "$BACKUP_SCHEME:${0##*/}"
       # TODO: Maybe "$BACKUP_SCHEME:${0##*/}" isn't a great idea after all.
+      # ... or maybe not
     fi
   # else NOT A SYMLINK, we just ignore.
   fi
