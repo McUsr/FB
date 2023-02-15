@@ -91,6 +91,7 @@ dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
 
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
 if [[ $DEBUG -ne 0  ]] ; then
@@ -113,15 +114,10 @@ dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$MODE"
 
 # And the bin folder.
 
-BIN_FOLDER=$HOME/.local/bin/fb/$BACKUP_SCHEME
+dieIfNotBinFolderExist "$BACKUP_SCHEME"
 
-if [[ ! -d "$BIN_FOLDER" ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-     notify-send "Folder Backup: ${0##*/}" "The folder $BIN_FOLDER doesn't exist. The system must be inconsistent since $BACKUP_SCHEME don't exist."
-    # As Critical Error, if no tty. or just give a shit, and send the error anyway.
-    # Or, someone tried to invoke the governor with a badly spelled backup scheme.
-    exit 2
-fi
+SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
+
 
 # JOB_LIST=$(ls -1 $JOBS_FOLDER | sed -n '/.pause/ !p')
 JOB_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
@@ -284,13 +280,13 @@ for symlink in $JOB_LIST ; do
 
 # Manager level:
 
-        dropin_script=$BIN_FOLDER/$symlink.d/dropinBackup.sh
+        dropin_script=$SCHEME_BIN_FOLDER/$symlink.d/dropinBackup.sh
         if [[ $DEBUG -eq 0 ]] ; then
           echo "dropin_script:>$dropin_script<is this"
-          echo "BIN_FOLDER: $BIN_FOLDER: is the value"
+          echo "SCHEME_BIN_FOLDER: $SCHEME_BIN_FOLDER: is the value"
           echo "BACKUP_SCHEME: $BACKUP_SCHEME: is the value!"
         fi
-        regular_script="$BIN_FOLDER/$BACKUP_SCHEME"Backup.sh
+        regular_script="$SCHEME_BIN_FOLDER/$BACKUP_SCHEME.Backup.sh
 
         if [[ $DEBUG -eq 0 ]] ; then
           echo "regular_script:>$regular_script<is this"
