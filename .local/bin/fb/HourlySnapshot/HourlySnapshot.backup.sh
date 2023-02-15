@@ -2,7 +2,7 @@
 # DailySnapshotBackup.
 # hourly_backup;(c) 2022 Mcusr -- Vim license.
 # This script serves as a template for dropin scripts.
-#
+# TODO: document that!
 # This script gets executed every time the timer interval specified in this
 # case DailySnapshot.timer fires and is made for  being  started by
 # the ../governor.sh
@@ -22,6 +22,31 @@
 # A staple from now on, can't source this one.
 # Does as it says.
 
+# Whats new. EXCLUDE_OPTIONS: because of spaces that might be in filenames, we 
+# need quotes when it is in use, because quooting the empty variable when there
+# are no exclude file, makes tar err, we need to remove the variable when not in
+# use.
+
+# the variables below are configuration variables you can
+# use, especially when invoking indirectly by the governor,
+# as a service.
+
+# Config vars you can set to mostly control output.
+# they don't override  options set on the command line,
+# just an alternative. Command line options override.
+
+DAYS_TO_KEEP_BACKUPS=14 # set to 0 to disable backup rotation.
+
+# TODO: check if it only touches folders of correct form when
+# performing backup rotation.
+
+DRYRUN=false
+ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
+
+DEBUG=0 # controls output during debugging.
+VERBOSE=false # controls output during normal runs.
+
+
 pathToSourcedFiles() {
   # shellcheck disable=SC2001,SC2086  # Escaped by sed
   pthname="$( echo $0  | sed 's/ /\\ /g' )"
@@ -31,6 +56,7 @@ pathToSourcedFiles() {
   fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
   echo "$fpth"
 }
+
 if [[ $DEBUG -ne 0  ]] ; then
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
@@ -53,21 +79,14 @@ if [[ $DEBUG -ne 0  ]] ; then
 # }
 :
 fi
-# the variables below are configuration variables you can
-# use, especially when invoking indirectly by the governor,
-# as a service.
 
-DRYRUN=false
-DEBUG=0
-# shellcheck disable=SC2034
-ARCHIVE_OUTPUT=1
+
+# Program vars, read only, 
 
 PNAME=${0##*/}
 VERSION='v0.0.4'
 CURSCHEME="${PNAME%%.*}"
 
-# shellcheck disable=SC2034
-DAYS_TO_KEEP_BACKUPS=14
 
 if [[ -t 1 ]] ; then
   MODE="DEBUG"
@@ -126,7 +145,6 @@ fi
 DEBUG=0
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
-VERBOSE=false
 
 if [[ "$MODE" == "SERVICE" ]] ; then
 # https://serverfault.com/questions/573946/how-can-i-send-a-message-to-the-systemd-journal-from-the-command-line
