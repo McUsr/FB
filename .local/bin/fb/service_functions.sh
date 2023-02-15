@@ -87,7 +87,7 @@ And the current scheme\nTerminates" >&2 ;
 
     if [[ $MODE == "SERVICE"  ]] ; then
       notifyErr "$PNAME/${FUNCNAME[0]}" " : The target of the backup is not \
-allowed to be inside  $FB." |  journalThis 5 "${2}" -p crit
+allowed to be inside  $FB." |   journalThis 5 "${2}" -p crit
       exit 255
     else
       echo -e "$PNAME/${FUNCNAME[0]} : The target of the backup is not \
@@ -98,18 +98,43 @@ allowed to be inside \ $FB.\nTerminating..."
 }
 
 # dieIfNotDirectoryExist()
+# PARAMETERS: A full path to test.
 # dies if a fb system directory doesn't exist,
+# RETURNS: Nothing.
+# This routine can be called before we establish
+# a scheme, so we use FolderBackup as target.
+# we also set the mode.
+# TODO:  check if canonical scheme variable exist
+# and use it instead of folder backup.
+
 dieIfNotDirectoryExist() {
-  if [[ $# -ne 1 ]] ; then
-    echo -e "$PNAME/${FUNCNAME[0]} : Need  one \
-argument, a directory to test if exists.\nTerminates..." >&2
-    exit 5
+  if [[ $# -eq 0 ]] ; then
+    if [[ "$MODE" == "DEBUG" ]] ; then 
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need  one \
+argument, a directory to test if exists.\nTerminating..."
+      exit 5
+    else
+      notifyErr "$PNAME/${FUNCNAME[0]}" ": Need one \
+argument, a directory to test if exists.\nTerminating..." \
+        | journalThis 2 FolderBackup
+      exit 255
+    fi
   fi
-if [[ ! -d "${1}" ]] ; then
-  fatal_err "the Directory ${1} : doesn't \
-exist!" "$MODE" "$CURSCHEME"
-  exit 255
-fi
+
+  if [[ ! -d "${1}" ]] ; then
+    if [[ "$MODE" == "DEBUG" ]] ; then 
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : The Directory ${1} : doesn't \
+exist!\nTerminating..."
+      exit 5
+    else
+      notifyErr "$PNAME/${FUNCNAME[0]}" ": The Directory ${1} : doesn't \
+exist!\nTerminating..." | journalThis 2 FolderBackup
+      exit 255
+    fi
+    fatal_err "the Directory ${1} : doesn't \
+  exist!" "$MODE" "$CURSCHEME"
+    exit 255
+  fi
 }
 
 # dieIfNotBinFolderExist
@@ -121,7 +146,7 @@ dieIfNotBinFolderExist() {
 
     if [[ "$MODE" == "DEBUG" ]] ; then 
       echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
-backup-scheme \nTerminates..." >&2 ;
+backup-scheme \nTerminating..." >&2 ;
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": Need an  argument: \
