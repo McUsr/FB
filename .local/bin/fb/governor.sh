@@ -144,60 +144,11 @@ fi
 # my own, with maybe even an extra layer of service for those kinds of events.
 # the thing is, is that I'm waiting for a copy of the parent environment to be read in.
 
-if [[ -v FB  ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-     notify-send "${0##*/}" "The variable \$FB isn't set, is the system initialized? you may want to use \'fbctl stop $BACKUP_SCHEME\' to stop the system while you configure it."
-     sleep 180
-    exit 255
-fi
 
 source /home/mcusr/.local/bin/fb/shared_functions.sh
 
 # We need to check the internet
 
-INET_CTR=0
-while : ; do
-  if hasInternet ; then
-    if [[ $INET_CTR -gt 0 ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-      notify-send "${0##*/}" "Your internet connection is back. Continuing."
-    fi
-    break
-  else
-    INET_CTR=$(( $INET_CTR + 1 ))
-    if [[ $INET_CTR -eq 3 ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-       notify-send  "${0##*/}" "No internet connection in 6 minutes. Giving up."
-      exit 255
-    else
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-      notify-send "${0##*/}" "You have no internet connection. Retrying in 3 minutes"
-      sleep 180
-    fi
-  fi
-done
-
-MNT_CTR=0
-while : ; do
-  if [[  -d $FB ]] ; then
-      if [[ $MNT_CTR -gt 0 ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-        notify-send "${0##*/}" "You have successfully mounted \$FB: $FB Continuing."
-      fi
-      break
-  else
-    MNT_CTR=$(( $MNT_CTR + 1 ))
-    if [[ $CTR -eq 3 ]] ; then
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-      notify-send "${0##*/}" "No mounted folder \$FB: $FB in 6 minutes. Giving up."
-      exit 255
-    else
-  # TODO: [[ -t 1 ]] // executed from a terminal, no notify!
-      notify-send "${0##*/}" "You have forgotten to mount/create the root backupfolder \$FB. Retrying in 3 minutes"
-     sleep 180
-    fi
-  fi
-done
 
 # Absolutely first time, or something removed?
 # we rest/Assured.
