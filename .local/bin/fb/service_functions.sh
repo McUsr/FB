@@ -222,8 +222,8 @@ ${1}."
     if [[ "$newest" == "." ]] ; then
       echo
     else
-# shellcheck disable=SC2091  # will be used!
-      "$(realpath "$newest")"
+# shellcheck disable=SC2091,2005  # will be used!
+      echo "$(realpath "$newest")"
       # TODO:  test.
     fi
   fi
@@ -264,8 +264,8 @@ ${1}."
     if [[ "$oldest" == "." ]] ; then
       echo
     else
-# shellcheck disable=SC2091  # will be used!
-      "$(realpath "$oldest")"
+# shellcheck disable=SC2091,2005  # will be used!
+      echo "$(realpath "$oldest")"
       # TODO:  test.
     fi
   fi
@@ -300,8 +300,8 @@ ${1}."
     fi
     exit 255
   else
-# shellcheck disable=SC2091  # will be used!
-    "$(find "${1}" -type d  | wc -l )"
+# shellcheck disable=SC2091,2005  # will be used!
+    echo "$(find "${1}" -type d  | wc -l )"
   fi
 }
 
@@ -360,7 +360,7 @@ is fixed."
 
 # dieIfBrokenSymlink()
 # PARAMETERS: JOBS_FOLDER SYMLINK BACKUP_SCHEME
-# terminates if the 
+# terminates if the
 dieIfBrokenSymlink() {
 
   if [[ $# -ne 3 ]] ; then
@@ -368,9 +368,9 @@ dieIfBrokenSymlink() {
 The jobs folder,a symlink to validate, and backupscheme.\nTerminates" >&2 ;
     exit 5
   fi
-  if ! isUnbrokenSymlink "${1}/{2}" ; then 
-    brokenSymlink "${1}" "${2}" "${3}" 
-    if [ ! -t 1 ] ; then  
+  if ! isUnbrokenSymlink "${1}/{2}" ; then
+    brokenSymlink "${1}" "${2}" "${3}"
+    if [ ! -t 1 ] ; then
       # SERVICE MODE
       exit 255
     else
