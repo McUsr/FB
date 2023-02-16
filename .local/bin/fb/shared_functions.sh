@@ -60,7 +60,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 isWithinPath (){ 
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two paths as \
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two paths as \
       arguments.\nTerminating..."
     exit 5
   fi
@@ -79,7 +79,7 @@ if [[ 0 -eq 1 ]] ; then
 # RETURNS 0 if is a directory, !0 if not.
 # PARAMETER: Path.
 isDirectory() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e >&2 "${0##*/}/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   file "$1" | grep 'directory' >/dev/null
   return $?
@@ -309,7 +309,7 @@ export -f consoleFBfolderIsMounted
 # RETURNS: 'OneShot', or 'Periodical', so we know what to do in 'fbrestore'
 backupKind() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : Need an  argument: \
+    echo -e >/dev/tty"${0##*/}/${FUNCNAME[0]} : Need an  argument: \
 backup/kind/scheme \nTerminates" >&2 ;
     exit 5
   fi
@@ -352,11 +352,11 @@ periodicBackupScheme() {
   local BIT_TO_REMOVE=$FB/Periodic
    local REPLACED="${1/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't within  the defined\
+    echo -e >&2 "${0##*/} : The path to the backup isn't within  the defined\
       location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e "${0##*/} : The path to the backup isn't complete with a path to\
+    echo -e >&2 "${0##*/} : The path to the backup isn't complete with a path to\
       the actual backup.\n($FB isn't specific enough,\nthe path must include\
       the folder from which to restore.)\nTerminating..."
     exit 2
@@ -370,7 +370,7 @@ periodicBackupScheme() {
 # irrelevant because we may get '' out of the set command.
 
   if [[ -n "$1"  ]] ; then
-    echo -e "${0##*/} : The path to the backup starting\
+    echo -e >&2 "${0##*/} : The path to the backup starting\
   with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \$FB\
   ($FB)\n in the path to\ the backup ($ORIG)?\nTerminating..."
      exit 2
@@ -396,7 +396,7 @@ periodicBackupScheme() {
 identifyBackupSourceFolder() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
 \nTerminating..."
     exit 5
   fi
@@ -405,11 +405,11 @@ identifyBackupSourceFolder() {
   local BIT_TO_REMOVE=$FB/$1
   local REPLACED="${2/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
 the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't complete \
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't complete \
 with a path to the actual backup.\n($FB/$1 isn't specific enough,\nthe path \
 must include the folder from which to restore.)\nTerminating..."
     exit 2
@@ -421,7 +421,7 @@ must include the folder from which to restore.)\nTerminating..."
   # the path starts with a delimiter, so $1 will contain '' for the empty
   #  element at front to the left of the delimiter.
   if [[ -n $1 && "$1" != "\""  ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup starting with \
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup starting with \
 the PREFIX doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n \
 in the  path to the backup ($ORIG)?\nTerminating..."
     exit 2
@@ -436,7 +436,7 @@ in the  path to the backup ($ORIG)?\nTerminating..."
 
 validateFormatOfTimeStampedBackupContainingFolder() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} :\nI really need one argument. \
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]} :\nI really need one argument. \
 \nTerminating..."
   fi
    echo "$1" |  grep '.*[-][1-2][09][0-9][0-9][-][01][1-9][-][0-3][0-9]'\
@@ -468,7 +468,7 @@ identifyBackupContainerByTimeStampedFolder() {
 # TimeStampedBackupContainingFolder
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/} : I really need two arguments for\
+    echo -e >&2 "${0##*/} : I really need two arguments for\
 ${FUNCNAME[0]}\nTerminating..."
     exit 5
   fi
@@ -480,10 +480,10 @@ ${FUNCNAME[0]}\nTerminating..."
 "$(echo "$BIT_TO_REMOVE" | sed -ne 's:\\::g' -e 'p')"
   local DBG_ESC=1
   if [[ $DBG_ESC -eq 0 ]] ; then
-    echo ORIG : "$ORIG" >/dev/tty
-    echo DEESCAPED_ORIG : "$DEESCAPED_ORIG" >/dev/tty
-    echo BIT_TO_REMOVE :"$BIT_TO_REMOVE" >/dev/tty
-    echo DEESCAPED_BIT_TO_REMOVE : "$DEESCAPED_BIT_TO_REMOVE" >/dev/tty
+    echo ORIG : "$ORIG" >&2
+    echo DEESCAPED_ORIG : "$DEESCAPED_ORIG" >&2
+    echo BIT_TO_REMOVE :"$BIT_TO_REMOVE" >&2
+    echo DEESCAPED_BIT_TO_REMOVE : "$DEESCAPED_BIT_TO_REMOVE" >&2
   fi
   REPLACED="${DEESCAPED_ORIG/$DEESCAPED_BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
@@ -504,7 +504,7 @@ timestamped folder that contains the actual files containing the backup.)\
   set -- $REPLACED
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left  of the delimiter.
-  echo >/dev/tty "1 : ,$1,"
+# echo >/dev/tty "1 : ,$1,"
   if [[ -n "$1"  ]] ; then
     echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path to the backup starting with\
  the PREFIX doesn't start with '/'.\n\ Is it a slash amiss after \$FB\n\
@@ -595,12 +595,12 @@ validPathOrFileName() {
 
 function hasLevel0SnarFile() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
   if [[ ! -f "$1" ]] ; then
-    echo -e "${0##*/} : I can't find the file $1, something is terribly \
+    echo -e >&2 "${0##*/} : I can't find the file $1, something is terribly \
 wrong.\nTerminating..."
     # Will be passed ont crit err in log, but will also make a notifcation.
     exit 9
@@ -616,7 +616,7 @@ wrong.\nTerminating..."
 
 nextSnarFile() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
@@ -640,7 +640,7 @@ nextSnarFile() {
 
 fullPathSymlinkName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
@@ -657,7 +657,7 @@ fullPathSymlinkName() {
 
 pathFromFullSymlinkName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/pathFromFullSymlinkName: I need exactly 1 parameter.\
+    echo -e >&2 "${0##*/}/pathFromFullSymlinkName: I need exactly 1 parameter.\
       \nTerminating"
     exit 5
   fi
@@ -679,7 +679,7 @@ pathFromFullSymlinkName() {
 journalThis() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/}/journalThis(): I really need two \
+    echo -e >&2 "${0##*/}/journalThis(): I really need two \
 parameters.\nTerminating..."
     exit 5
   fi
@@ -706,7 +706,7 @@ manager() {
   local CANDIDATE_SCRIPT
 
   if [[ $# -ne 3 ]] ; then
-    echo -e "$PNAME/manager() : Wrong number of arguments, I need \
+    echo -e  "$PNAME/manager() : Wrong number of arguments, I need \
 BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
       | journalThis 2 "$BACKUP_SCHEME"
     exit 5
@@ -716,7 +716,7 @@ BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
     OPERATION=$3
 
     if [[ $OPERATION != "backup" && $OPERATION != "restore" ]] ; then
-      echo -e "$PNAME/manager() : Wrong value for \$OPERATION, MUST  be\
+      echo -e  "$PNAME/manager() : Wrong value for \$OPERATION, MUST  be\
 either\"backup\" or \"restore\".\nTerminates..."\
         | journalThis 2 "$BACKUP_SCHEME"
     exit 5
@@ -830,7 +830,7 @@ dieIfNoEditorSetToUse() {
 # PARAMETERS: SYMLINKNAME SCHEME
 # RETURNS: 0, if the symlink name is valid.
 dieIfNotValidFullSymlinkName() {
-  if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : I need two\
+  if [[ $# -ne 2 ]] ; then echo -e  "${0##*/}/${FUNCNAME[0]} : I need two\
     arguments full-symlink-name and scheme.\nTerminates" >&2 ; exit 5 ; fi
   local FULL_SYMLINK_NAME SCHEME
   FULL_SYMLINK_NAME="$1" ; SCHEME=$2
@@ -901,14 +901,14 @@ excludeFileHasContents() {
 
   if [[ -s "$probe" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE == true || $DRYRUN == true ]] ; then
-        echo "$PNAME/${FUNCNAME[0]} : maybe we have an exclude file with\
+        echo >&2 "$PNAME/${FUNCNAME[0]} : maybe we have an exclude file with\
           contents"
     fi
     grep '[-/.@+a-zA-Z0-9]\+'  < "$probe" &>/dev/null
     return $?
   else
     if [[ $DEBUG -eq 0 || $VERBOSE == true || $DRYRUN == true ]] ; then
-      echo "$PNAME/${FUNCNAME[0]} : we DON'T have an exclude file with\
+      echo >&2 "$PNAME/${FUNCNAME[0]} : we DON'T have an exclude file with\
         contents"
     fi
     return 1
@@ -941,7 +941,7 @@ hasExcludeFile() {
   if [[ -d "$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" ]] ; then
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-      echo -e "$PNAME : We have a dropin directory:\
+      echo -e >&2 "$PNAME : We have a dropin directory:\
         \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d"
     fi
 
@@ -951,22 +951,22 @@ hasExcludeFile() {
 "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
 
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-        echo -e "$PNAME : We have an \"exclude.file\" file:\
+        echo -e >&2 "$PNAME : We have an \"exclude.file\" file:\
           \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
       fi
       return 0
     else
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-        echo -e "$PNAME : We DON'T have an \"exclude.file\" file:\
+        echo -e >&2 "$PNAME : We DON'T have an \"exclude.file\" file:\
           \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
       fi
       return 1
     fi
   else
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-      echo -e "$PNAME : We don't have  a dropin directory:\
+      echo -e >&2 "$PNAME : We don't have  a dropin directory:\
         $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d"
-      echo -e "$PNAME : We don't have an \"exclude.file\" file: \
+      echo -e >&2 "$PNAME : We don't have an \"exclude.file\" file: \
         $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
     fi
     return 1
@@ -994,7 +994,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
 # Only one place a the exclude file.
 # And if it doesn't exist, then we'll make it.
   if [[ ! -d "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d ]] ; then
-    echo "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d
+    echo >&2 "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d
 
     if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
       echo -e "$PNAME : The folder\
