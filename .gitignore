@@ -2,3 +2,4 @@
 \.*.un~
 \.htaccess
 tags
+local.vim
