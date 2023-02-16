@@ -685,10 +685,10 @@ parameters.\nTerminating..."
   fi
   if [[ -v LOG_TO_JOURNAL && $LOG_TO_JOURNAL = true ]] ; then
 # shellcheck disable=SC2086 # code is irrelevant because in sed expression.
-    tee /dev/tty | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
+tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
       | systemd-cat -t "$2"
   else
-    cat >/dev/tty
+    cat 1>&2
   fi
 }
 
@@ -746,20 +746,19 @@ either\"backup\" or \"restore\".\nTerminates..."\
 "$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
-      echo "$PNAME/manager() :  I have a readable backup script:\
-        $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+      echo "$PNAME/manager() :  I have a readable backup script: \
+$CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
     fi
     if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
-      echo -e "$PNAME/manager() :  I found a backup dropin script:\
-        $CANDIDATE_SCRIPT\nBut it isn't executabe.\nTerminates.."\
+      echo -e "$PNAME/manager() :  I found a backup dropin script: \
+$CANDIDATE_SCRIPT\nBut it isn't executabe.\nTerminates.."\
         | journalThis 7 "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-        echo "$PNAME/manager() : I found a GENERAL backup dropin script:\
-          Current backup script is : $DELEGATE_SCRIPT"\
-          | journalThis 7 "$BACKUP_SCHEME"
+        echo "$PNAME/manager() : I found a GENERAL backup dropin script: \
+Current backup script is : $DELEGATE_SCRIPT"  | journalThis 7 "$BACKUP_SCHEME"
       fi
     fi
   elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
