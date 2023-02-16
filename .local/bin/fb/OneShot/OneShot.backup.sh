@@ -2,9 +2,11 @@
 # The version at a8de2b1 contains the scaffolding.
 
 PNAME=${0##*/}
+MODE="CONSOLE"
+
 err_report() {
-  echo "$PNAME : Error on line $1"
-  echo "$PNAME : Please report this issue at \
+  echo >&2 "$PNAME : Error on line $1"
+  echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
 }
 

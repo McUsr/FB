@@ -5,12 +5,13 @@ VERSION="\"v0.0.3c\""
 # fbrestore Restores an  an adhoc snapshot of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
 PNAME=${0##*/}
+MODE="CONSOLE"
 SILENCE=0
 
 err_report() {
   if [ $SILENCE -eq 1 ] ; then
-    echo "$PNAME : Error on line $1"
-    echo "$PNAME : Please report this issue at \
+    echo >&2 "$PNAME : Error on line $1"
+    echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
   fi
 }

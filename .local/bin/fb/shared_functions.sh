@@ -1,5 +1,11 @@
 #!/bin/bash
 
+err_report() {
+    echo >&2 "$PNAME : Error on line $1"
+    echo >&2 "$PNAME : Please report this issue at\
+'https://github.com/McUsr/FB/issues'"
+}
+
 export ROOTFOLDERS="OneShot Periodic"
 
 export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
