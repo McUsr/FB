@@ -14,9 +14,6 @@
 # need to install notify-send.
 # https://www.reddit.com/r/Crostini/comments/zl5nte/sending_notifications_to_chromeos_desktop_from/
 #
-# 27/12: Added "sparsity" doesn't make unneccessary backups anymore.
-# 12/01: Real deal ready for production, for what DailySnapshot
-# backups are concerned.
 
 # pathToSourcedFiles()
 # A staple from now on, can't source this one.
@@ -43,8 +40,8 @@ DAYS_TO_KEEP_BACKUPS=14 # set to 0 to disable backup rotation.
 DRYRUN=false
 ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
 
-DEBUG=0 # controls output during debugging.
-VERBOSE=false # controls output during normal runs.
+DEBUG=1 # controls output during debugging.
+VERBOSE=true # controls output during normal runs.
 
 
 pathToSourcedFiles() {
@@ -62,22 +59,22 @@ if [[ $DEBUG -ne 0  ]] ; then
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
 # TODO: Think of modus.
-# dieIfCantSourceShellLibrary() {
-#   if [[ $# -ne 1 ]] ; then
-#     echo -e "$PNAME/${FUNCNAME[0]} : Need an\
-#     argument, an existing fb shell library file!\nTerminates..." >&2
-#     exit 5
-#   fi
-#   if [[ -r "${1}" ]] ; then
-#     source "${1}"
-#   #  source "$fpth"/service_functions.sh
-#   else
-#     echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
-#       \nTerminates... " >&2
-#     exit 255
-#   fi
-# }
-:
+dieIfCantSourceShellLibrary() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "$PNAME/${FUNCNAME[0]} : Need an\
+    argument, an existing fb shell library file!\nTerminates..." >&2
+    exit 5
+  fi
+  if [[ -r "${1}" ]] ; then
+    source "${1}"
+  #  source "$fpth"/service_functions.sh
+  else
+    echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+      \nTerminates... " >&2
+    exit 255
+  fi
+}
+
 fi
 
 
@@ -97,7 +94,7 @@ fi
 fbBinDir="$(pathToSourcedFiles)"
 
 if [[ $DEBUG -ne 0  ]] ; then
-  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
+  dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/service_functions.sh
@@ -113,7 +110,7 @@ dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
 if [[ $DEBUG -ne 0  ]] ; then
-  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
+  dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
 else
 # shellcheck source=shared_functions.sh
   source "$fbBinDir"/shared_functions.sh
@@ -152,6 +149,8 @@ if [[ "$MODE" == "SERVICE" ]] ; then
   trap 'exec >&2-' EXIT
 
 # Normal argument parsing happens here!
+# TODO: Normal argument parsing.
+
 else
 
   if [[ $# -lt 2 ]] ; then
