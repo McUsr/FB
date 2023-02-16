@@ -51,6 +51,7 @@ if [[ ! -v FB ]] ; then
     need configure it.\nTerminating..." | journalThis 2 OneShot
   exit 255
 fi
+
 # Checks if we can get online so we have a guarranteed connection to our\
 # Google Drive
 
