@@ -5,9 +5,9 @@
 
 
 err_report() {
-  echo "$PNAME : Error on line $1"
-  echo "$PNAME : Please report this issue at\
-    'https://github.com/McUsr/FB/issues'"
+  echo >&2 "$PNAME : Error on line $1"
+  echo >&2 "$PNAME : Please report this issue at\
+'https://github.com/McUsr/FB/issues'"
 }
 
 
@@ -19,7 +19,7 @@ trap 'err_report $LINENO' ERR
 # USAGE: notifyErr "error message " |  journalThis 5 FolderBackup
 notifyErr() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+      echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
   \nTerminating..."
       exit 5
     fi
@@ -49,7 +49,7 @@ And the current scheme\nTerminates" >&2 ;
 allowed to be inside  $FB." |   journalThis 5 "${2}" -p crit
       exit 255
     else
-      echo -e "$PNAME/${FUNCNAME[0]} : The target of the backup is not \
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : The target of the backup is not \
 allowed to be inside \ $FB.\nTerminating..."
       exit 5
     fi
@@ -177,11 +177,11 @@ dieIfMandatoryVariableNotSet() {
 
   if [[ !  -v "$var_name" ]] ; then
     if [[ "$modus" == "SERVICE" ]] ; then
-      echo >"$PNAME/${FUNCNAME[0]} : The variable $var_name isn't set.\
+      echo "$PNAME/${FUNCNAME[0]} : The variable $var_name isn't set.\
       Terminating..."| systemd-cat -t "${scheme}" -p crit
     else
       echo -e "$PNAME/${FUNCNAME[0]} : The variable $1 isn't set.\
-        \nTerminating..." >/dev/tty
+        \nTerminating..." >&2
     fi
     exit 255
   fi
