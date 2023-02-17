@@ -77,7 +77,6 @@ dieIfCantSourceShellLibrary() {
 
 fi
 
-
 # Program vars, read only, 
 
 PNAME=${0##*/}
@@ -124,11 +123,9 @@ consoleFBfolderIsMounted "$CURSCHEME"
 
 if [[ $# -lt 2 ]] ; then
   if [[ $MODE == "SERVICE" ]] ; then
-    notify-send "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
+    notifyErr "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
 run propely. Terminating..."
 
-    echo -e  "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
-run propely.\nTerminating..." | systemd-cat -t "$CURSCHEME" -p crit
     exit 255
   elif [[ $# -eq 0 ]] ; then 
     echo -e "$PNAME : I need at least one argument \
@@ -280,7 +277,7 @@ dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$BACKUP_SCHEME"
 
 TARGET_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  echo  "${PNAME} TARGET_FOLDER: $TARGET_FOLDER"
+  echo >&2 "${PNAME} TARGET_FOLDER: $TARGET_FOLDER"
   # debug message
 fi
 
@@ -332,33 +329,52 @@ TODAYS_BACKUP_FOLDER_NAME=\
 emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
-  echo "TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME didn't exist!"
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME : TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME didn't exist!"
+  fi
   probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
-  echo "probeDir =>$probeDir<="
+
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME : probeDir =>$probeDir<="
+  fi
+
   if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then 
       probeDir=""
   fi
 else
   probeDir="$TODAYS_BACKUP_FOLDER_NAME"
-  echo "dt: $probeDir"
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME : dt: $probeDir"
+  fi
 
-  if ( ! compgen -G "$probeDir/*" >/dev/null); then
+  if  find "$probeDir" -maxdepth 0  -empty  -print | grep '.*' >/dev/null ; then 
     emptyBackupFolder=true
   fi
 fi
+if [[ $DEBUG -eq 0 || "$VERBOSE" == true  ]] ; then
 
-echo "probeDir = : $probeDir"
+  echo >&2 "$PNAME : probeDir AFTER qualification  = : $probeDir"
+
+fi
 
 if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
   # echo "newest dir doesn't exist." Means we have no folders to compare with.
   # so this is the first backup!
-  echo "no files in probedir"
+  echo >&2 "$PNAME : no files in probedir"
   MUST_MAKE_TODAYS_FOLDER=0
   MUST_MAKE_BACKUP=0
 else
-  echo "we might have  modified files"
-  echo "probedir = $probeDir"
+
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME: we might have  modified files"
+    echo >&2 "$PNAME probedir = $probeDir"
+  fi
   # we need to compare timestamps.
+  find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" >&2
+  echo >&2 "$PNAME : ERROR CODE AFTER FIND COMMAND: $? "
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME modfiles = $modfiles"
+  fi
   modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir")
   if [[ -n "$modfiles"  ]] ; then
     echo "Must make backup"
