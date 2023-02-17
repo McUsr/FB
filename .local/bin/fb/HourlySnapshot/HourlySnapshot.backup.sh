@@ -44,17 +44,9 @@ DEBUG=1 # controls output during debugging.
 VERBOSE=true # controls output during normal runs.
 
 
-pathToSourcedFiles() {
-  # shellcheck disable=SC2001,SC2086  # Escaped by sed
-  pthname="$( echo $0  | sed 's/ /\\ /g' )"
-  # We do escape any spaces, in the file name, 
-  #  knew it could never happen, just in case.
-  # shellcheck disable=SC2086  # Escaped by sed
-  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
-  echo "$fpth"
-}
+THROUGH_SHELLCHECK=1
 
-if [[ $DEBUG -ne 0  ]] ; then
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
@@ -74,6 +66,17 @@ dieIfCantSourceShellLibrary() {
     exit 255
   fi
 }
+else
+
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
 
 fi
 
@@ -89,12 +92,12 @@ if [[ -t 1 ]] ; then
 else
   MODE="SERVICE"
 fi
-# bootstrapping libraries before figuring system paths.
-fbBinDir="$(pathToSourcedFiles)"
 
-if [[ $DEBUG -ne 0  ]] ; then
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
+# bootstrapping libraries before figuring system paths.
+  fbBinDir="$(pathToSourcedFiles)"
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/service_functions.sh
 fi
@@ -108,7 +111,7 @@ dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
-if [[ $DEBUG -ne 0  ]] ; then
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
 else
 # shellcheck source=shared_functions.sh

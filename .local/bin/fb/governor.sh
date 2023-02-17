@@ -27,17 +27,10 @@ err_report() {
 
 trap 'err_report $LINENO' ERR
 
-pathToSourcedFiles() {
-  # shellcheck disable=SC2001,SC2086  # Escaped by sed
-  pthname="$( echo $0  | sed 's/ /\\ /g' )"
-  # We do escape any spaces, in the file name, 
-  #  knew it could never happen, just in case.
-  # shellcheck disable=SC2086  # Escaped by sed
-  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
-  echo "$fpth"
-}
 
-if [[ $DEBUG -ne 0  ]] ; then
+THROUGH_SHELLCHECK=1
+
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
@@ -57,7 +50,16 @@ dieIfCantSourceShellLibrary() {
     exit 255
   fi
 }
-:
+else
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
 fi
 # Program vars, read only, 
 
@@ -73,12 +75,12 @@ else
   MODE="SERVICE"
 fi
 
-# bootstrapping libraries before figuring system paths.
-fbBinDir="$(pathToSourcedFiles)"
 
-if [[ $DEBUG -ne 0  ]] ; then
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
 else
+# bootstrapping libraries before figuring system paths.
+  fbBinDir="$(pathToSourcedFiles)"
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/service_functions.sh
 fi
@@ -105,7 +107,7 @@ dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
-if [[ $DEBUG -ne 0  ]] ; then
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
 else
 # shellcheck source=shared_functions.sh
@@ -256,4 +258,4 @@ done
 # // kommandoer for å se meldinger for jobb i logg.
 # forexample : DailyDifflog.
 
-echo passed tests!
+echo >&2 "$PNAME passed tests!"
