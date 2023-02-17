@@ -93,10 +93,10 @@ exist!\nTerminating..." | journalThis 2 FolderBackup
   fi
 }
 
-# dieIfNotBinFolderExist
+# dieIfNotSchemeBinFolderExist
 #  Or return the folder if that isn't the case.
 # PARAMETER: a valid scheme.
-dieIfNotBinFolderExist() {
+dieIfNotSchemeBinFolderExist() {
 
   if [[ $# -ne 1 ]] ; then
 

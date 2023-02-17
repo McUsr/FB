@@ -755,8 +755,11 @@ either\"backup\" or \"restore\".\nTerminates..."\
     fi
   fi
 
-  CANDIDATE_SCRIPT=\
-"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME"."$OPERATION".sh
+  dieIfNotSchemeBinFolderExist "$BACKUP_SCHEME"
+
+  local SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
+
+  local CANDIDATE_SCRIPT="$SCHEME_BIN_FOLDER"/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
     # same if with DRYRUN or VERBOSE

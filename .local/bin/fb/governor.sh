@@ -119,22 +119,22 @@ fi
 consoleHasInternet "$CURSCHEME"
 consoleFBfolderIsMounted "$CURSCHEME"
 
-BACKUP_SCHEME=$1
+BACKUP_SCHEME=${1}
 
 JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
 dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 
-dieIfNotBinFolderExist "$BACKUP_SCHEME"
+dieIfNotSchemeBinFolderExist "$BACKUP_SCHEME"
 
 export SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
 
 
-JOB_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
+JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
   | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
 
 
-if [[ -z "$JOB_LIST" ]] ; then
+if [[ -z "$JOBS_LIST" ]] ; then
   # We have nothing to  do, and die silently.
   if [[ $DEBUG -eq 0 ]] ; then
     echo >&2 "No symlinks, nothing to do."
@@ -145,14 +145,10 @@ if [[ -z "$JOB_LIST" ]] ; then
   exit 0
 fi
 
-# Asserting system context
-
 
 SCHEME_CONTAINER="$( assertSchemeContainer "$BACKUP_SCHEME" )"
 
-
-
-for SYMLINK in $JOB_LIST ; do
+for SYMLINK in $JOBS_LIST ; do
   if isASymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
     if [[ $DEBUG -eq 0 ]] ; then
       echo >&2 "$SYMLINK" is a SYMLINK
@@ -166,6 +162,7 @@ for SYMLINK in $JOB_LIST ; do
       if [[ $DEBUG -eq 0 ]] ; then
         echo >&2 Realpath is "$target_folder"
       fi
+
       # exists, when unbroken link. maybe want to backup a mysql file,
       #  so no test on dir?
       # Database-files,  is something else, another kind of backup.
@@ -173,6 +170,11 @@ for SYMLINK in $JOB_LIST ; do
       # The last test before we actually do something is to check if
       # if there is an accompanying **$symlink.pause** file, which means
       # that the backup-job for this folder is temporarily paused.
+
+      # Better place to have an exclude file?
+
+
+
       if [[ ! -f $JOBS_FOLDER/$SYMLINK.pause ]] ; then
         BACKUP_CONTAINER=$SCHEME_CONTAINER/$SYMLINK
         # Alt med BACKUP_CONTAINER skal over i fbinst e.l fbctl
@@ -187,8 +189,6 @@ for SYMLINK in $JOB_LIST ; do
             echo >&2 "$BACKUP_CONTAINER exists, NO que to make backup"
           fi
         fi
-
-# Manager level:
 
         manager "$BACKUP_SCHEME"  "$SYMLINK" backup
         exit_code=$?
