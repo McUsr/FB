@@ -151,8 +151,9 @@ for SYMLINK in $JOBS_LIST ; do
       echo >&2 "$SYMLINK" is a SYMLINK
     fi
     if isUnbrokenSymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
-      if [[ $DEBUG -eq 0 ]] ; then
-        echo >&2 the symlink "$SYMLINK" is unbroken
+      if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+        echo -e >&2 "\n$PNAME : currently processing the symlink $SYMLINK\
+(unbroken).\n"
       fi
       # we need the real path
       target_folder="$(realpath "$JOBS_FOLDER"/"$SYMLINK")"
