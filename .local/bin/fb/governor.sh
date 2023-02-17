@@ -70,9 +70,9 @@ VERSION='v0.0.4'
 CURSCHEME="${PNAME%%.*}"
 
 if [[ -t 1 ]] ; then
-  MODE="DEBUG"
+  RUNTIME_MODE="CONSOLE"
 else
-  MODE="SERVICE"
+  RUNTIME_MODE="SERVICE"
 fi
 
 
@@ -87,7 +87,7 @@ fi
 
 if [[ $# -ne 1 ]] ; then
 
-  if [[ $MODE == "SERVICE" ]] ; then
+  if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
     notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme).\
 \nTerminating..." | journalThis 2 FolderBackup
     exit 255
@@ -98,9 +98,9 @@ if [[ $# -ne 1 ]] ; then
   fi
 fi
 
-dieIfMandatoryVariableNotSet FB "$MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_BIN_HOME "$MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
@@ -122,7 +122,7 @@ BACKUP_SCHEME=$1
 
 JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
-dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$MODE"
+dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 # We should check if the job folder exist
 
 # And the bin folder.

@@ -88,9 +88,9 @@ CURSCHEME="${PNAME%%.*}"
 
 
 if [[ -t 1 ]] ; then
-  MODE="DEBUG"
+  RUNTIME_MODE="CONSOLE"
 else
-  MODE="SERVICE"
+  RUNTIME_MODE="SERVICE"
 fi
 
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
@@ -103,9 +103,9 @@ else
 fi
 
 # asserting system/configuration context.
-dieIfMandatoryVariableNotSet FB "$MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_BIN_HOME "$MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_DATA_HOME "$MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
@@ -125,7 +125,7 @@ consoleFBfolderIsMounted "$CURSCHEME"
 # Whatever the context, we need at least two parameters.
 
 if [[ $# -lt 2 ]] ; then
-  if [[ $MODE == "SERVICE" ]] ; then
+  if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
     notifyErr "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
 run propely. Terminating..."
 
@@ -134,7 +134,7 @@ run propely. Terminating..."
     echo -e "$PNAME : I need at least one argument \
 to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
     exit 2
-  # else If MODE=DEBUG && $# -eq 1 -> maybe -h.
+  # else If RUNTIME_MODE=DEBUG && $# -eq 1 -> maybe -h.
   fi
 fi
 
@@ -143,7 +143,7 @@ DEBUG=0
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
 
-if [[ "$MODE" == "SERVICE" ]] ; then
+if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
 # https://serverfault.com/questions/573946/how-can-i-send-a-message-to-the-systemd-journal-from-the-command-line
   exec 4>&2 2> >(while read -r REPLY; do printf >&4 '<3>%s\n' "$REPLY"; done)
   trap 'exec >&2-' EXIT
@@ -212,7 +212,7 @@ fi
 # End of command line parsing.
 
 if [[ $# -ne 2 ]] ; then
-    if [[ "$MODE" == "SERVICE" ]] ; then
+    if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}" "I didn't get two mandatory \
 parameters: A backup scheme, and a job-folder, Hopefully you are \
 executing from the commandline. Exiting hard."
@@ -257,10 +257,10 @@ JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 # we regenerate the folder where the symlinks are
 # In the install script.
 
-dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$MODE"
+dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  if [[ $MODE == "SERVICE" ]] ; then
+  if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
     echo >&4 "<7>${PNAME}: JOBSFOLDER: $JOBSFOLDER"
   else
     echo >&2 "${PNAME}: JOBSFOLDER: $JOBSFOLDER"
@@ -306,7 +306,7 @@ assertBackupContainer "$BACKUP_CONTAINER"
 # TODO: Maybe have a dbg_msg, ala fatal_error, that takes care of
 # all the stuff that we otherwise have to litter our code with?
 if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-  if [[ $MODE == "SERVICE"  ]] ; then
+  if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
     echo >&4 "<7>${PNAME} : the backups of $TARGET_FOLDER are stored in:\
 $BACKUP_CONTAINER"
   else
@@ -406,7 +406,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
   if hasExcludeFile "$BACKUP_SCHEME" "$SYMLINK_NAME" ; then
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
-      if [[ $MODE == "SERVICE"  ]] ; then
+      if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
         :
       else
         echo >&2 "$PNAME : I have an exclude file : $EXCLUDE_FILE "
@@ -428,7 +428,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
   if [[ $DRYRUN == true  ]] ; then
 
-    if [[ $MODE != "SERVICE"  ]] ; then
+    if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
       trap "HAVING_ERRORS=true;ctrl_c" INT
       ctrl_c() {
         echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
@@ -442,7 +442,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     TAR_BALL_NAME=\
 "$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
 
-    if [[ $MODE == "SERVICE"  ]] ; then
+    if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
 $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER ."   | journalThis 7 "$BACKUP_SCHEME"
 
@@ -488,7 +488,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
         rm -fr "$DRY_RUN_FOLDER"
     fi
-    if [[ $MODE == "SERVICE"  ]] ; then
+    if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
       notifyErr "$PNAME" " : rm -fr $DRY_RUN_FOLDER" | journalThis 7 "$BACKUP_SCHEME"
     else
       echo >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
@@ -496,7 +496,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
 
   else  # DRYRUN == false
 
-    if [[ $MODE != "SERVICE"  ]] ; then
+    if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
       trap "HAVING_ERRORS=true;ctrl_c" INT
       ctrl_c() {
         echo trapped ctrl-c
@@ -523,7 +523,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
    #   | journalThis 7 $BACKUP_SCHEME
     if [[ $EXIT_STATUS -gt 1 ]] ; then
 
-      if [[ $MODE == "SERVICE"   ]] ; then
+      if [[ $RUNTIME_MODE == "SERVICE"   ]] ; then
         notifyErr "$PNAME" " : exit status after tar commmand (fatal error)\
 = $EXIT_STATUS" | journalThis 3 "$BACKUP_SCHEME"
       else
@@ -533,7 +533,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
 
       if [[ -f "$TAR_BALL_NAME" ]] ; then
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-          if [[ "$MODE" == "SERVICE"  ]] ; then
+          if [[ "$RUNTIME_MODE" == "SERVICE"  ]] ; then
             notifyErr "$PNAME" " : A tarball was made, probably full of errors\
 \n rm -f $TAR_BALL_NAME" | journalThis 7 "$BACKUP_SCHEME"
           else
@@ -546,7 +546,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
         rm -f "$TAR_BALL_NAME"
 
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-          if [[ "$MODE" == "SERVICE"  ]] ; then
+          if [[ "$RUNTIME_MODE" == "SERVICE"  ]] ; then
             notifyErr "$PNAME" " : Removing the tar ball we  made: \
 $TAR_BALL_NAME "| journalThis 3 "$BACKUP_SCHEME"
           else
@@ -556,7 +556,7 @@ $TAR_BALL_NAME "
         fi
         if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
           if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-            if [[ "$MODE" == "SERVICE"  ]] ; then
+            if [[ "$RUNTIME_MODE" == "SERVICE"  ]] ; then
               notifyErr "$PNAME" " : Removing the backup folder made: \
 $TODAYS_BACKUP_FOLDER_NAME "| journalThis 3 "$BACKUP_SCHEME"
             else
@@ -594,7 +594,7 @@ if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
       dirToRemove="$(oldestDirectory "$BACKUP_CONTAINER")"
       if [[ -z "$dirToRemove" ]] ; then
         #  idk if this even is possible.
-        if [[ "$MODE" == "SERVICE" ]] ; then
+        if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
           notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup \
   container ${BACKUP_CONTAINER} doesn't have any older folders than itself! \
   You need to investigate the situation, to remedy it!"
@@ -608,7 +608,7 @@ if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
         fi
       else
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-          if [[ "$MODE" == "SERVICE" ]] ; then
+          if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
             notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "Removing the \
   old backup ${dirToRemove} by rotation."
             echo >&4 "<0>${0##*/}/${FUNCNAME[0]}: Removing the \
@@ -621,7 +621,7 @@ if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
  
         if !  rm -fr "$dirToRemove" ; then
           if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-            if [[ "$MODE" == "SERVICE" ]] ; then
+            if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
               notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "Removing the \
     old backup ${dirToRemove} by rotation FAILED\nTerminates..."
               echo -e >&4 "<0>${0##*/}/${FUNCNAME[0]}: Removing the \
