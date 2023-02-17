@@ -4,9 +4,10 @@
 # We are getting the backup-scheme passed as parameter from the
 # <backup-scheme>.service, invoked by <backup-scheme>.timer.
 
-# We check for an empty job folder first of all, and if it is,
-# we shut down the whole service, and exits gracefully, no questions
-# asked.
+# We check for an empty job folder first of all, and if it is, we shut down the
+# whole service, and exits gracefully. Otherwise, we're calling up the
+# manager(), to figure out the correct script to execute for that
+# scheme/symlink, processes the next one, and so on.
 
 # First we check if there is any jobs to dispatch from the jobs folder.
 
@@ -123,18 +124,15 @@ BACKUP_SCHEME=$1
 JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
 dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
-# We should check if the job folder exist
-
-# And the bin folder.
 
 dieIfNotBinFolderExist "$BACKUP_SCHEME"
 
 export SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
 
 
-# JOB_LIST=$(ls -1 $JOBS_FOLDER | sed -n '/.pause/ !p')
-JOB_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
-# TODO: implement all over.
+JOB_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
+  | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
+
 
 if [[ -z "$JOB_LIST" ]] ; then
   # We have nothing to  do, and die silently.
@@ -147,46 +145,26 @@ if [[ -z "$JOB_LIST" ]] ; then
   exit 0
 fi
 
-# TODO: giving up after two times, with critical error?
-
-# we had something an need to continue testing.
-# The $FB variable is the mounting point for the google drive is mandatory.
-
-# The thing is, is if we are executed after boot, will I then be able to
-# exit in a way, that makes the service re-run it, or will I have to take care of that on
-# my own, with maybe even an extra layer of service for those kinds of events.
-# the thing is, is that I'm waiting for a copy of the parent environment to be read in.
-
-
-# We need to check the internet
-
-
-# Absolutely first time, or something removed?
-# we rest/Assured.
+# Asserting system context
 
 mkdir -p "$FB/Periodic"
 # just in case, no harm, no foul.
 
 mkdir -p "$FB"/Periodic/"$BACKUP_SCHEME"
 
-DEST_SCHEME_FOLDER="$FB/Periodic/$BACKUP_SCHEME"
-if [[ ! -d "$DEST_SCHEME_FOLDER" ]] ; then
-  mkdir -p "$DEST_SCHEME_FOLDER"
+SCHEME_CONTAINER="$FB/Periodic/$BACKUP_SCHEME"
+if [[ ! -d "$SCHEME_CONTAINER" ]] ; then
+  mkdir -p "$SCHEME_CONTAINER"
   # we can go silent about this, or we can just send a message.
   if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$DEST_SCHEME_FOLDER didn't exist, que to make backup"
+    echo >&2 "$SCHEME_CONTAINER didn't exist, que to make backup"
   fi
 else
   if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$DEST_SCHEME_FOLDER exists, NO que to make backup"
+    echo >&2 "$SCHEME_CONTAINER exists, NO que to make backup"
   fi
 fi
-# Todo: dette skal ut!
 
-# We check if the $FB folder is  mounted.
-
-
-#check if any jobs are still active, otherwise bail.
 
 
 for SYMLINK in $JOB_LIST ; do
@@ -211,17 +189,17 @@ for SYMLINK in $JOB_LIST ; do
       # if there is an accompanying **$symlink.pause** file, which means
       # that the backup-job for this folder is temporarily paused.
       if [[ ! -f $JOBS_FOLDER/$SYMLINK.pause ]] ; then
-        DEST_CONTAINER=$DEST_SCHEME_FOLDER/$SYMLINK
-        # Alt med DEST_CONTAINER skal over i fbinst e.l fbctl
-        if [[ ! -d $DEST_CONTAINER ]] ; then
-          mkdir -p "$DEST_CONTAINER"
+        BACKUP_CONTAINER=$SCHEME_CONTAINER/$SYMLINK
+        # Alt med BACKUP_CONTAINER skal over i fbinst e.l fbctl
+        if [[ ! -d $BACKUP_CONTAINER ]] ; then
+          mkdir -p "$BACKUP_CONTAINER"
           # we can go silent about this, or we can just send a message.
           if [[ $DEBUG -eq 0 ]] ; then
-            echo >&2 "$DEST_CONTAINER didn't exist, que to make backup"
+            echo >&2 "$BACKUP_CONTAINER didn't exist, que to make backup"
           fi
         else
           if [[ $DEBUG -eq 0 ]] ; then
-            echo >&2 "$DEST_CONTAINER exists, NO que to make backup"
+            echo >&2 "$BACKUP_CONTAINER exists, NO que to make backup"
           fi
         fi
 
