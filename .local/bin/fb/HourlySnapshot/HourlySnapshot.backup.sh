@@ -44,9 +44,6 @@ DEBUG=1 # controls output during debugging.
 VERBOSE=true # controls output during normal runs.
 
 
-THROUGH_SHELLCHECK=1
-
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
@@ -66,7 +63,6 @@ dieIfCantSourceShellLibrary() {
     exit 255
   fi
 }
-else
 
 pathToSourcedFiles() {
   # shellcheck disable=SC2001,SC2086  # Escaped by sed
@@ -78,7 +74,6 @@ pathToSourcedFiles() {
   echo "$fpth"
 }
 
-fi
 
 # Program vars, read only, 
 
@@ -94,12 +89,13 @@ else
 fi
 
 fbBinDir="$(pathToSourcedFiles)"
+
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
 # shellcheck source=service_functions.sh
-  source "$fbBinDir"/service_functions.sh
+  source "$fbBinDir"/../service_functions.sh
 fi
 
 # asserting system/configuration context.
@@ -115,7 +111,7 @@ if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
 else
 # shellcheck source=shared_functions.sh
-  source "$fbBinDir"/shared_functions.sh
+  source "$fbBinDir"/../shared_functions.sh
 fi
 
 

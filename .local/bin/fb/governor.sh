@@ -29,9 +29,7 @@ err_report() {
 trap 'err_report $LINENO' ERR
 
 
-THROUGH_SHELLCHECK=1
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
@@ -51,7 +49,8 @@ dieIfCantSourceShellLibrary() {
     exit 255
   fi
 }
-else
+
+
 pathToSourcedFiles() {
   # shellcheck disable=SC2001,SC2086  # Escaped by sed
   pthname="$( echo $0  | sed 's/ /\\ /g' )"
@@ -61,7 +60,7 @@ pathToSourcedFiles() {
   fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
   echo "$fpth"
 }
-fi
+
 # Program vars, read only, 
 
 PNAME=${0##*/}
