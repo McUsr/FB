@@ -103,7 +103,6 @@ dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
-
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
@@ -130,15 +129,16 @@ dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
   | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
 
-
 if [[ -z "$JOBS_LIST" ]] ; then
   # We have nothing to  do, and die silently.
   if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "No symlinks, nothing to do."
+    if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+      notifyErr  "$PNAME" "$PNAME : No symlinks, nothing to do. We are \
+shutting down this service." | journalThis 7 "$BACKUP_SCHEME"
+    else
+      echo >&2 "$PNAME : No symlinks, nothing to do. We are shutting down this service."
+    fi
   fi
-  # TODO:, Her sender vi notification om at bør sjekke journal ctl, og stoppe service.
-  # Det som hendt er at sikkert slettet symlink, manuellt.
-  # As Critical Error, if no tty. or just give a shit, and send the error anyway.
   exit 0
 fi
 
@@ -147,31 +147,36 @@ SCHEME_CONTAINER="$( assertSchemeContainer "$BACKUP_SCHEME" )"
 
 for SYMLINK in $JOBS_LIST ; do
   if isASymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
+
     if [[ $DEBUG -eq 0 ]] ; then
-      echo >&2 "$SYMLINK" is a SYMLINK
+      if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+        notifyErr  "$PNAME" "$PNAME: $SYMLINK is a SYMLINK." \
+          | journalThis 7 "$BACKUP_SCHEME"
+      else
+        echo >&2 "$PNAME : $SYMLINK is a SYMLINK."
+      fi
     fi
+
     if isUnbrokenSymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-        echo -e >&2 "\n$PNAME : currently processing the symlink $SYMLINK\
+        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+          notifyErr  "$PNAME" ": currently processing the symlink $SYMLINK\
+(unbroken).\n" | journalThis 7 "$BACKUP_SCHEME"
+        else
+          echo -e >&2 "\n$PNAME : currently processing the symlink $SYMLINK\
 (unbroken).\n"
+        fi
       fi
       # we need the real path
       target_folder="$(realpath "$JOBS_FOLDER"/"$SYMLINK")"
       if [[ $DEBUG -eq 0 ]] ; then
-        echo >&2 Realpath is "$target_folder"
+        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+          notifyErr  "$PNAME" ": Realpath is $target_folder."\
+            | journalThis 7 "$BACKUP_SCHEME"
+        else
+          echo >&2 "$PNAME : Realpath is $target_folder"
+        fi
       fi
-
-      # exists, when unbroken link. maybe want to backup a mysql file,
-      #  so no test on dir?
-      # Database-files,  is something else, another kind of backup.
-
-      # The last test before we actually do something is to check if
-      # if there is an accompanying **$symlink.pause** file, which means
-      # that the backup-job for this folder is temporarily paused.
-
-      # Better place to have an exclude file?
-
-
 
       if [[ ! -f $JOBS_FOLDER/$SYMLINK.pause ]] ; then
         BACKUP_CONTAINER=$SCHEME_CONTAINER/$SYMLINK
@@ -180,11 +185,21 @@ for SYMLINK in $JOBS_LIST ; do
           mkdir -p "$BACKUP_CONTAINER"
           # we can go silent about this, or we can just send a message.
           if [[ $DEBUG -eq 0 ]] ; then
-            echo >&2 "$BACKUP_CONTAINER didn't exist, que to make backup"
+            if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+              notifyErr  "$PNAME" "$BACKUP_CONTAINER didn't exist, que to \
+make backup" | journalThis 7 "$BACKUP_SCHEME"
+            else
+              echo >&2 "$PNAME : $BACKUP_CONTAINER didn't exist, que to make backup"
+            fi
           fi
         else
           if [[ $DEBUG -eq 0 ]] ; then
-            echo >&2 "$BACKUP_CONTAINER exists, NO que to make backup"
+            if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+              notifyErr  "$PNAME" "$BACKUP_CONTAINER exists, NO que to make \
+backup." | journalThis 7 "$BACKUP_SCHEME"
+            else
+              echo >&2 "$PNAME : $BACKUP_CONTAINER exists, NO que to make backup"
+            fi
           fi
         fi
 
@@ -196,21 +211,40 @@ for SYMLINK in $JOBS_LIST ; do
           exit $exit_code
         fi
         if [[ $DEBUG -eq 0 || $VERBOSE ==  true ]] ; then 
-          echo >&2 "$PNAME: Command line after manager: \
+          if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+            notifyErr  "$PNAME" "$PNAME: Command line after manager: \
+$BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" \
+| journalThis 7 "$BACKUP_SCHEME"
+          else
+            echo >&2 "$PNAME: Command line after manager: \
 $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK"
+          fi
         fi
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
       else
-        echo >&2 "I found a $JOBS_FOLDER/$SYMLINK.pause file and skips this job ... for now."
+        # there was a pause file
+        if [[ $DEBUG -eq 0 || $VERBOSE ==  true ]] ; then
+          if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+            notifyErr  "$PNAME" "$PNAME : I found a $JOBS_FOLDER/$SYMLINK.pause\
+ file and skips this job ... for now."| journalThis 7 "$BACKUP_SCHEME"
+          else
+            echo >&2 "$PNAME : I found a $JOBS_FOLDER/$SYMLINK.pause file and \
+skips this job ... for now."
+          fi
+        fi
       fi
     else
+      # broken symlink
       if [[ $DEBUG -eq 0 ]] ; then
-        echo >&2 "The symlink $SYMLINK is broken."
+        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+          notifyErr  "$PNAME" "$PNAME : The symlink $SYMLINK is broken."\
+            | journalThis 7 "$BACKUP_SCHEME"
+        else
+          echo >&2 "$PNAME : The symlink $SYMLINK is broken."
+        fi
       fi
       # this goes to the journal land a notification is sent.
       brokenSymlink "$JOBS_FOLDER" "$SYMLINK" "$BACKUP_SCHEME:${0##*/}"
-      # TODO: Maybe "$BACKUP_SCHEME:${0##*/}" isn't a great idea after all.
-      # ... or maybe not
     fi
   # else NOT A SYMLINK, we just ignore.
   fi
