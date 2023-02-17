@@ -281,14 +281,12 @@ if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
   # debug message
 fi
 
-echo "$TARGET_FOLDER"
-
 dieIfSourceIsWithinFBTree "$TARGET_FOLDER" "$BACKUP_SCHEME"
 
 if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;  then
-  echo -e "$PNAME : The target folder is NOT inside $FB.\n($1)."
+  echo -e >&2 "$PNAME : The target folder is NOT inside $FB.\n($1)."
 elif [[ $DRYRUN = true ]] ; then
-  echo -e "$PNAME : The target folder is NOT inside $FB.\n($1)."
+  echo -e >&2 "$PNAME : The target folder is NOT inside $FB.\n($1)."
 # else we're passing through further down the road.
 fi
 
@@ -315,13 +313,12 @@ $BACKUP_CONTAINER"
   # TODO: Maybe raise this to notice.
 fi
 
-# its time to get the latest directory from the backup container and 
+# its time to get the latest directory from the backup container and
 # check the time stamp.
 
 
 MUST_MAKE_TODAYS_FOLDER=1
 MUST_MAKE_BACKUP=1
-echo "\$BACKUP_CONTAINER : $BACKUP_CONTAINER"
 # we generate todays folder name.
 
 TODAYS_BACKUP_FOLDER_NAME=\
@@ -330,7 +327,8 @@ emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-    echo >&2 "$PNAME : TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME didn't exist!"
+    echo >&2 "$PNAME : TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME \
+didn't exist!"
   fi
   probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
 
@@ -347,7 +345,7 @@ else
     echo >&2 "$PNAME : dt: $probeDir"
   fi
 
-  if  find "$probeDir" -maxdepth 0  -empty  -print | grep '.*' >/dev/null ; then 
+  if  find "$probeDir" -maxdepth 0  -empty  -print | grep '.*' >/dev/null ; then
     emptyBackupFolder=true
   fi
 fi
@@ -360,7 +358,9 @@ fi
 if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
   # echo "newest dir doesn't exist." Means we have no folders to compare with.
   # so this is the first backup!
-  echo >&2 "$PNAME : no files in probedir"
+  if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+    echo >&2 "$PNAME : no files in probedir"
+  fi
   MUST_MAKE_TODAYS_FOLDER=0
   MUST_MAKE_BACKUP=0
 else
@@ -377,14 +377,18 @@ else
   fi
   modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir")
   if [[ -n "$modfiles"  ]] ; then
-    echo "Must make backup"
+    if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+      echo >&2 "$PNAME : Must make backup"
+    fi
     # there are files to back up.
     MUST_MAKE_BACKUP=0
     if [[ "$probeDir" != "$TODAYS_BACKUP_FOLDER_NAME" ]] ; then
       MUST_MAKE_TODAYS_FOLDER=0
     fi
   else
-    echo "no new files"
+    if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
+      echo >&2 "$PNAME: no new files"
+    fi
     # But, maybe the reason is, there are no files there?
 
   fi
@@ -399,8 +403,10 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
   if hasExcludeFile "$BACKUP_SCHEME" "$SYMLINK_NAME" ; then
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
-      if [[ $MODE != "SERVICE"  ]] ; then
-        echo "$PNAME : I have an exclude file : $EXCLUDE_FILE "
+      if [[ $MODE == "SERVICE"  ]] ; then
+        :
+      else
+        echo >&2 "$PNAME : I have an exclude file : $EXCLUDE_FILE "
         cat "$EXCLUDE_FILE"
       fi
     fi
@@ -422,8 +428,8 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     if [[ $MODE != "SERVICE"  ]] ; then
       trap "HAVING_ERRORS=true;ctrl_c" INT
       ctrl_c() {
-        echo "$PNAME : trapped ctrl-c - interrupted tar command!"
-        echo "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
+        echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
+        echo >&2 "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
         rm -fr "$DRY_RUN_FOLDER"
       }
     fi
@@ -473,7 +479,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
     EXIT_STATUS=$?
 
     if [[ $EXIT_STATUS -gt 1 ]] ; then
-      echo "$PNAME : exit status after tar commmand = $EXIT_STATUS"
+      echo >&2 "$PNAME : exit status after tar commmand = $EXIT_STATUS"
     fi
    #   | journalThis 7 $BACKUP_SCHEME
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
@@ -500,7 +506,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $TARGET_FOLDER . "
 "$TODAYS_BACKUP_FOLDER_NAME"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-      echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
+      echo -e >&2 "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
         -f $TAR_BALL_NAME  -C $TARGET_FOLDER" .
     fi
       if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
@@ -562,6 +568,7 @@ $TODAYS_BACKUP_FOLDER_NAME "
         fi
       fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
+      # TODO: denne bare ut hvis CONSOLE , og da litt bedre melding.
       echo -e "\n($TAR_BALL_NAME)\n"
     fi
   fi
