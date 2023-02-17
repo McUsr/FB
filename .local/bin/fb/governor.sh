@@ -77,11 +77,12 @@ else
 fi
 
 
+fbBinDir="$(pathToSourcedFiles)"
+
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
-  fbBinDir="$(pathToSourcedFiles)"
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/service_functions.sh
 fi
@@ -125,9 +126,6 @@ JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
 
 dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 
-dieIfNotSchemeBinFolderExist "$BACKUP_SCHEME"
-
-export SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
 
 
 JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \

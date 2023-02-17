@@ -93,11 +93,11 @@ else
   RUNTIME_MODE="SERVICE"
 fi
 
+fbBinDir="$(pathToSourcedFiles)"
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
-  fbBinDir="$(pathToSourcedFiles)"
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/service_functions.sh
 fi
