@@ -738,7 +738,7 @@ manager() {
   local CANDIDATE_SCRIPT
 
   if [[ $# -ne 3 ]] ; then
-    echo -e  "$PNAME/manager() : Wrong number of arguments, I need \
+    echo -e  "$PNAME/${FUNCNAME[0]} : Wrong number of arguments, I need \
 BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
       | journalThis 2 "$BACKUP_SCHEME"
     exit 5
@@ -763,68 +763,69 @@ either\"backup\" or \"restore\".\nTerminates..."\
 
   if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
     # same if with DRYRUN or VERBOSE
-    echo -e "$PNAME/manager() : I can't find the backup script\
-      $CANDIDATE_SCRIPT.\nThis is a critical error.\nTerminates..."\
+    echo -e "$PNAME/${FUNCNAME[0]} : I can't find the backup script \
+$CANDIDATE_SCRIPT.\nThis is a critical error.\nTerminates..."\
       | journalThis 2 "$BACKUP_SCHEME"
     exit 255
   else
 
     DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-      echo "$PNAME/manager() : Current backup script is : $DELEGATE_SCRIPT"\
-        | journalThis 7 "$BACKUP_SCHEME"
+      echo "$PNAME/${FUNCNAME[0]} : Current backup script is : \
+$DELEGATE_SCRIPT" | journalThis 7 "$BACKUP_SCHEME"
     fi
   fi
 # Looking for a GENERAL replacement is in the $BACKUP_SCHEME.d folder.
 
   CANDIDATE_SCRIPT=\
-"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+"$SCHEME_BIN_FOLDER"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
-      echo "$PNAME/manager() :  I have a readable backup script: \
+      echo "$PNAME/${FUNCNAME[0]} :  I have a readable backup script: \
 $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
     fi
     if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
-      echo -e "$PNAME/manager() :  I found a backup dropin script: \
+      echo -e "$PNAME/${FUNCNAME[0]} :  I found a backup dropin script: \
 $CANDIDATE_SCRIPT\nBut it isn't executabe.\nTerminates.."\
         | journalThis 7 "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-        echo "$PNAME/manager() : I found a GENERAL backup dropin script: \
+        echo "$PNAME/${FUNCNAME[0]} : I found a GENERAL backup dropin script: \
 Current backup script is : $DELEGATE_SCRIPT"  | journalThis 7 "$BACKUP_SCHEME"
       fi
     fi
   elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-    echo "$PNAME/manager() : I didn't find  a GENERAL backup dropin script \
-at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+    echo "$PNAME/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
+script at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
   fi
 # Looking for a LOCAL replacement is in the $BACKUP_SCHEME.d folder.
   CANDIDATE_SCRIPT=\
-"$XDG_BIN_HOME"/fb/"$BACKUP_SCHEME"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+"$SCHEME_BIN_FOLDER"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
-      echo "$PNAME/manager() : I have a readable LOCAL dropin backup script:\
-        $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+      echo "$PNAME/${FUNCNAME[0]} : I have a readable LOCAL dropin backup \
+script: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
     fi
     if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
-      echo -e "$PNAME/manager() :  I found a LOCAL backup dropin script:\
+      echo -e "$PNAME/${FUNCNAME[0]} :  I found a LOCAL backup dropin script:\
         $CANDIDATE_SCRIPT.\nBut it isn't executabe.\nTerminates.."\
         | journalThis 7 "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-        echo "$PNAME/manager() : I found a LOCAL backup dropin script :\
+        echo "$PNAME/${FUNCNAME[0]} : I found a LOCAL backup dropin script :\
           Current backup script is : $DELEGATE_SCRIPT"\
           | journalThis 7 "$BACKUP_SCHEME"
       fi
     fi
   elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-    echo "$PNAME/manager() : I didn't find  a LOCAL backup dropin script in\
-      : $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+    echo "$PNAME/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
+in : $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
   fi
 
 }
