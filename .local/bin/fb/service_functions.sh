@@ -23,10 +23,30 @@ notifyErr() {
   \nTerminating..."
       exit 5
     fi
-  notify-send "${1} ${2}\nTerminating... "
+  notify-send "${1}" "${2}\nTerminating... "
   echo -e "${1}} ${2}\nTerminating... " 
 }
 
+# routDebugMsg()
+# PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
+# Routes error messages to the journal, or the console,
+# depending on CONSOLE or DEBUG mode, we hit a lot of clutter
+# too.
+
+routDebugMsg() {
+    if [[ $# -ne 2 ]] ; then
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
+  \nTerminating..."
+      exit 5
+    fi
+
+  if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 7 "${2}"
+  else
+    echo -e >&2 "$PNAME${1}\n"
+  fi
+
+}
 
 
 # dieIfSourceIsWithinFBTree()
