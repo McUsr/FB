@@ -326,13 +326,13 @@ emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-    echo >&2 "$PNAME : TODAYS_BACKUP_FOLDER_NAME : $TODAYS_BACKUP_FOLDER_NAME \
-didn't exist!"
+    echo >&2 "$PNAME : qualification:  TODAYS_BACKUP_FOLDER_NAME : \
+$TODAYS_BACKUP_FOLDER_NAME  didn't exist!"
   fi
   probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
 
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-    echo >&2 "$PNAME : probeDir =>$probeDir<="
+    echo >&2 "$PNAME : qualification probeDir =>$probeDir<="
   fi
 
   if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then 
@@ -341,7 +341,7 @@ didn't exist!"
 else
   probeDir="$TODAYS_BACKUP_FOLDER_NAME"
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-    echo >&2 "$PNAME : dt: $probeDir"
+    echo >&2 "$PNAME : qualification: Todays backup folder existed : $probeDir"
   fi
 
   if  find "$probeDir" -maxdepth 0  -empty  -print | grep '.*' >/dev/null ; then
@@ -358,7 +358,8 @@ if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
   # echo "newest dir doesn't exist." Means we have no folders to compare with.
   # so this is the first backup!
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-    echo >&2 "$PNAME : no files in probedir"
+    echo >&2 "$PNAME : no files in probedir, it's empty and we need \
+to take a backup."
   fi
   MUST_MAKE_TODAYS_FOLDER=0
   MUST_MAKE_BACKUP=0
@@ -374,7 +375,7 @@ else
   if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
     echo >&2 "$PNAME modfiles = $modfiles"
   fi
-  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir")
+  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
       echo >&2 "$PNAME : Must make backup"
