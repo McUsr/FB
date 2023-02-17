@@ -132,12 +132,8 @@ JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
 if [[ -z "$JOBS_LIST" ]] ; then
   # We have nothing to  do, and die silently.
   if [[ $DEBUG -eq 0 ]] ; then
-    if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-      notifyErr  "$PNAME" "$PNAME : No symlinks, nothing to do. We are \
-shutting down this service." | journalThis 7 "$BACKUP_SCHEME"
-    else
-      echo >&2 "$PNAME : No symlinks, nothing to do. We are shutting down this service."
-    fi
+   routDebugMsg " : No symlinks, nothing to do. We are \
+shutting down this service." "$BACKUP_SCHEME"
   fi
   exit 0
 fi
@@ -149,33 +145,18 @@ for SYMLINK in $JOBS_LIST ; do
   if isASymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
-      if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-        notifyErr  "$PNAME" "$PNAME: $SYMLINK is a SYMLINK." \
-          | journalThis 7 "$BACKUP_SCHEME"
-      else
-        echo >&2 "$PNAME : $SYMLINK is a SYMLINK."
-      fi
+      routDebugMsg " : $SYMLINK is a  SYMLINK." "$BACKUP_SCHEME"
     fi
 
     if isUnbrokenSymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-          notifyErr  "$PNAME" ": currently processing the symlink $SYMLINK\
-(unbroken).\n" | journalThis 7 "$BACKUP_SCHEME"
-        else
-          echo -e >&2 "\n$PNAME : currently processing the symlink $SYMLINK\
-(unbroken).\n"
-        fi
+        routDebugMsg ": currently processing the symlink $SYMLINK\
+(unbroken).\n" "$BACKUP_SCHEME"
       fi
       # we need the real path
       target_folder="$(realpath "$JOBS_FOLDER"/"$SYMLINK")"
       if [[ $DEBUG -eq 0 ]] ; then
-        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-          notifyErr  "$PNAME" ": Realpath is $target_folder."\
-            | journalThis 7 "$BACKUP_SCHEME"
-        else
-          echo >&2 "$PNAME : Realpath is $target_folder"
-        fi
+        routDebugMsg " : Realpath is $target_folder." "$BACKUP_SCHEME"
       fi
 
       if [[ ! -f $JOBS_FOLDER/$SYMLINK.pause ]] ; then
@@ -185,21 +166,13 @@ for SYMLINK in $JOBS_LIST ; do
           mkdir -p "$BACKUP_CONTAINER"
           # we can go silent about this, or we can just send a message.
           if [[ $DEBUG -eq 0 ]] ; then
-            if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-              notifyErr  "$PNAME" "$BACKUP_CONTAINER didn't exist, que to \
-make backup" | journalThis 7 "$BACKUP_SCHEME"
-            else
-              echo >&2 "$PNAME : $BACKUP_CONTAINER didn't exist, que to make backup"
-            fi
+            routDebugMsg " : $BACKUP_CONTAINER didn't exist, que to \
+make backup" "$BACKUP_SCHEME"
           fi
         else
           if [[ $DEBUG -eq 0 ]] ; then
-            if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-              notifyErr  "$PNAME" "$BACKUP_CONTAINER exists, NO que to make \
-backup." | journalThis 7 "$BACKUP_SCHEME"
-            else
-              echo >&2 "$PNAME : $BACKUP_CONTAINER exists, NO que to make backup"
-            fi
+            routDebugMsg " :$BACKUP_CONTAINER exists, NO que to make \
+backup." "$BACKUP_SCHEME"
           fi
         fi
 
@@ -210,38 +183,23 @@ backup." | journalThis 7 "$BACKUP_SCHEME"
         else
           exit $exit_code
         fi
-        if [[ $DEBUG -eq 0 || $VERBOSE ==  true ]] ; then 
-          if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-            notifyErr  "$PNAME" "$PNAME: Command line after manager: \
-$BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" \
-| journalThis 7 "$BACKUP_SCHEME"
-          else
-            echo >&2 "$PNAME: Command line after manager: \
-$BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK"
-          fi
+        if [[ $DEBUG -eq 0 ]] ; then 
+          routDebugMsg " : Command line after manager: \
+$BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
         fi
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
       else
         # there was a pause file
-        if [[ $DEBUG -eq 0 || $VERBOSE ==  true ]] ; then
-          if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-            notifyErr  "$PNAME" "$PNAME : I found a $JOBS_FOLDER/$SYMLINK.pause\
- file and skips this job ... for now."| journalThis 7 "$BACKUP_SCHEME"
-          else
-            echo >&2 "$PNAME : I found a $JOBS_FOLDER/$SYMLINK.pause file and \
-skips this job ... for now."
-          fi
+        if [[ $DEBUG -eq 0  ]] ; then
+          routDebugMsg " : I found a $JOBS_FOLDER/$SYMLINK.pause\
+ file and skips this job ... for now." "$BACKUP_SCHEME"
         fi
       fi
     else
       # broken symlink
-      if [[ $DEBUG -eq 0 ]] ; then
-        if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-          notifyErr  "$PNAME" "$PNAME : The symlink $SYMLINK is broken."\
-            | journalThis 7 "$BACKUP_SCHEME"
-        else
-          echo >&2 "$PNAME : The symlink $SYMLINK is broken."
-        fi
+      if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+        routDebugMsg "$PNAME : The symlink $SYMLINK is broken." \
+"$BACKUP_SCHEME"
       fi
       # this goes to the journal land a notification is sent.
       brokenSymlink "$JOBS_FOLDER" "$SYMLINK" "$BACKUP_SCHEME:${0##*/}"
