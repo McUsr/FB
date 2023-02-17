@@ -147,23 +147,8 @@ fi
 
 # Asserting system context
 
-mkdir -p "$FB/Periodic"
-# just in case, no harm, no foul.
 
-mkdir -p "$FB"/Periodic/"$BACKUP_SCHEME"
-
-SCHEME_CONTAINER="$FB/Periodic/$BACKUP_SCHEME"
-if [[ ! -d "$SCHEME_CONTAINER" ]] ; then
-  mkdir -p "$SCHEME_CONTAINER"
-  # we can go silent about this, or we can just send a message.
-  if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$SCHEME_CONTAINER didn't exist, que to make backup"
-  fi
-else
-  if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$SCHEME_CONTAINER exists, NO que to make backup"
-  fi
-fi
+SCHEME_CONTAINER="$( assertSchemeContainer "$BACKUP_SCHEME" )"
 
 
 

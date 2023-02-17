@@ -683,13 +683,45 @@ journalThis() {
 parameters.\nTerminating..."
     exit 5
   fi
-  if [[ -v LOG_TO_JOURNAL && $LOG_TO_JOURNAL = true ]] ; then
+  if [[ "$MODE" == "SERVICE" ]] ; then
 # shellcheck disable=SC2086 # code is irrelevant because in sed expression.
 tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
       | systemd-cat -t "$2"
   else
     cat 1>&2
   fi
+}
+
+# assertSchemeContainer()
+# asserts that both the $FB/Periodic and the 
+# $FB/Periodic/$BACKUP_SCHEME folder exists.
+
+assertSchemeContainer() {
+
+  if [[ $# -ne 1 ]] ; then
+    echo -e "${0##*/}/${FUNCNAME[0]} : Need an  argument: \
+backup/kind/scheme \nTerminates..." >&2 ;
+    exit 5
+  fi
+
+  local BACKUP_SCHEME=${1}
+
+  mkdir -p "$FB/Periodic"
+  # just in case, no harm, no foul.
+
+  SCHEME_CONTAINER="$FB/Periodic/$BACKUP_SCHEME"
+  if [[ ! -d "$SCHEME_CONTAINER" ]] ; then
+    mkdir -p "$SCHEME_CONTAINER"
+    # we can go silent about this, or we can just send a message.
+    if [[ $DEBUG -eq 0 ]] ; then
+      echo >&2 "$SCHEME_CONTAINER didn't exist, que to make backup"
+    fi
+  else
+    if [[ $DEBUG -eq 0 ]] ; then
+      echo >&2 "$SCHEME_CONTAINER exists, NO que to make backup"
+    fi
+  fi
+  echo "SCHEME_CONTAINER"
 }
 
 export -f journalThis
