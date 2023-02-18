@@ -1,5 +1,5 @@
 #!/bin/bash
-# v0.0.4
+VERSION="v0.0.4"
 # Governor.sh
 # We are getting the backup-scheme passed as parameter from the
 # <backup-scheme>.service, invoked by <backup-scheme>.timer.
@@ -18,7 +18,7 @@
 
 # Config vars you can set to mostly control output.
 DEBUG=1
-VERBOSE=true
+VERBOSE=false
 # VERBOSE = TRUE is more of a debug option giving the hints as to what is processed
 # With what.
 
