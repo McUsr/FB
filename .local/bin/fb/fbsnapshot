@@ -190,14 +190,14 @@ fi
 # to execute the rest of the command as --dry-run when we make
 # the exclude file so we can see the result.
 
-TARGET_FOLDER=$(realpath "$1")
+SOURCE_FOLDER=$(realpath "$1")
 
 if [[ $DEBUG -eq 0  || $VERBOSE = true ]] ; then
-  echo "$PNAME : TARGET_FOLDER: $TARGET_FOLDER" | journalThis 7 OneShot
+  echo "$PNAME : SOURCE_FOLDER: $SOURCE_FOLDER" | journalThis 7 OneShot
 fi
 
-if [[ ! -d $TARGET_FOLDER ]] ; then
-  echo "$PNAME : $TARGET_FOLDER isn't a directory. Terminating..." \
+if [[ ! -d $SOURCE_FOLDER ]] ; then
+  echo "$PNAME : $SOURCE_FOLDER isn't a directory. Terminating..." \
     | journalThis 2 OneShot
   exit 1
 fi
@@ -212,7 +212,7 @@ fi
 
 BACKUP_CONTAINER=$FB/OneShot/$SYMLINK_NAME
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-  echo "$PNAME : Backups of $TARGET_FOLDER are stored in: $BACKUP_CONTAINER" \
+  echo "$PNAME : Backups of $SOURCE_FOLDER are stored in: $BACKUP_CONTAINER" \
     | journalThis 7 OneShot
 fi
 
@@ -274,25 +274,25 @@ exit_code=$?
 if [[ $exit_code  -eq 0 ]] ; then
   BACKUP_SCRIPT="$DELEGATE_SCRIPT"
 else
-  exit $exitcode
+  exit "$exitcode"
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
   echo -e "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
-    $TARGET_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
+    $SOURCE_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
 fi
 
 
 EXIT_STATUS=0
 trap '' ERR
-$BACKUP_SCRIPT $BACKUP_OPTIONS  "$TARGET_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
-  "$SYMLINK_NAME"
+$BACKUP_SCRIPT $BACKUP_OPTIONS  "$SOURCE_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
+"$SYMLINK_NAME"
 EXIT_STATUS=$?
 
 # We do some cleanup in OneShot.backup.sh
 if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true \
   || $DEBUG -eq 0 ]] ; then
-   echo  -e "$PNAME : backup  of $TARGET_FOLDER into $TODAYS_BACKUP_FOLDER \
+   echo  -e "$PNAME : backup  of $SOURCE_FOLDER into $TODAYS_BACKUP_FOLDER \
      complete!"   | journalThis 5 OneShot
 
 elif [[ $EXIT_STATUS -gt 1 ]] ; then
