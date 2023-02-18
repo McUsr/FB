@@ -19,6 +19,8 @@
 # Config vars you can set to mostly control output.
 DEBUG=1
 VERBOSE=true
+# VERBOSE = TRUE is more of a debug option giving the hints as to what is processed
+# With what.
 
 err_report() {
   echo >&2 "$PNAME : Error on line $1"
@@ -183,12 +185,10 @@ backup." "$BACKUP_SCHEME"
         else
           exit $exit_code
         fi
-        DEBUG=0
-        if [[ $DEBUG -eq 0 ]] ; then 
+        if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then 
           routDebugMsg " : Command line after manager: \
 $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
         fi
-        DEBUG=1
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
       else
         # there was a pause file
@@ -212,5 +212,6 @@ done
 
 # // kommandoer for å se meldinger for jobb i logg.
 # forexample : DailyDifflog.
-
-echo >&2 "$PNAME passed tests!"
+if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then 
+  echo >&2 "$PNAME passed tests!"
+fi
