@@ -770,7 +770,7 @@ $CANDIDATE_SCRIPT.\nThis is a critical error.\nTerminates..."\
   else
 
     DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
-    if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+    if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
       echo "$PNAME/${FUNCNAME[0]} : Current backup script is : \
 $DELEGATE_SCRIPT" | journalThis 7 "$BACKUP_SCHEME"
     fi
@@ -781,7 +781,7 @@ $DELEGATE_SCRIPT" | journalThis 7 "$BACKUP_SCHEME"
 "$SCHEME_BIN_FOLDER"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
-    if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
+    if [[ $DEBUG -eq 0  || $DRYRUN = true ]] ; then
       echo "$PNAME/${FUNCNAME[0]} :  I have a readable backup script: \
 $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
     fi
@@ -792,12 +792,12 @@ $CANDIDATE_SCRIPT\nBut it isn't executabe.\nTerminates.."\
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
-      if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+      if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
         echo "$PNAME/${FUNCNAME[0]} : I found a GENERAL backup dropin script: \
 Current backup script is : $DELEGATE_SCRIPT"  | journalThis 7 "$BACKUP_SCHEME"
       fi
     fi
-  elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+  elif [[  $DEBUG -eq 0 || $DRYRUN = true ]] ; then
     echo "$PNAME/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
 script at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
   fi
@@ -806,7 +806,7 @@ script at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
 "$SCHEME_BIN_FOLDER"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME"."$OPERATION".sh
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
-    if [[ $DEBUG -eq 0 || $VERBOSE = true || $DRYRUN = true ]] ; then
+    if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
       echo "$PNAME/${FUNCNAME[0]} : I have a readable LOCAL dropin backup \
 script: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
     fi
@@ -817,13 +817,13 @@ script: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
-      if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+      if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
         echo "$PNAME/${FUNCNAME[0]} : I found a LOCAL backup dropin script :\
           Current backup script is : $DELEGATE_SCRIPT"\
           | journalThis 7 "$BACKUP_SCHEME"
       fi
     fi
-  elif [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+  elif [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
     echo "$PNAME/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
 in : $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
   fi
