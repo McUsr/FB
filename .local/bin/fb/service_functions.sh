@@ -88,7 +88,7 @@ allowed to be inside \ $FB.\nTerminating..."
 
 dieIfNotDirectoryExist() {
   if [[ $# -eq 0 ]] ; then
-    if [[ "$MODE" == "DEBUG" ]] ; then 
+    if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need  one \
 argument, a directory to test if exists.\nTerminating..."
       exit 5
@@ -101,7 +101,7 @@ argument, a directory to test if exists.\nTerminating..." \
   fi
 
   if [[ ! -d "${1}" ]] ; then
-    if [[ "$MODE" == "DEBUG" ]] ; then 
+    if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : The Directory ${1} : doesn't \
 exist!\nTerminating..."
       exit 5
@@ -120,7 +120,7 @@ dieIfNotSchemeBinFolderExist() {
 
   if [[ $# -ne 1 ]] ; then
 
-    if [[ "$MODE" == "DEBUG" ]] ; then 
+    if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
 backup-scheme \nTerminating..." >&2 ;
       exit 5
@@ -131,7 +131,7 @@ backup-scheme \nTerminating..." | journalThis 2 FolderBackup
     fi
   fi
   if [[ ! -d "$XDG_BIN_HOME"/fb/"${1}" ]] ; then
-    if [[ "$MODE" == "DEBUG" ]] ; then 
+    if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} :the system  Directory $XDG_BIN_HOME\
 /fb/${1} : doesn't exist!\nTerminating..."
       exit 5
