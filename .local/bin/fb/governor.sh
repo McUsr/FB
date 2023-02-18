@@ -183,10 +183,12 @@ backup." "$BACKUP_SCHEME"
         else
           exit $exit_code
         fi
+        DEBUG=0
         if [[ $DEBUG -eq 0 ]] ; then 
           routDebugMsg " : Command line after manager: \
 $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
         fi
+        DEBUG=1
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
       else
         # there was a pause file
