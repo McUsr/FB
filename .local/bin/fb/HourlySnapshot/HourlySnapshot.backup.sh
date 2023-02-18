@@ -1,5 +1,5 @@
 #!/bin/bash
-# DailySnapshotBackup.
+# HourlySnapshot.backup.sh
 # hourly_backup;(c) 2022 Mcusr -- Vim license.
 # This script serves as a template for dropin scripts.
 # TODO: document that!
@@ -33,7 +33,7 @@ DAYS_TO_KEEP_BACKUPS=14 # set to 0 to disable backup rotation.
 DRYRUN=false
 ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
 
-DEBUG=0 # controls output during debugging.
+DEBUG=1 # controls output during debugging.
 VERBOSE=true # controls output during normal runs.
 
 
@@ -245,7 +245,7 @@ fi
 dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$BACKUP_SCHEME"
 
 if [[ $DEBUG -eq 0 || $DRYRUN == true ]] ;  then
-  routDebugMsg " : The target folder is NOT inside $FB.\n($1)."
+  routDebugMsg " : The target folder is NOT inside $FB.\n($1)." "$BACKUP_SCHEME"
 fi
 
 
@@ -290,8 +290,8 @@ $probeDir" "$BACKUP_SCHEME"
     emptyBackupFolder=true
   fi
 fi
-if [[ $DEBUG -eq 0 || "$VERBOSE" == true  ]] ; then
-  routDebugMsg" : probeDir AFTER qualification  = : $probeDir" "$BACKUP_SCHEME"
+if [[ $DEBUG -eq 0  ]] ; then
+  routDebugMsg " : probeDir AFTER qualification  = : $probeDir" "$BACKUP_SCHEME"
 fi
 
 if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then

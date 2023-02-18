@@ -24,7 +24,7 @@ notifyErr() {
       exit 5
     fi
   notify-send "${1}" "${2}\nTerminating... "
-  echo -e "${1}} ${2}\nTerminating... " 
+  echo -e "${1}} ${2}\nTerminating... "
 }
 
 # routDebugMsg()
@@ -348,7 +348,7 @@ assertBackupContainer() {
   fi
   if [[ ! -d "${1}" ]] ; then
     mkdir -p "${1}"
-    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    if [[ $DEBUG -eq 0 ]] ; then
       if [[ "$MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} didn\'t exist"
       else
@@ -357,7 +357,7 @@ assertBackupContainer() {
       fi
     fi
   else
-    if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
+    if [[ $DEBUG -eq 0  ]] ; then
       if [[ "$MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} DID  exist"
       else
