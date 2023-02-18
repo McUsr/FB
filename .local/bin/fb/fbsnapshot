@@ -1,11 +1,7 @@
 #!/bin/bash
-VERSION="\"v0.0.4\""
 # fbsnapshot.
 # fbsnapshot Take an adhoc backup of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
-PNAME=${0##*/}
-MODE="CONSOLE"
-SILENCE=0
 
 err_report() {
   if [[ $SILENCE -eq 0 ]] ; then
@@ -17,49 +13,94 @@ err_report() {
 
 trap 'err_report $LINENO' ERR
 
-LOG_TO_JOURNAL=false
+# dieIfCantSourceShellLibrary()
+# sources the ShellLibraries
+# so we can perform the rest of the tests.
+# TODO: Think of modus.
+dieIfCantSourceShellLibrary() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "$PNAME/${FUNCNAME[0]} : Need an\
+    argument, an existing fb shell library file!\nTerminates..." >&2
+    exit 5
+  fi
+  if [[ -r "${1}" ]] ; then
+    # shellcheck disable=SC1090
+    source "${1}"
+  #  source "$fpth"/service_functions.sh
+  else
+    echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+      \nTerminates... " >&2
+    exit 255
+  fi
+}
+
+
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
+
+# Program vars, read only, 
+PNAME=${0##*/}
+
+# shellcheck disable=SC2089
+VERSION="\"v0.0.4\""
+
+MODE="CONSOLE"
+
+fbBinDir="$(pathToSourcedFiles)"
+THROUGH_SHELLCHECK=0
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+# shellcheck source=./service_functions.sh
+  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
+else
+# bootstrapping libraries before figuring system paths.
+# shellcheck source=service_functions.sh
+  source "$fbBinDir"/service_functions.sh
+fi
+
+SILENCE=0
 
 DRYRUN=1
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
-DEBUG=1
+DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
+# shellcheck disable=SC2034
 TO_CONSOLE=0
 # controls whether debug output will be sent to the journal when the script is
 # called from the terminal, and output be sent to the journal anyway, when the
 # script is run implicitly by a daemon.
 
-if [[ ! -v XDG_BIN_HOME ]] ; then
-  echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME),\
-    is the system initialized? You need configure it.\nTerminating..."\
-    >/dev/tty
-    exit 255
-fi
-
-
-if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
-  source "$XDG_BIN_HOME"/fb/shared_functions.sh
-else
-  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_functions.sh\
-    \nTerminates... " >/dev/tty
-  exit 255
-fi
-
-if [[ ! -v FB ]] ; then
-  echo -e "$PNAME The variable \$FB isn't set, is the system initialized? You\
-    need configure it.\nTerminating..." | journalThis 2 OneShot
-  exit 255
-fi
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
 # Checks if we can get online so we have a guarranteed connection to our\
 # Google Drive
+
+dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
+
+
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
+else
+# shellcheck source=shared_functions.sh
+  source "$fbBinDir"/shared_functions.sh
+fi
 
 consoleHasInternet OneShot
 
 consoleFBfolderIsMounted OneShot
 
+# shellcheck disable=SC2034
 GETOPT_COMPATIBLE=true
 
 if [[ $# -eq 0 ]] ; then
@@ -95,6 +136,7 @@ EOF
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
 TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,verbose,version  -n "$PNAME" -- "$@")
 
+# shellcheck disable=SC2181
 if [[ $? != 0 ]] ; then
   echo >/dev/ttyBiscuits in the Attic
   echo "$PNAME -h | --help for help :  Terminating..."\
@@ -109,14 +151,16 @@ DRYRUN=false
 VERBOSE=false
 CREATE_EXCLUDE_FILE=false
 
-echo >/dev/tty "DBG: $@"
+if [[ $DEBUG -eq 0   ]] ; then
+  echo >&2 "DBG: $*"
+fi
 
 while true; do
   case "$1" in
     -h | --help )  help ; exit 0 ;;
     -n | --dry-run ) DRYRUN=true; shift ;;
     -v | --verbose ) VERBOSE=true; shift ;;
-    -V | --version ) echo $PNAME : $VERSION ; exit 0 ;;
+    -V | --version ) echo "$PNAME" : "$VERSION" ; exit 0 ;;
     -c | --create-exclude-file ) echo 'create exclude file' ; \
       CREATE_EXCLUDE_FILE=true; shift ;;
     -- ) shift; break ;;
@@ -192,12 +236,12 @@ else
 fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
-TODAYS_BACKUP_FOLDER=$BACKUP_CONTAINER/$(baseNameDateStamped $SYMLINK_NAME)
+TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER"/"$(baseNameDateStamped "$SYMLINK_NAME")"
 CREATED_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then
     echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
-      exist. Creating it:\nmkdir -p i"$TODAYS_BACKUP_FOLDER"." \
+      exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER." \
       | journalThis 7 OneShot
   fi
   if [[ $DRYRUN = false ]] ; then
@@ -218,7 +262,7 @@ fi
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
 if [[ $CREATE_EXCLUDE_FILE = true ]] ; then
-  createExcludeFile OneShot $SYMLINK_NAME
+  createExcludeFile OneShot "$SYMLINK_NAME"
 fi
 
 # Exclude file out of the way, time to figure out if there are any "dropin"-
@@ -264,12 +308,12 @@ elif [[ $EXIT_STATUS -gt 1 ]] ; then
 
     if [[ $DRYRUN = false ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-        echo "$PNAME : Removing todays backup folder due to fatal errors:\
+        echo -e "$PNAME : Removing todays backup folder due to fatal errors:\
           \n rm -fr $TODAYS_BACKUP_FOLDER"
       fi
       rm -fr "$TODAYS_BACKUP_FOLDER"
     else
-      echo "$PNAME : Removing todays backup folder due to fatal errors:\
+      echo -e "$PNAME : Removing todays backup folder due to fatal errors:\
         \n rm -fr $TODAYS_BACKUP_FOLDER"
     fi
   fi
