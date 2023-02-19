@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=SC2089
+VERSION="\"v0.0.4\""
 # fbsnapshot.
 # fbsnapshot Take an adhoc backup of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
@@ -45,11 +47,9 @@ pathToSourcedFiles() {
   echo "$fpth"
 }
 
-# Program vars, read only, 
+# Program vars, read only,
 PNAME=${0##*/}
 
-# shellcheck disable=SC2089
-VERSION="\"v0.0.4\""
 
 MODE="CONSOLE"
 
@@ -74,10 +74,6 @@ DEBUG=0
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
 # shellcheck disable=SC2034
-TO_CONSOLE=0
-# controls whether debug output will be sent to the journal when the script is
-# called from the terminal, and output be sent to the journal anyway, when the
-# script is run implicitly by a daemon.
 
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
