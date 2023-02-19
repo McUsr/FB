@@ -1,12 +1,9 @@
 #!/bin/bash
 # shellcheck disable=SC2089
-VERSION="\"v0.0.3c\""
+VERSION="\"v0.0.4\""
 # fbrestore.
 # fbrestore Restores an  an adhoc snapshot of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
-PNAME=${0##*/}
-MODE="CONSOLE"
-SILENCE=0
 
 err_report() {
   if [ $SILENCE -eq 1 ] ; then
@@ -18,26 +15,85 @@ err_report() {
 
 trap 'err_report $LINENO' ERR
 
-if [[ ! -v XDG_BIN_HOME ]] ; then
-  echo -e "$PNAME :  The variable \$XDG_BIN_HOME isn't set ($XDG_BIN_HOME), \
-is the system initialized? You need configure it.\nTerminating..." >/dev/tty
-    exit 255
-fi
 
-if [[ -f "$XDG_BIN_HOME"/fb/shared_functions.sh ]] ; then
-  # shellcheck disable=SC1090
-  source "$XDG_BIN_HOME"/fb/shared_functions.sh
+# dieIfCantSourceShellLibrary()
+# sources the ShellLibraries
+# so we can perform the rest of the tests.
+# TODO: Think of modus.
+dieIfCantSourceShellLibrary() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need an\
+    argument, an existing fb shell library file!\nTerminates..." >&2
+    exit 5
+  fi
+  if [[ -r "${1}" ]] ; then
+    # shellcheck disable=SC1090
+    source "${1}"
+  #  source "$fpth"/service_functions.sh
+  else
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+      \nTerminates... " >&2
+    exit 255
+  fi
+}
+
+
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
+
+# Program vars, read only, 
+PNAME=${0##*/}
+
+
+# shellcheck disable=SC2089
+MODE="CONSOLE"
+
+fbBinDir="$(pathToSourcedFiles)"
+THROUGH_SHELLCHECK=0
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+# shellcheck source=./service_functions.sh
+  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
 else
-  echo -e  "$PNAME : Can't source: $XDG_BIN_HOME/fb/shared_\
-functions.sh\nTerminates... " >/dev/tty
-  exit 255
+# bootstrapping libraries before figuring system paths.
+# shellcheck source=service_functions.sh
+  source "$fbBinDir"/service_functions.sh
 fi
 
-if [[ ! -v FB  ]] ; then
-     echo -e "${0##*/}" "The variable \$FB isn't set, is the system \
-initialized? You need configure it.\nTerminating..." >& 2
-    exit 255
+SILENCE=0
+
+DRYRUN=1
+# controls whether we are going to print the backup command to the
+# console/journal, (when DRYRUN=0) or if were actually going to perform.
+DEBUG=0
+#
+# prints out debug messages to the console/journal if its on when instigated\
+# systemd --user.
+# shellcheck disable=SC2034
+
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
+
+# Checks if we can get online so we have a guarranteed connection to our\
+# Google Drive
+
+dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
+
+
+if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
+else
+# shellcheck source=shared_functions.sh
+  source "$fbBinDir"/shared_functions.sh
 fi
+
 
 # We need to check if we have an internet connection
 consoleHasInternet OneShot
@@ -54,7 +110,6 @@ restore from.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
  exit 2
 fi
 
-DEBUG=1
 help() {
 cat  << EOF
 
@@ -143,18 +198,6 @@ if [[ $PARSE_DEBUG -eq 1 ]] ; then
   echo "FORCE : $FORCE"
 fi
 
-RESTORE_OPTIONS=
-
-if [[ $DRYRUN = true ]] ; then
-  RESTORE_OPTIONS+="--dry-run"
-fi
-if [[ $VERBOSE = true ]] ; then
-  RESTORE_OPTIONS+=" --verbose"
-fi
-if [[ $FORCE = true ]] ; then
-  RESTORE_OPTIONS+=" --force"
-fi
-
 if [[ $# -ne 1 ]] ; then
   echo numargs: $#
   echo "$@"
@@ -168,6 +211,19 @@ backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
     exit 1
   fi
 fi
+
+RESTORE_OPTIONS=
+
+if [[ $DRYRUN = true ]] ; then
+  RESTORE_OPTIONS+="--dry-run"
+fi
+if [[ $VERBOSE = true ]] ; then
+  RESTORE_OPTIONS+=" --verbose"
+fi
+if [[ $FORCE = true ]] ; then
+  RESTORE_OPTIONS+=" --force"
+fi
+
 
 
 # Check out if our source file or folder exists.
