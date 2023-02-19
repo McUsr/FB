@@ -466,6 +466,8 @@ validateFormatOfTimeStampedBackupContainingFolder() {
 # identifyTimeStampedBackupContainingFolder 'Periodic/DailySnapshot/var-html/'\
 # '/pathtoFB/Periodic/DailySnapshot/var-html/html-2023-01-08/'
 # RETURNS: '/var/html'
+# This function only called from fbrestore so far, so, no need for checking
+# on MODE!
 identifyBackupContainerByTimeStampedFolder() {
 
 # TODO: BACKUP_CONTAINER better than:
@@ -476,25 +478,27 @@ identifyBackupContainerByTimeStampedFolder() {
 ${FUNCNAME[0]}\nTerminating..."
     exit 5
   fi
-  local ORIG="$2"
-  local DEESCAPED_ORIG BIT_TO_REMOVE DEESCAPED_BIT_TO_REMOVE REPLACED
-  DEESCAPED_ORIG="$( echo "$ORIG" | sed -ne 's:\\::g' -e 'p' )"
-  BIT_TO_REMOVE="$FB/$1"
-  DEESCAPED_BIT_TO_REMOVE=\
-"$(echo "$BIT_TO_REMOVE" | sed -ne 's:\\::g' -e 'p')"
+  local orig="$2"
+  local de_esced_orig bit_to_rm de_esced_bit_to_rm replaced
+  de_esced_orig="$( echo "$orig" | sed -ne 's:\\::g' -e 'p' )"
+  bit_to_rm="$FB/$1"
+  de_esced_bit_to_rm=\
+"$(echo "$bit_to_rm" | sed -ne 's:\\::g' -e 'p')"
   local DBG_ESC=1
   if [[ $DBG_ESC -eq 0 ]] ; then
-    echo ORIG : "$ORIG" >&2
-    echo DEESCAPED_ORIG : "$DEESCAPED_ORIG" >&2
-    echo BIT_TO_REMOVE :"$BIT_TO_REMOVE" >&2
-    echo DEESCAPED_BIT_TO_REMOVE : "$DEESCAPED_BIT_TO_REMOVE" >&2
+    echo orig : "$orig" >&2
+    echo de_esced_orig : "$de_esced_orig" >&2
+    echo bit_to_rm :"$bit_to_rm" >&2
+    echo de_esced_bit_to_rm : "$de_esced_bit_to_rm" >&2
   fi
-  REPLACED="${DEESCAPED_ORIG/$DEESCAPED_BIT_TO_REMOVE/}"
-  if [[ "$ORIG" = "$REPLACED" ]] ; then
+  replaced="${de_esced_orig/$de_esced_bit_to_rm/}"
+  if [[ "$orig" = "$replaced" ]] ; then
+
     echo -e "${0##*/} : The path to the backup isn't within  the defined\
       location.\nTerminating..." >&2
     exit 2
-  elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
+  elif [[ "$replaced" = "/" ||  -z "$replaced" ]] ; then
+
     echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path\ to the backup isn't \
 complete with a path to the actual backup.\n($FB/$1\ isn't specific \
 enough,\nthe path must include the folder from which to restore,\n and a \
@@ -505,14 +509,14 @@ timestamped folder that contains the actual files containing the backup.)\
   OLDIFS=$IFS
   export IFS='/'
 # shellcheck disable=SC2086 # NO QUOTING == disastrous!
-  set -- $REPLACED
+  set -- $replaced
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left  of the delimiter.
 # echo >/dev/tty "1 : ,$1,"
   if [[ -n "$1"  ]] ; then
     echo -e "${0##*/}/${FUNCNAME[0]} : \nThe path to the backup starting with\
  the PREFIX doesn't start with '/'.\n\ Is it a slash amiss after \$FB\n\
-($FB)\n in the path to the backup\ ($ORIG)?\nTerminating..." >&2
+($FB)\n in the path to the backup\ ($orig)?\nTerminating..." >&2
     exit 2
   fi
   export IFS=$OLDIFS
