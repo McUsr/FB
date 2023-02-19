@@ -160,9 +160,10 @@ fi
 TODAYS_BACKUP_FOLDER="$2"
 # we need to check if the full symlink name is within the destination path.
 
+
 if ! isWithinPath "$TODAYS_BACKUP_FOLDER" "${3}" ; then
   # same whether dry-run, verbose, or not.
-  echo -e >&2 "$PNAME : The full symlink name is not the correct one.\nIt is\
+  echo -e >&2 "$PNAME : The full symlink name is not the correct one.\nIt is \
 not the name of the root folder of the backup.\nTerminating..."
   exit 2
 else

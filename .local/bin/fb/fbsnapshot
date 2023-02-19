@@ -106,7 +106,7 @@ GETOPT_COMPATIBLE=true
 if [[ $# -eq 0 ]] ; then
   echo -e "$PNAME : Too few arguments. At least I need a path to a directory,\
     I should make a backup of.\nExecute \"$PNAME -h\" for help.\
-    Terminating..." | journalThis 2 OneShot
+    Terminating..."
  exit 2
 fi
 
@@ -139,8 +139,7 @@ TEMP=$(getopt -o chnvV --longoptions create-exclude-file,help,dry-run,verbose,ve
 # shellcheck disable=SC2181
 if [[ $? != 0 ]] ; then
   echo >/dev/ttyBiscuits in the Attic
-  echo "$PNAME -h | --help for help :  Terminating..."\
-  | journalThis 2 OneShot ;
+  echo "$PNAME -h | --help for help :  Terminating..."
   exit 2
 fi
 
@@ -172,8 +171,7 @@ done
 
 if [[ $# -ne 1 ]] ; then
     echo -e "$PNAME: I didn't get a mandatory parameter. A source-folder to \
-      back up.\n\"$PNAME -h\" for help.\nTerminating..." \
-      | journalThis 2 OneShot
+      back up.\n\"$PNAME -h\" for help.\nTerminating..."
     exit 2
 fi
 BACKUP_OPTIONS=
@@ -193,12 +191,11 @@ fi
 SOURCE_FOLDER=$(realpath "$1")
 
 if [[ $DEBUG -eq 0  || $VERBOSE = true ]] ; then
-  echo "$PNAME : SOURCE_FOLDER: $SOURCE_FOLDER" | journalThis 7 OneShot
+  echo "$PNAME : SOURCE_FOLDER: $SOURCE_FOLDER"
 fi
 
 if [[ ! -d $SOURCE_FOLDER ]] ; then
-  echo "$PNAME : $SOURCE_FOLDER isn't a directory. Terminating..." \
-    | journalThis 2 OneShot
+  echo "$PNAME : $SOURCE_FOLDER isn't a directory. Terminating..."
   exit 1
 fi
 
@@ -207,13 +204,12 @@ fi
 SYMLINK_NAME=$(fullPathSymlinkName "$1")
 
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-  echo "$PNAME : SYMLINK_NAME: $SYMLINK_NAME." | journalThis 7 OneShot
+  echo "$PNAME : SYMLINK_NAME: $SYMLINK_NAME."
 fi
 
 BACKUP_CONTAINER=$FB/OneShot/$SYMLINK_NAME
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-  echo "$PNAME : Backups of $SOURCE_FOLDER are stored in: $BACKUP_CONTAINER" \
-    | journalThis 7 OneShot
+  echo "$PNAME : Backups of $SOURCE_FOLDER are stored in: $BACKUP_CONTAINER"
 fi
 
 # can be called from the OneShot routine.
@@ -226,12 +222,11 @@ if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
   mkdir -p "$BACKUP_CONTAINER"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo -e "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER didn\'t exist.\
-      \nMaking $BACKUP_CONTAINER." | journalThis 7 OneShot
+      \nMaking $BACKUP_CONTAINER."
   fi
 else
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER DID  exist." \
-      | journalThis 7 OneShot
+    echo "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER DID  exist."
   fi
 fi
 
@@ -241,8 +236,7 @@ CREATED_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then
     echo -e "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
-      exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER." \
-      | journalThis 7 OneShot
+      exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER."
   fi
   if [[ $DRYRUN = false ]] ; then
     CREATED_TODAYS_BACKUP_FOLDER=0
@@ -255,7 +249,7 @@ if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
 else
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo -e  "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID \
-      exist." | journalThis 7 OneShot
+      exist."
   fi
 fi
 
@@ -279,7 +273,7 @@ fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
   echo -e "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
-    $SOURCE_FOLDER  $TODAYS_BACKUP_FOLDER" | journalThis 7 OneShot
+    $SOURCE_FOLDER  $TODAYS_BACKUP_FOLDER"
 fi
 
 
@@ -290,8 +284,7 @@ $BACKUP_SCRIPT $BACKUP_OPTIONS  "$SOURCE_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
 EXIT_STATUS=$?
 
 # We do some cleanup in OneShot.backup.sh
-if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && $VERBOSE = true \
-  || $DEBUG -eq 0 ]] ; then
+if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false  ]] ; then
    echo  -e "$PNAME : backup  of $SOURCE_FOLDER into $TODAYS_BACKUP_FOLDER \
      complete!"   | journalThis 5 OneShot
 
