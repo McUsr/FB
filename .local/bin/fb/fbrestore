@@ -267,7 +267,22 @@ $(identifyBackupContainerByTimeStampedFolder \
 $BACKUP_CONTAINER"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
+  echo "BACKUP_KIND ==  Periodic "
   PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
+
+
+  SYMLINK_NAME="$(identifyBackupSourceFolder "Periodic/$PERIODIC_BACKUP_SCHEME"\
+ "$BACKUP_SOURCE_REALPATH" )"
+
+  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
+  # Question is: Do I need anything more than this?
+  # Though, I must indeed veryify that there is a timestamped folder after.
+  BACKUP_CONTAINER="$(identifyBackupContainerByTimeStampedFolder \
+    "$KIND/$PERIODIC_BACKUP_SCHEME/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
+  echo "SYMLINK_NAME : $SYMLINK_NAME"
+  echo "BACKUP_CONTAINER == $BACKUP_CONTAINER"
+
+  exit 2
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
     echo "$PNAME : PERIODIC_BACKUP_SCHEME : >\"$PERIODIC_BACKUP_SCHEME\"<"
     echo "$PNAME : Periodic backups NOT IMPLEMENTED YET:"
@@ -341,7 +356,7 @@ unlinking of it before the restore!"
   fi
 fi
 
-
+# At this level, we have "ironed out" KIND.
 manager OneShot  "$SYMLINK_NAME" restore
 EXIT_STATUS=$?
 if [ $EXIT_STATUS  -eq 0 ] ; then
