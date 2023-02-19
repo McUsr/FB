@@ -396,6 +396,7 @@ periodicBackupScheme() {
 # Example: identifyBackupSourceFolder\
 # Periodic/OneShot/etc-apache/apache-2023-01-01
 # RETURNS: etc-apache
+# TODO: lowercase local var-names.
 identifyBackupSourceFolder() {
 
   if [[ $# -ne 2 ]] ; then
