@@ -145,7 +145,7 @@ DRYRUN=false
 VERBOSE=false
 FORCE=false
 DST_FOLDER_SET=false
-
+# Signals if we have specified a destination folder on the command line.
 while true; do
     case "$1" in
       -h | --help )  help ; exit 0 ;;
@@ -296,6 +296,7 @@ the \"OneShot\" or \"Periodic\" kind, not \"$KIND\".\nTerminating..."
  exit 2
 fi
 
+
 # DETERMINE THE BACKUP-DESTINATION
 # Never do we delete the backup container if it exists, even if we happily \
 # make them!
@@ -357,7 +358,7 @@ unlinking of it before the restore!"
 fi
 
 # At this level, we have "ironed out" KIND.
-manager OneShot  "$SYMLINK_NAME" restore
+manager "$KIND"  "$SYMLINK_NAME" restore
 EXIT_STATUS=$?
 if [ $EXIT_STATUS  -eq 0 ] ; then
   RESTORE_SCRIPT="$DELEGATE_SCRIPT"
