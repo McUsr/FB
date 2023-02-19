@@ -64,8 +64,11 @@ isWithinPath (){
       arguments.\nTerminating..."
     exit 5
   fi
-  local probe="${1/$2/}"
-  if [[ "$probe" != "${1}" ]] ; then
+  local p1, p2
+  p1="$( echo "${1}" | sed -ne 's/\\//' -e 'p' )"
+  p2="$( echo "${2}" | sed -ne 's/\\//' -e 'p' )"
+  local probe="${p1/$p2/}"
+  if [[ "$probe" != "$p1" ]] ; then
     # If the probe is shorter, then $2 was chopped off the start of $1
     # because $2 was a  path that contained $1.
     return 0
