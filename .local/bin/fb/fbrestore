@@ -253,7 +253,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
-  TIME_STAMPED_BACKUP_CONTAINING_FOLDER=\
+  BACKUP_CONTAINER=\
 $(identifyBackupContainerByTimeStampedFolder \
 "$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")
   EXIT_STATUS=$?
@@ -264,7 +264,7 @@ $(identifyBackupContainerByTimeStampedFolder \
   fi
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo "$PNAME : Time stamped backup container: \
-$TIME_STAMPED_BACKUP_CONTAINING_FOLDER"
+$BACKUP_CONTAINER"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
   PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
@@ -288,7 +288,7 @@ fi
 MADE_FOLDER=false
 if [[ $DST_FOLDER_SET = false ]] ; then
   # We will make a folder under /tmp
-  DEST_FOLDER=/tmp/$SYMLINK_NAME/$TIME_STAMPED_BACKUP_CONTAINING_FOLDER
+  DEST_FOLDER=/tmp/$SYMLINK_NAME/$BACKUP_CONTAINER
   if [[ $DRYRUN = false ]] ; then
     if [[ ! -d "$DEST_FOLDER" ]] ; then
       MADE_FOLDER=true
