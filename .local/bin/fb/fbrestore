@@ -1,9 +1,12 @@
 #!/bin/bash
-# shellcheck disable=SC2089
-VERSION="\"v0.0.4\""
 # fbrestore.
 # fbrestore Restores an  an adhoc snapshot of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
+
+# shellcheck disable=SC2089
+VERSION="\"v0.0.4\""
+CURSCHEME="FolderBackup"
+# We don't really have a scheme, restoring from every scheme.
 
 err_report() {
   if [ $SILENCE -eq 1 ] ; then
@@ -79,6 +82,7 @@ DEBUG=0
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
+
 # Checks if we can get online so we have a guarranteed connection to our\
 # Google Drive
 
@@ -95,10 +99,10 @@ fi
 
 
 # We need to check if we have an internet connection
-consoleHasInternet OneShot
+consoleHasInternet  "$CURSCHEME"
 
 # We need to check if the drive is mounted accordingly to $FB
-consoleFBfolderIsMounted OneShot
+consoleFBfolderIsMounted  "$CURSCHEME"
 
 # shellcheck disable=SC2034
 GETOPT_COMPATIBLE=true
@@ -129,9 +133,10 @@ syntax:
 
 EOF
 }
-# set -x
+
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
 TEMP=$(getopt -o hno:vFV --longoptions help,dest-dir:,verbose,dry-run,force,version -n "$PNAME" -- "$@")
+
 # shellcheck disable=SC2181
 if [[ $? != 0 ]] ; then echo "$PNAME -h | --help for help : Terminating..." \
   |  journalThis 2 OneShot ; exit 2 ; fi
@@ -205,7 +210,8 @@ if [[ $# -ne 1 ]] ; then
 # leniency, if we forgot the -o switch, and arg 2 exists as a folder,
 # and we haven't set a dest, then we will silently let it slide through.
   if [[ $# -eq 2 && $DST_FOLDER_SET = false && -d "$2" ]] ; then
-    :
+    DST_FOLDER_SET=true
+    DEST_FOLDER="$2"
   else
     echo -e "$PNAME : Wrong number of   arguments. I need one argument for a \
 backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
