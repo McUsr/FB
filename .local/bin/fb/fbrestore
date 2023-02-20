@@ -267,31 +267,32 @@ if [[ "$KIND" = "OneShot" ]] ; then
     trap '' ERR
      exit $EXIT_STATUS
   fi
+  BACKUP_SCHEME="OneShot"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo >&2 "$PNAME : Time stamped backup container: \
 $BACKUP_CONTAINER"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
   echo >&2 "BACKUP_KIND ==  Periodic "
-  PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
+  BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
 
 
-  SYMLINK_NAME="$(identifyBackupSourceFolder "Periodic/$PERIODIC_BACKUP_SCHEME"\
+  SYMLINK_NAME="$(identifyBackupSourceFolder "Periodic/$BACKUP_SCHEME"\
  "$BACKUP_SOURCE_REALPATH" )"
 
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   BACKUP_CONTAINER="$(identifyBackupContainerByTimeStampedFolder \
-    "$KIND/$PERIODIC_BACKUP_SCHEME/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
+    "$KIND/$BACKUP_SCHEME/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
   echo >&2 "SYMLINK_NAME : $SYMLINK_NAME"
   echo >&2 "BACKUP_CONTAINER == $BACKUP_CONTAINER"
 
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
-    echo >&2 "$PNAME : PERIODIC_BACKUP_SCHEME : >\"$PERIODIC_BACKUP_SCHEME\"<"
+    echo >&2 "$PNAME : BACKUP_SCHEME : >\"$BACKUP_SCHEME\"<"
   fi
 
-  if [[ "$PERIODIC_BACKUP_SCHEME" != "HourlySnapshot"  ]] ; then
+  if [[ "$BACKUP_SCHEME" != "HourlySnapshot"  ]] ; then
     echo >&2 "$PNAME : Periodic backups NOT IMPLEMENTED YET:"
     exit 5
   fi
@@ -366,7 +367,7 @@ fi
 echo "right before manager" 
 exit 0
 # At this level, we have "ironed out" KIND.
-manager "$KIND"  "$SYMLINK_NAME" restore
+manager "$BACKUP_SCHEME"  "$SYMLINK_NAME" restore
 EXIT_STATUS=$?
 if [ $EXIT_STATUS  -eq 0 ] ; then
   RESTORE_SCRIPT="$DELEGATE_SCRIPT"
