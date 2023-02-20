@@ -246,7 +246,7 @@ if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
 # the destination folder we passed along, as well as on the Source for the
 # backup.
 
-  BACKUP_CANDIDATE="$( find "$1" -name "*.tar.gz")"
+  BACKUP_CANDIDATE=($( find "$1" -name "*.tar.gz"))
   EXIT_STATUS=$?
   if [[ $DRYRUN = false &&  $EXIT_STATUS -ne 0 ]] ; then
      exit $EXIT_STATUS
