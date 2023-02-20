@@ -19,7 +19,6 @@ trap 'err_report $LINENO' ERR
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
-# TODO: Think of modus.
 dieIfCantSourceShellLibrary() {
   if [[ $# -ne 1 ]] ; then
     echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need an\
