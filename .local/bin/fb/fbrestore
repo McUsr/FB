@@ -199,8 +199,10 @@ if [[ $PARSE_DEBUG -eq 1 ]] ; then
 fi
 
 if [[ $# -ne 1 ]] ; then
-  echo numargs: $#
-  echo "$@"
+  if [[ $DEBUG -eq 0  ]] ; then
+    echo >&2 numargs: $#
+    echo >&2 "$@"
+  fi
 # leniency, if we forgot the -o switch, and arg 2 exists as a folder,
 # and we haven't set a dest, then we will silently let it slide through.
   if [[ $# -eq 2 && $DST_FOLDER_SET = false && -d "$2" ]] ; then
@@ -224,8 +226,6 @@ if [[ $FORCE = true ]] ; then
   RESTORE_OPTIONS+=" --force"
 fi
 
-
-
 # Check out if our source file or folder exists.
 if [[ ! -r "$1" ]] ; then
   echo -e "$PNAME : I can\'t seem to find the file or folder  \"$1\".\
@@ -244,10 +244,10 @@ KIND=$(backupKind "$1")
 
 if [[ "$KIND" = "OneShot" ]] ; then
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-    echo "$PNAME : Current backup KIND is One Shot Backup."
+    echo >&2 "$PNAME : Current backup KIND is One Shot Backup."
   fi
   SYMLINK_NAME="$(identifyBackupSourceFolder OneShot \"$BACKUP_SOURCE_REALPATH\" )"
-  echo >/dev/tty "SYMLINK_NAME : $SYMLINK_NAME "
+  echo >&2 "SYMLINK_NAME : $SYMLINK_NAME "
   # still need this one for figuring if we are restoring to the
   # original folder, which we won't without the --force flag.
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
@@ -263,11 +263,11 @@ $(identifyBackupContainerByTimeStampedFolder \
      exit $EXIT_STATUS
   fi
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo "$PNAME : Time stamped backup container: \
+    echo >&2 "$PNAME : Time stamped backup container: \
 $BACKUP_CONTAINER"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
-  echo "BACKUP_KIND ==  Periodic "
+  echo >&2 "BACKUP_KIND ==  Periodic "
   PERIODIC_BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
 
 
@@ -279,19 +279,19 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   # Though, I must indeed veryify that there is a timestamped folder after.
   BACKUP_CONTAINER="$(identifyBackupContainerByTimeStampedFolder \
     "$KIND/$PERIODIC_BACKUP_SCHEME/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
-  echo "SYMLINK_NAME : $SYMLINK_NAME"
-  echo "BACKUP_CONTAINER == $BACKUP_CONTAINER"
+  echo >&2 "SYMLINK_NAME : $SYMLINK_NAME"
+  echo >&2 "BACKUP_CONTAINER == $BACKUP_CONTAINER"
 
   exit 2
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
-    echo "$PNAME : PERIODIC_BACKUP_SCHEME : >\"$PERIODIC_BACKUP_SCHEME\"<"
-    echo "$PNAME : Periodic backups NOT IMPLEMENTED YET:"
+    echo >&2 "$PNAME : PERIODIC_BACKUP_SCHEME : >\"$PERIODIC_BACKUP_SCHEME\"<"
+    echo >&2 "$PNAME : Periodic backups NOT IMPLEMENTED YET:"
     exit 5
   fi
 else
 # bail out if finding a different kind. We may do something about this in \
 # the future, or some kind of translation for names and stuff for the French!
-  echo -e "$PNAME : WRONG BACKUP KIND DISCOVERED\nWe only handle backups of \
+  echo -e >&2 "$PNAME : WRONG BACKUP KIND DISCOVERED\nWe only handle backups of \
 the \"OneShot\" or \"Periodic\" kind, not \"$KIND\".\nTerminating..."
  exit 2
 fi
@@ -312,9 +312,9 @@ if [[ $DST_FOLDER_SET = false ]] ; then
     fi
   else
     if [[ -d "$DEST_FOLDER" ]] ; then
-      echo -e "$PNAME : Destination folder existed, maybe with contents."
+      echo -e >&2 "$PNAME : Destination folder existed, maybe with contents."
     else
-      echo -e "$PNAME : Ceating time-stamped backup containing  folder,\n\
+      echo -e >&2 "$PNAME : Ceating time-stamped backup containing  folder,\n\
 executing:  mkdir -p $DEST_FOLDER"
     fi
   fi
@@ -327,7 +327,7 @@ else
 
       # DRYRUN not considered here, since the result is the same.
 
-      echo -e "$PNAME : You want to to restore the backup into the original \
+      echo -e >&2 "$PNAME : You want to to restore the backup into the original \
 folder.\nYou need to apply the '--force' option on the command line to \
 achieve that.\nTerminating..."
       exit 2
@@ -338,20 +338,20 @@ achieve that.\nTerminating..."
     if [[ $DRYRUN = false  ]] ; then
       if [ ! -d "$DEST_FOLDER" ] ; then
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-          echo "$PNAME : mkdir -p $DEST_FOLDER"
+          echo >&2 "$PNAME : mkdir -p $DEST_FOLDER"
         fi
         MADE_FOLDER=true
         mkdir -p "$DEST_FOLDER"
       else
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-          echo "$PNAME : Dest folder for restore: $DEST_FOLDER existed. -No \
+          echo >&2 "$PNAME : Dest folder for restore: $DEST_FOLDER existed. -No \
 unlinking of it before the restore!"
         fi
       fi
     else
       if [ ! -d "$DEST_FOLDER" ] ; then
         MADE_FOLDER=true
-        echo "$PNAME : mkdir -p $DEST_FOLDER"
+        echo >&2 "$PNAME : mkdir -p $DEST_FOLDER"
       fi
     fi
   fi
@@ -369,7 +369,7 @@ fi
 
 EXIT_STATUS=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-  echo -e "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
+  echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
 $RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $DEST_FOLDER\n" \
 | journalThis 7 OneShot
 fi
@@ -384,26 +384,26 @@ EXIT_STATUS=$?
 if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && \
   $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
-  echo  -e "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into \
+  echo  -e >&2 "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into \
 $DEST_FOLDER complete!"   | journalThis 5 OneShot
 
 elif [ $EXIT_STATUS -gt 1 ] ; then
 
   if [ $EXIT_STATUS -eq 130 ] ; then
-      echo "$PNAME : User interrupted the operation"
+      echo >&2 "$PNAME : User interrupted the operation"
   else
-      echo "$PNAME : A fatal error occurred."
+      echo >&2 "$PNAME : A fatal error occurred."
   fi
   if [[ $MADE_FOLDER = true && -d "$DEST_FOLDER" ]] ; then
 
     if [ $DRYRUN = false ] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-        echo -e "$PNAME : Removing  folder to restore into  due fatal errors:\
+        echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
 \n rm -fr $TODAYS_BACKUP_FOLDER"
       fi
       rm -fr "$DEST_FOLDER"
     else
-      echo -e "$PNAME : Removing  folder to restore into  due fatal errors:\
+      echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
 \n rm -fr $TODAYS_BACKUP_FOLDER"
     fi
   fi
