@@ -163,10 +163,10 @@ done
 # separates between longopts and shortopts for simplicity.
 
 if [[ $DST_FOLDER_SET = false ]] ; then
-  if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-    echo "$PNAME : DEST_FOLDER NOT SET"
+  if [[ $DEBUG -eq 0 ]] ; then
+    echo "$PNAME : DEST_FOLDER not set restoring into a /tmp folder."
   elif [[ $DRYRUN = true ]] ; then
-    echo "$PNAME : Destination folder not set, making one under /tmp."
+    echo "$PNAME : DEST_FOLDER not set, making one under /tmp."
   fi
 else
 #  echo "testing folder name $DEST_FOLDER"
@@ -282,9 +282,11 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   echo >&2 "SYMLINK_NAME : $SYMLINK_NAME"
   echo >&2 "BACKUP_CONTAINER == $BACKUP_CONTAINER"
 
-  exit 2
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
     echo >&2 "$PNAME : PERIODIC_BACKUP_SCHEME : >\"$PERIODIC_BACKUP_SCHEME\"<"
+  fi
+
+  if [[ "$PERIODIC_BACKUP_SCHEME" != "HourlySnapshot"  ]] ; then
     echo >&2 "$PNAME : Periodic backups NOT IMPLEMENTED YET:"
     exit 5
   fi
@@ -356,7 +358,8 @@ unlinking of it before the restore!"
     fi
   fi
 fi
-
+echo "right before manager" 
+exit 0
 # At this level, we have "ironed out" KIND.
 manager "$KIND"  "$SYMLINK_NAME" restore
 EXIT_STATUS=$?
