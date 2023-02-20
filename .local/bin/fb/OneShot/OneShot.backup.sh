@@ -59,8 +59,8 @@ else
   source "$fbBinDir"/../service_functions.sh
 fi
 
-
-DRYRUN=1
+# Configuration variables that will be overruled by options.
+DRYRUN=false
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
 DEBUG=0
