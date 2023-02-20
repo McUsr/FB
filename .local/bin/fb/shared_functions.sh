@@ -57,7 +57,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # PARAMETERS: path1, path2
 # Checks if path1 is within path2.
 
-isWithinPath (){ 
+isWithinPath(){ 
 
   if [[ $# -ne 2 ]] ; then
     echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two paths as \
