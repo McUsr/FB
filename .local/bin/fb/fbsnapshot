@@ -1,9 +1,11 @@
 #!/bin/bash
-# shellcheck disable=SC2089
-VERSION="\"v0.0.4\""
 # fbsnapshot.
 # fbsnapshot Take an adhoc backup of a folder - a snapshot.
 # 2022 (c) Mcusr -- Vim license.
+# shellcheck disable=SC2089
+VERSION="\"v0.0.4\""
+CURSCHEME="OneShot"
+
 
 err_report() {
   if [[ $SILENCE -eq 0 ]] ; then
@@ -50,11 +52,11 @@ pathToSourcedFiles() {
 # Program vars, read only,
 PNAME=${0##*/}
 
-
 MODE="CONSOLE"
 
 fbBinDir="$(pathToSourcedFiles)"
 THROUGH_SHELLCHECK=0
+
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
 # shellcheck source=./service_functions.sh
   dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
@@ -73,7 +75,6 @@ DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
-# shellcheck disable=SC2034
 
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
@@ -92,9 +93,9 @@ else
   source "$fbBinDir"/shared_functions.sh
 fi
 
-consoleHasInternet OneShot
+consoleHasInternet "$CURSCHEME"
 
-consoleFBfolderIsMounted OneShot
+consoleFBfolderIsMounted "$CURSCHEME"
 
 # shellcheck disable=SC2034
 GETOPT_COMPATIBLE=true
@@ -202,7 +203,7 @@ if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
   echo >&2 "$PNAME : SYMLINK_NAME: $SYMLINK_NAME."
 fi
 
-BACKUP_CONTAINER=$FB/OneShot/$SYMLINK_NAME
+BACKUP_CONTAINER="$FB"/"$CURSCHEME"/"$SYMLINK_NAME"
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
   echo >&2  "$PNAME : Backups of $SOURCE_FOLDER are stored in: $BACKUP_CONTAINER"
 fi
@@ -251,14 +252,14 @@ fi
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
 if [[ $CREATE_EXCLUDE_FILE = true ]] ; then
-  createExcludeFile OneShot "$SYMLINK_NAME"
+  createExcludeFile "$CURSCHEME" "$SYMLINK_NAME"
 fi
 
 # Exclude file out of the way, time to figure out if there are any "dropin"-
 # scripts that should be used.
 
 # Time to figure out which script we are going to use and making preparations:
-manager OneShot  "$SYMLINK_NAME" backup
+manager "$CURSCHEME"  "$SYMLINK_NAME" backup
 exit_code=$?
 if [[ $exit_code  -eq 0 ]] ; then
   BACKUP_SCRIPT="$DELEGATE_SCRIPT"
@@ -281,7 +282,7 @@ EXIT_STATUS=$?
 # We do some cleanup in OneShot.backup.sh
 if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false  ]] ; then
    echo  -e >&2 "$PNAME : backup  of $SOURCE_FOLDER into $TODAYS_BACKUP_FOLDER \
-     complete!"   | journalThis 5 OneShot
+     complete!"   | journalThis 5 "$CURSCHEME"
 
 elif [[ $EXIT_STATUS -gt 1 ]] ; then
 
