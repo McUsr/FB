@@ -1,5 +1,7 @@
 #!/bin/bash
 # The version at a8de2b1 contains the scaffolding.
+# shellcheck disable=SC2089
+VERSION="\"v0.0.4\""
 
 
 err_report() {
@@ -10,9 +12,6 @@ err_report() {
 
 trap 'err_report $LINENO' ERR
 
-VERBOSE=false
-DEBUG=1
-DRYRUN=false
 
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
@@ -46,9 +45,8 @@ pathToSourcedFiles() {
 
 
 # Program vars, read only, 
-
-VERSION='v0.0.4'
 PNAME=${0##*/}
+
 MODE="CONSOLE"
 
 fbBinDir="$(pathToSourcedFiles)"
@@ -60,6 +58,15 @@ else
 # shellcheck source=service_functions.sh
   source "$fbBinDir"/../service_functions.sh
 fi
+
+
+DRYRUN=1
+# controls whether we are going to print the backup command to the
+# console/journal, (when DRYRUN=0) or if were actually going to perform.
+DEBUG=0
+#
+# prints out debug messages to the console/journal if its on when instigated\
+# systemd --user.
 
 # asserting system/configuration context.
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
