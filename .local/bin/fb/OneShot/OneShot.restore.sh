@@ -178,9 +178,7 @@ if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
 # the destination folder we passed along, as well as on the Source for the
 # backup.
 
-  # TODO: I should check if the tar file has a tar.gz extension.
-
-  BACKUP_CANDIDATE=($(ls -1r "$1"/*.tar.gz))
+  BACKUP_CANDIDATE="$( find "$1" -name "*.tar.gz")"
   EXIT_STATUS=$?
   if [[ $DRYRUN = false &&  $EXIT_STATUS -ne 0 ]] ; then
      exit $EXIT_STATUS
