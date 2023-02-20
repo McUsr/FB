@@ -259,8 +259,8 @@ if [[ "$KIND" = "OneShot" ]] ; then
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   BACKUP_CONTAINER=\
-$(identifyBackupContainerByTimeStampedFolder \
-"$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")
+"$(identifyBackupContainerByTimeStampedFolder \
+"$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
   EXIT_STATUS=$?
 # Apparaently, it isn't that easy to exit directly, when you're in a subshell
   if [[ $EXIT_STATUS -ne 0 ]] ; then
