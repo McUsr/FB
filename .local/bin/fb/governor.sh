@@ -108,6 +108,7 @@ dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
+dieIfNotDirectoryExist "$XDG_DATA_HOME/fbjobs"
 
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
@@ -122,7 +123,7 @@ consoleFBfolderIsMounted "$CURSCHEME"
 
 BACKUP_SCHEME=${1}
 
-JOBS_FOLDER=$HOME/.local/share/fbjobs/$BACKUP_SCHEME
+JOBS_FOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
 dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
 
