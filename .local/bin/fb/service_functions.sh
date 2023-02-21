@@ -157,15 +157,10 @@ dieIfJobsFolderDontExist(){
 
   if [[ ! -d $jobsfolder ]] ; then
       if [[ "$MODE" == "SERVICE" ]] ; then
-        # TODO: use notifyErr
-        notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The folder \
-$jobsfolder doesn't exist. Hopefully you are executing from the commandline \
-and  misspelled $backup_scheme."
-        echo >&4 "<0>${0##*/}/${FUNCNAME[0]}: The folder $jobsfolder doesn't \
-exist. Hopefully you are executing from the commandline and misspelled \
-$backup_scheme."
+        notifyErr "$PNAME/${FUNCNAME[0]}" "The folder \
+$jobsfolder doesn't exist. Critical error. Terminating.." | journalThis 2 backup_scheme
       else
-        echo >&2 "${0##*/}/${FUNCNAME[0]}: The folder $jobsfolder doesn't \
+        echo >&2 "$PNAME/${FUNCNAME[0]}: The folder $jobsfolder doesn't \
 exist. Hopefully you are executing from the commandline and misspelled \
 $backup_scheme."
       fi
