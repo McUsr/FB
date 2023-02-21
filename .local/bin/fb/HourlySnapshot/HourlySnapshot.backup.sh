@@ -21,7 +21,7 @@
 # use, especially when invoking indirectly by the governor,
 # as a service.
 
-# Config vars you can set to mostly control output.
+# CONFIG VARIABLES you can set to mostly control output.
 # they don't override  options set on the command line,
 # on the contrary. Command line options override.
 
@@ -31,17 +31,33 @@ DAYS_TO_KEEP_BACKUPS=14 # set to 0 to disable backup rotation.
 # performing backup rotation.
 
 DRYRUN=false
+
 ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
+
+# Controls whether the  output (file listing) from tar will be sent to the
+# journal when the script is run as a service.
+# output is not normally sent to the journal from the CONSOLE/debug mode, ONLY
+# when we simulate a "real" run of a service.  Then output will be sent to the
+# journal anyway, when the script is run implicitly by a daemon. But not the
+# ARCHIVE output, that is a choice.  And it is maybe best to have it on, so tha
+# the user can turn it off.  The level of VERBOSITY is another option that will
+# kick in, once ARCHIVE_OUPUT is true (-1).
 
 DEBUG=1 # controls output during debugging.
 VERBOSE=true # controls output during normal runs.
+
+SILENT=1
+# Controls whether to send success message
+# when verbose = false, upon completed backup.
 
 
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
 # so we can perform the rest of the tests.
-# TODO: Think of modus.
 dieIfCantSourceShellLibrary() {
+# TODO:
+# Can't Think of modus here, (routDbgMsg/notifyError, as the source libs aren't
+# loaded yet, but I can hardcode it.
   if [[ $# -ne 1 ]] ; then
     echo -e "$PNAME/${FUNCNAME[0]} : Need an\
     argument, an existing fb shell library file!\nTerminates..." >&2
@@ -68,7 +84,7 @@ pathToSourcedFiles() {
 }
 
 
-# Program vars, read only, 
+# PROGRAM VARIABLES, read only, 
 
 PNAME=${0##*/}
 VERSION='v0.0.4'
@@ -96,7 +112,6 @@ dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
-
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 
@@ -107,19 +122,18 @@ else
   source "$fbBinDir"/../shared_functions.sh
 fi
 
-
 consoleHasInternet "$CURSCHEME"
 consoleFBfolderIsMounted "$CURSCHEME"
 
-# Whatever the context, we need at least two parameters.
 
 if [[ $# -lt 2 ]] ; then
   if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
+# As a service, we need at least two parameters.
     notifyErr "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
-run propely. Terminating..."
+run propely. Terminating..." | journalThis 3 "$BACKUP_SCHEME"
 
     exit 255
-  elif [[ $# -eq 0 ]] ; then 
+  elif [[ $# -eq 0 ]] ; then
     echo -e "$PNAME : I need at least one argument \
 to backup.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
     exit 2
@@ -203,22 +217,6 @@ fi
 BACKUP_SCHEME="${1}"
 
 SYMLINK_NAME="${2}"
-
-
-# shellcheck disable=SC2034
-HAVING_ERRORS=false
-# For the dry-run.
-
-# Controls whether the  output (file listing) from tar will be sent to the
-# journal when the script is run as a service.
-# output is not normally sent to the journal from the CONSOLE/debug mode, ONLY
-# when we simulate a "real" run of a service.  Then output will be sent to the
-# journal anyway, when the script is run implicitly by a daemon. But not the
-# ARCHIVE output, that is a choice.  And it is maybe best to have it on, so tha
-# the user can turn it off.  The level of VERBOSITY is another option that will
-# kick in, once ARCHIVE_OUPUT is true (0).
-
-
 
 ##### Qualify the jobs folder
 
@@ -314,7 +312,8 @@ $probeDir" "$BACKUP_SCHEME"
   modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-      routDebugMsg " : We will make backup"  "$BACKUP_SCHEME"
+      routDebugMsg " : There are modified or added files since last backup. \
+We will take a backup"  "$BACKUP_SCHEME"
     fi
     # there are files to back up.
     MUST_MAKE_BACKUP=0
@@ -363,7 +362,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
   if [[ $DRYRUN == true  ]] ; then
 
     if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
-      trap "HAVING_ERRORS=true;ctrl_c" INT
+      trap "ctrl_c" INT
       ctrl_c() {
         echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
         echo >&2 "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
@@ -423,17 +422,17 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
         echo >&2 "$PNAME : exit status after tar commmand = $EXIT_STATUS"
       fi
     fi
-   #   | journalThis 7 $BACKUP_SCHEME
+
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
         rm -fr "$DRY_RUN_FOLDER"
     fi
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-      if [[  $DEBUG -eq 0 ]] ; then 
+      if [[  $DEBUG -eq 0 ]] ; then
         routDebugMsg "$PNAME" " : rm -fr $DRY_RUN_FOLDER" \
 | journalThis 7 "$BACKUP_SCHEME"
       fi
     else
-      if [[  $DEBUG -eq 0 ]] ; then 
+      if [[  $DEBUG -eq 0 ]] ; then
         echo >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
       fi
     fi
@@ -441,7 +440,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
   else  # DRYRUN == false
 
     if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
-      trap "HAVING_ERRORS=true;ctrl_c" INT
+      trap "trl_c" INT
       ctrl_c() {
         echo trapped ctrl-c
         echo rm -f "$TAR_BALL_NAME"
@@ -455,7 +454,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  \
-          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER" .
+          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER ." "$BACKUP_SCHEME"
       fi
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
 -C "$SOURCE_FOLDER" .
@@ -500,7 +499,7 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
-      notifyErr " :Successful backup:\n($TAR_BALL_NAME)\n" "$BACKUP_SCHEME"
+      notifyErr "$PNAME :Successful backup:\n($TAR_BALL_NAME)\n" "$BACKUP_SCHEME" | journalThis 5 "$BACKUP_SCHEME"
     fi
   fi
 fi
