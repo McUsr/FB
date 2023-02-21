@@ -702,6 +702,7 @@ pathFromFullSymlinkName() {
 # be sent to the  log, otherwise, the message will be sent to the console.
 
 journalThis() {
+# tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
 
   if [[ $# -ne 2 ]] ; then
     echo -e >&2 "$PNAME/journalThis(): I really need two \
@@ -710,8 +711,7 @@ parameters.\nTerminating..."
   fi
   if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
 # shellcheck disable=SC2086 # code is irrelevant because in sed expression.
-tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
-      | systemd-cat -t "$2"
+  sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' | systemd-cat -t "$2"
   else
     cat 1>&2
   fi
