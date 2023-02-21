@@ -310,13 +310,7 @@ else
 $probeDir" "$BACKUP_SCHEME"
   fi
   # we need to compare timestamps.
-  find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" >&2
-  if [[ $DEBUG -eq 0  ]] ; then
-    routDebugMsg " : ERROR CODE AFTER FIND COMMAND: $? " "$BACKUP_SCHEME"
-  fi
-  if [[  $DEBUG -eq 0  ]] ; then
-    routDebugMsg " : Find found the modfiles = $modfiles" "$BACKUP_SCHEME"
-  fi
+
   modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
