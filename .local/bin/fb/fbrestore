@@ -70,10 +70,10 @@ fi
 
 SILENCE=0
 
-DRYRUN=1
+DRYRUN=false
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRYRUN=0) or if were actually going to perform.
-DEBUG=0
+DEBUG=1
 #
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
@@ -195,11 +195,11 @@ else
 fi
 
 PARSE_DEBUG=1
-if [[ $PARSE_DEBUG -eq 1 ]] ; then
-  echo "DRYRUN : $DRYRUN"
-  echo "VERBOSE : $VERBOSE"
-  echo "DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER"
-  echo "FORCE : $FORCE"
+if [[ $PARSE_DEBUG -eq 0 ]] ; then
+  echo "$PNAME DRYRUN : $DRYRUN"
+  echo "$PNAME VERBOSE : $VERBOSE"
+  echo "$PNAME DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER"
+  echo "$PNAME FORCE : $FORCE"
 fi
 
 if [[ $# -ne 1 ]] ; then
@@ -273,7 +273,11 @@ if [[ "$KIND" = "OneShot" ]] ; then
 $BACKUP_CONTAINER"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
-  echo >&2 "BACKUP_KIND ==  Periodic "
+
+  if [[ $DEBUG -eq 0  ]] ; then
+    echo >&2 "$PNAME BACKUP_KIND ==  Periodic "
+  fi
+
   BACKUP_SCHEME=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
 
 
@@ -285,8 +289,10 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   # Though, I must indeed veryify that there is a timestamped folder after.
   BACKUP_CONTAINER="$(identifyBackupContainerByTimeStampedFolder \
     "$KIND/$BACKUP_SCHEME/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
-  echo >&2 "SYMLINK_NAME : $SYMLINK_NAME"
-  echo >&2 "BACKUP_CONTAINER == $BACKUP_CONTAINER"
+  if [[ $DEBUG -eq 0 ]] ; then
+    echo >&2 "$PNAME SYMLINK_NAME : $SYMLINK_NAME"
+    echo >&2 "$PNAME BACKUP_CONTAINER == $BACKUP_CONTAINER"
+  fi
 
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
     echo >&2 "$PNAME : BACKUP_SCHEME : >\"$BACKUP_SCHEME\"<"
