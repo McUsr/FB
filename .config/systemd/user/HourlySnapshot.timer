@@ -1,0 +1,18 @@
+# Timer unit in user space for testing that 
+# notifyr-send can be used in a --user service.
+# 2022 (c) Mcusr -- Vim licence.
+
+[Unit]
+Description=Runs the HourlySnapshot jobs.
+# Requires=bck_homepage.service
+
+[Timer]
+# Unit=bck_homepage.service
+OnStartupSec=1h
+OnUnitActiveSec=1h
+WakeSystem=false
+
+[Install]
+WantedBy=timers.target
+# WantedBy=default.target
+

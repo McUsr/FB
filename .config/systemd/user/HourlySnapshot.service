@@ -1,0 +1,22 @@
+# This service unit is for running the HourlySnapshot service
+# can be made to work from a --user service.
+# 2022 (c) Mcusr -- Vim license.
+
+[Unit]
+Description=HourlySnapshots of the folders pointed to by symlinks in  ~/.local/shared/HourlySnapshot.
+# After=network.target
+# Wants=bck_homepage.timer
+
+[Service]
+# User=1000
+# Group=1000
+
+# RestrictSUIDSGID=true
+Type=simple
+# Type=oneshot
+PrivateNetwork=false
+ExecStart=%h/.local/bin/fb/governor.sh %N
+NoNewPrivileges=false
+
+# [Install]
+# WantedBy=default.target
