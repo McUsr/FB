@@ -14,9 +14,9 @@ err_report() {
 trap 'err_report $LINENO' ERR
 
 # notifyErr()
-# PARAMETERS: prog/funcstr errstring.
+# PARAMETERS: "prog/funcstr" "errstring/success-message".
 # Sends an error notification and  a journal entry .
-# USAGE: notifyErr "error message " |  journalThis 5 FolderBackup
+# USAGE: notifyErr "Section" " message " |  journalThis 5 FolderBackup
 notifyErr() {
     if [[ $# -ne 2 ]] ; then
       echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
@@ -24,7 +24,7 @@ notifyErr() {
       exit 5
     fi
   notify-send "${1}" "${2}\nTerminating... "
-  echo -e "${1}} ${2}\nTerminating... "
+  echo -e "${1} ${2}\nTerminating... "
 }
 
 # routDebugMsg()
