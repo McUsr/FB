@@ -126,6 +126,7 @@ dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
+dieIfNotDirectoryExist "$XDG_DATA_HOME/fbjobs"
 
 if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
@@ -264,6 +265,7 @@ emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
   if [[  $DEBUG -eq 0  ]] ; then
+
     routDebugMsg " : qualification:  TODAYS_BACKUP_FOLDER_NAME : \
 $TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$BACKUP_SCHEME"
   fi
@@ -273,7 +275,7 @@ $TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$BACKUP_SCHEME"
     routDebugMsg " : qualification probeDir =>$probeDir<=" "$BACKUP_SCHEME"
   fi
 
-  if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then 
+  if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then
       probeDir=""
   fi
 else
@@ -458,6 +460,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
 -C "$SOURCE_FOLDER" .
     else
+      # TODO: MAYBE  put in a block, testing for CONSOLE and adding setbuf
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
           -f $TAR_BALL_NAME  -C $SOURCE_FOLDER" .
