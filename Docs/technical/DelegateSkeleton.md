@@ -3,11 +3,30 @@
 
 ### Tasks
 
-The delegate makes the backup, and, when done, it tries to rotate
+The delegate:
+
+* Gets a symlink and the backup scheme from the Governor to
+process.
+
+* Sets up the job by asserting that we have everything we
+need.
+
+* Checks if we need to make the backup.
+
+* Prepares the destination folder if we do need to make a
+backup.
+
+* looks for any  exclude files
+
+* sets any verbose options
+
+* creates the  file name for the backup.
+
+makes the backup, and, when done, it tries to rotate
 backups, if it made a new folder to store backups in for
 this day, during this run. (See **backup rotation**)
 
-### Modus operandi
+### RUNTIME MODES
 
 Either services are operating in "SERVICE" mode, which is when
 they are executed from a running service with the governor
@@ -36,7 +55,7 @@ and is the one for running as a service in the background.
 The other mode is called console, and is for when you edit,
 debug, and  test your delegate from the command line.
 
-You can turn on both those modes by setting variables in the
+You can switch between both those modes by setting variables in the
 script so the options are on when run as a service and not
 from the command line.
 
@@ -45,7 +64,8 @@ from the command line.
 
 You can run your commandline tool with --verbose feedback, and
 --dry-run, which will show you what would have taken place
-during a normal run.
+during a normal run. You can also set these variables in the
+Delegate script, so they take effect when run as a service.
 
 Feel free to just add your own debug variables to fence off
 your own debug code during configuration/customization.
@@ -167,4 +187,4 @@ we're going to perform a backup rotation.
 
 
 --------------------------------------
-  Last updated:23-02-13 12:16
+  Last updated:23-02-21 22:54
