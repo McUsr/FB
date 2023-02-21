@@ -64,7 +64,7 @@ isWithinPath(){
       arguments.\nTerminating..."
     exit 5
   fi
-  local p1, p2
+  local p1 p2
   p1="$( echo "${1}" | sed -ne 's/\\//' -e 'p' )"
   p2="$( echo "${2}" | sed -ne 's/\\//' -e 'p' )"
   local probe="${p1/$p2/}"
