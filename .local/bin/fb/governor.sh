@@ -91,8 +91,8 @@ fi
 if [[ $# -ne 1 ]] ; then
 
   if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
-    notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme).\
-\nTerminating..." | journalThis 2 FolderBackup
+    notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme). Terminating..." \
+      | journalThis 2 FolderBackup
     exit 255
   else
     echo -e >&2 "$PNAME : I didn't get a mandatory parameter.\
