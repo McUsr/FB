@@ -6,6 +6,8 @@ err_report() {
 'https://github.com/McUsr/FB/issues'"
 }
 
+trap 'err_report $LINENO' ERR
+
 export ROOTFOLDERS="OneShot Periodic"
 
 export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
