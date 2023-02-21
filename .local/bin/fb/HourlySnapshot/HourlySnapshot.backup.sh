@@ -68,7 +68,7 @@ VERBOSE=true # controls output during normal runs.
 # so we can perform the rest of the tests.
 dieIfCantSourceShellLibrary() {
 # TODO:
-# Can't Think of modus here, (routDbgMsg/notifyError, as the source libs aren't
+# Can't Think of modus here, (routDebugMsg/notifyError, as the source libs aren't
 # loaded yet, but I can hardcode it.
   if [[ $# -ne 1 ]] ; then
     echo -e "$PNAME/${FUNCNAME[0]} : Need an\
@@ -243,7 +243,7 @@ fi
 dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$BACKUP_SCHEME"
 
 if [[ $DEBUG -eq 0 || $DRYRUN == true ]] ;  then
-  routDebugMsg " : The target folder is NOT inside $FB.\n($1)." "$BACKUP_SCHEME"
+  routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$BACKUP_SCHEME"
 fi
 
 BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
@@ -303,7 +303,7 @@ backup." "$BACKUP_SCHEME"
 else
 
   if [[  $DEBUG -eq 0 ]] ; then
-    routDebugMsg " : we might have  modified files\nprobedir = $probeDir" \
+    routDebugMsg " : we might have  modified files probedir = $probeDir" \
       "$BACKUP_SCHEME"
   fi
 
@@ -479,7 +479,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
       if [[ -f "$TAR_BALL_NAME" ]] ; then
         if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg "$PNAME" " : A tarball was made, probably full of errors\
-\n rm -f $TAR_BALL_NAME" "$BACKUP_SCHEME" 
+  rm -f $TAR_BALL_NAME" "$BACKUP_SCHEME" 
         fi
 
         rm -f "$TAR_BALL_NAME"
@@ -498,7 +498,7 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
-      notifyErr "$PNAME :Successful backup:\n($TAR_BALL_NAME)\n" "$BACKUP_SCHEME" | journalThis 5 "$BACKUP_SCHEME"
+      notifyErr "$PNAME :Successful backup: ($TAR_BALL_NAME) " "$BACKUP_SCHEME" | journalThis 5 "$BACKUP_SCHEME"
     fi
   fi
 fi
@@ -531,7 +531,7 @@ rotation." "$BACKUP_SCHEME"
         if !  rm -fr "$dirToRemove" ; then
           if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
             routDebugMsg "E[0]}" "Removing the  old backup ${dirToRemove} by \
-rotation FAILED\nTerminates..." "$BACKUP_SCHEME"
+rotation FAILED Terminates..." "$BACKUP_SCHEME"
           fi
           exit 1
         else
