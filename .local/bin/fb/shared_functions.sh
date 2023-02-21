@@ -10,9 +10,10 @@ trap 'err_report $LINENO' ERR
 
 export ROOTFOLDERS="OneShot Periodic"
 
-export SCHEMEFOLDERS="Daily DailySnapshot DailyIncremental DailyDifferential\
-  Weekly WeeklyIncremental WeeklyDifferential Monthly MonthlyIncremental\
-  MonthlyDifferential"
+export SCHEMEFOLDERS=( OneShot HourlySnapshot HourlyIncremental \
+    HourlyDifferential DailyFull WeeklyFull  WeeklyIncremental \
+    WeeklyDifferential MonthlyFull MonthlyDifferential \
+    MonthlyIncremental )
 
 
 # ok_version()
@@ -35,7 +36,7 @@ ok_version() {
 # PARAMETER: A symlink
 # ( I need the full path to the file, to be able to check it. {realpath} )
 isASymlink() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   file "$1" | grep 'symbolic link' >/dev/null
   return $?
@@ -46,7 +47,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # RETURNS 0 if the  the symlink is okay.
 # PARAMETER: A symlink
 isUnbrokenSymlink() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   if file "$1" | grep 'broken symbolic link' >/dev/null  ; then
     return 1
@@ -59,10 +60,10 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # PARAMETERS: path1, path2
 # Checks if path1 is within path2.
 
-isWithinPath(){ 
+isWithinPath(){
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two paths as \
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two paths as \
       arguments.\nTerminating..."
     exit 5
   fi
@@ -84,7 +85,7 @@ if [[ 0 -eq 1 ]] ; then
 # RETURNS 0 if is a directory, !0 if not.
 # PARAMETER: Path.
 isDirectory() {
-if [[ $# -ne 1 ]] ; then echo -e >&2 "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   file "$1" | grep 'directory' >/dev/null
   return $?
@@ -122,6 +123,7 @@ progress_bar() {
   done
 }
 
+
 export -f progress_bar
 
 # servHasInetCtrlC() 
@@ -134,6 +136,7 @@ servHasInetCtrlC() {
 }
 export -f servHasInetCtrlC
 
+
 # consoleHasInternet()
 # checks if we have our Internet connection
 # and times out if we haven't got it still, after 5 minutes.
@@ -144,16 +147,8 @@ trap 'servHasInetCtrlC' INT
 
   SECONDS=0
   if [[ $# -ne 1 ]] ; then
-    if [[ ! -t 1 ]] ; then
-      notify-send "${0##*/}/${FUNCNAME[0]}" "I need a parameter for the \
-BACKUP_SCHEME in use!\nTerminating... "
-    echo -e "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
-      BACKUP_SCHEME in use!\nTerminating... " | journalThis 5 FolderBackup
-    else
-      echo -e >&2 "${0##*/}/${FUNCNAME[0]} I need a parameter for the\
-      BACKUP_SCHEME in use!\nTerminating... " 
-
-    fi
+      routErrorMsg "/${FUNCNAME[0]}" "I need a parameter for the \
+BACKUP_SCHEME in use! Terminating... "  FolderBackup
     exit 5
   fi
   local inet_gone=false passed_three=false
@@ -167,25 +162,25 @@ BACKUP_SCHEME in use!\nTerminating... "
         fi
 
         if [[ ! -t 1 ]] ; then
-          notify-send "${0##*/}/${FUNCNAME[0]}" "Your internet connection is \
+          notify-send "$PNAME/${FUNCNAME[0]}" "Your internet connection is \
 back. Continuing." &
         else
           echo >/dev/tty
         fi
-         echo "${0##*/}/${FUNCNAME[0]} : Your internet connection is back. \
+         echo "$PNAME/${FUNCNAME[0]} : Your internet connection is back. \
 Continuing..."  | journalThis 5 "$1"  &
       fi
       break
     else
       if [[ $SECONDS -ge  300 ]] ; then
         if [[ ! -t 1 ]] ; then
-          notify-send  "${0##*/}/${FUNCNAME[0]}" "No internet connection in 5\
+          notify-send  "$PNAME/${FUNCNAME[0]}" "No internet connection in 5\
  minutes. Giving up...."
         else
           kill $pbar_pid; sleep 1; pbar_pid=0
           echo  >/dev/tty
         fi
-        echo  "${0##*/}/${FUNCNAME[0]} : No internet connection in 5\
+        echo  "$PNAME/${FUNCNAME[0]} : No internet connection in 5\
 minutes. Giving up..."  | journalThis 2 "$1" &
         exit 255
         if [[ -t 1 ]] ; then echo >/dev/tty ; fi
@@ -195,7 +190,7 @@ minutes. Giving up..."  | journalThis 2 "$1" &
           if [[ $passed_three == false ]] ; then
             passed_three=$inet_gone
             if [[ ! -t 1 ]] ; then
-              notify-send "${0##*/}/${FUNCNAME[0]}" "You have no internet\
+              notify-send "$PNAME/${FUNCNAME[0]}" "You have no internet\
  connection. Retrying in 3 minutes..." &
             else
               if [[  $pbar_pid -ne 0 ]] ; then
@@ -203,7 +198,7 @@ minutes. Giving up..."  | journalThis 2 "$1" &
                 echo  >/dev/tty
               fi
             fi
-            echo  "${0##*/}/${FUNCNAME[0]} : You have no internet\
+            echo  "$PNAME/${FUNCNAME[0]} : You have no internet\
  connection. Retrying in 3 minutes..."  | journalThis 2 "$1" &
           fi
           inet_gone=true
@@ -231,10 +226,10 @@ trap 'servHasInetCtrlC' INT
   SECONDS=0
   if [[ $# -ne 1 ]] ; then
     if [[ ! -t 1 ]] ; then
-      notify-send "${0##*/}/${FUNCNAME[0]}()"  "I need a parameter for the \
-BACKUP_SCHEME in use!\nTerminating... "
+      notify-send "$PNAME/${FUNCNAME[0]}()"  "I need a parameter for the \
+BACKUP_SCHEME in use! Terminating... "
     fi
-    echo -e "${0##*/}/consoleFBFolderIsMounted()  I need a parameter for the\
+    echo -e "$PNAME/consoleFBFolderIsMounted()  I need a parameter for the\
       BACKUP_SCHEME in use!\nTerminating... " 1>&2
     exit 5
   fi
@@ -248,25 +243,25 @@ BACKUP_SCHEME in use!\nTerminating... "
           fi
 
           if [[ ! -t 1 ]] ; then
-            notify-send "${0##*/}/${FUNCNAME[0]}" "You have successfully \
+            notify-send "$PNAME/${FUNCNAME[0]}" "You have successfully \
 mounted \$FB: $FB Continuing..." &
         else
           echo >/dev/tty
         fi
-        echo -e "${0##*/} : You have successfully mounted \$FB:\n$FB\n\
+        echo -e "$PNAME : You have successfully mounted \$FB:\n$FB\n\
 Continuing..." | journalThis 5 "$1" &
         fi
         break
     else
       if [[ $SECONDS -ge 300 ]] ; then
         if [[ ! -t 1 ]] ; then
-          notify-send "${0##*/}/${FUNCNAME[0]}" "No mounted folder \$FB: \
+          notify-send "$PNAME/${FUNCNAME[0]}" "No mounted folder \$FB: \
 $FB in 5 minutes. Giving up..." | journalThis 2 "$1"
         else
           kill $pbar_pid; sleep 1; pbar_pid=0
           echo  >/dev/tty
         fi
-        echo -e "${0##*/}/${FUNCNAME[0]} : No mounted folder \$FB:\n $FB in \
+        echo -e "$PNAME/${FUNCNAME[0]} : No mounted folder \$FB:\n $FB in \
 5 minutes. Giving up..." | journalThis 2 "$1"
         exit 255
         if [[ -t 1 ]] ; then echo >/dev/tty ; fi
@@ -276,7 +271,7 @@ $FB in 5 minutes. Giving up..." | journalThis 2 "$1"
           if [[ $passed_three == false ]] ; then
             passed_three=$no_mounted_folder
             if [[ ! -t 1 ]] ; then
-              notify-send  "${0##*/}/${FUNCNAME[0]}" "You have forgotten to \
+              notify-send  "$PNAME/${FUNCNAME[0]}" "You have forgotten to \
 mount/create the root  backupfolder \$FB: $FB. Retrying in 3 minutes..."
             else
               if [[  $pbar_pid -ne 0 ]] ; then
@@ -284,7 +279,7 @@ mount/create the root  backupfolder \$FB: $FB. Retrying in 3 minutes..."
                 echo  >/dev/tty
               fi
             fi
-            echo "${0##*/}/${FUNCNAME[0]} You have forgotten to mount/create \
+            echo "$PNAME/${FUNCNAME[0]} You have forgotten to mount/create \
 the root \ backupfolder \$FB: $FB. Retrying in 3 minutes" \
 | journalThis 5 "$1"
           fi
@@ -313,19 +308,20 @@ export -f consoleFBfolderIsMounted
 # backupKind()
 # Figures out which KIND of backup we are restoring,
 # RETURNS: 'OneShot', or 'Periodical', so we know what to do in 'fbrestore'
+# This function works only in CONSOLE_MODE, so no notifications.
 backupKind() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >/dev/tty"${0##*/}/${FUNCNAME[0]} : Need an  argument: \
+    echo -e >/dev/tty"$PNAME/${FUNCNAME[0]} : Need an  argument: \
 backup/kind/scheme \nTerminates" >&2 ;
     exit 5
   fi
   local  ORIG="$1" REPLACED="${1/$FB/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e >/dev/tty "${0##*/}/${FUNCNAME[0]} : The path to the backup \
+    echo -e >/dev/tty "$PNAME/${FUNCNAME[0]} : The path to the backup \
 isn't within  the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e >/dev/tty "${0##*/} : The path to the backup isn't complete with \
+    echo -e >/dev/tty "$PNAME : The path to the backup isn't complete with \
 a path to the actual backup.\n($FB isn't specific enough,\nthe path must \
 include the folder from which to restore.)\nTerminating..."
     exit 2
@@ -338,7 +334,7 @@ include the folder from which to restore.)\nTerminating..."
   # the path starts with a delimiter, so $1 will contain '' for the empty
   # element at front to the left of the delimiter.
   if [[  -n "$1"  ]] ; then
-    echo -e >/dev/tty "${0##*/} : The path to the backup \
+    echo -e >/dev/tty "$PNAME : The path to the backup \
 starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
 \$FB\n($FB)\n in the path to the backup ($ORIG)?\nTerminating..."
   exit 2
@@ -352,17 +348,17 @@ starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
 # restore can be identified by fbrestore.
 
 periodicBackupScheme() {
-  if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an \
+  if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an \
  argument: backup/kind/scheme \nTerminates" >&2 ; exit 5 ; fi
   local  ORIG="$1"
   local BIT_TO_REMOVE=$FB/Periodic
    local REPLACED="${1/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e >&2 "${0##*/} : The path to the backup isn't within  the defined\
+    echo -e >&2 "$PNAME : The path to the backup isn't within  the defined\
       location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e >&2 "${0##*/} : The path to the backup isn't complete with a path to\
+    echo -e >&2 "$PNAME : The path to the backup isn't complete with a path to\
       the actual backup.\n($FB isn't specific enough,\nthe path must include\
       the folder from which to restore.)\nTerminating..."
     exit 2
@@ -376,7 +372,7 @@ periodicBackupScheme() {
 # irrelevant because we may get '' out of the set command.
 
   if [[ -n "$1"  ]] ; then
-    echo -e >&2 "${0##*/} : The path to the backup starting\
+    echo -e >&2 "$PNAME : The path to the backup starting\
   with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \$FB\
   ($FB)\n in the path to\ the backup ($ORIG)?\nTerminating..."
      exit 2
@@ -403,7 +399,7 @@ periodicBackupScheme() {
 identifyBackupSourceFolder() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two arguments.\
 \nTerminating..."
     exit 5
   fi
@@ -412,11 +408,11 @@ identifyBackupSourceFolder() {
   local BIT_TO_REMOVE=$FB/$1
   local REPLACED="${2/$BIT_TO_REMOVE/}"
   if [[ "$ORIG" = "$REPLACED" ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't within \
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup isn't within \
 the defined location.\nTerminating..."
     exit 2
   elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup isn't complete \
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup isn't complete \
 with a path to the actual backup.\n($FB/$1 isn't specific enough,\nthe path \
 must include the folder from which to restore.)\nTerminating..."
     exit 2
@@ -428,7 +424,7 @@ must include the folder from which to restore.)\nTerminating..."
   # the path starts with a delimiter, so $1 will contain '' for the empty
   #  element at front to the left of the delimiter.
   if [[ -n $1 && "$1" != "\""  ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} : The path to the backup starting with \
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup starting with \
 the PREFIX doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n \
 in the  path to the backup ($ORIG)?\nTerminating..."
     exit 2
@@ -437,13 +433,14 @@ in the  path to the backup ($ORIG)?\nTerminating..."
   echo "$2"
 }
 
+
 # validateFormatOfTimeStampedBackupContainingFolder()
 # PARAMETERS: A backup containting folder to validate the name-format of.
 # Returns: A true exit code (0) if the name was valid.
 
 validateFormatOfTimeStampedBackupContainingFolder() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]} :\nI really need one argument. \
+    echo -e >&2 "$PNAME/${FUNCNAME[0]} :\nI really need one argument. \
 \nTerminating..."
   fi
    echo "$1" |  grep '.*[-][1-2][09][0-9][0-9][-][01][1-9][-][0-3][0-9]'\
@@ -556,7 +553,7 @@ original folder and a timestamp, isn't on the correct format.\
 # returns `fonts`
 # and before that, I have to figure out todays name.
 baseFromFullSymlinkName() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
 echo "$1" |  sed -n  's:^.*[-]::p'
 }
@@ -567,7 +564,7 @@ echo "$1" |  sed -n  's:^.*[-]::p'
 # Ex: `baseNameDateStamped usr-share-fonts-`
 # returns `fonts-2023-01-12`
 baseNameDateStamped() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
 # shellcheck disable=SC2046 # code is irrelevant because reasons
   echo $(echo "$1" |  sed -n  's:^.*[-]::p')-$(date +"%Y-%m-%d")
@@ -579,7 +576,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # Ex: `baseNameDateStamped usr-share-fonts`
 # returns `fonts-2023-01-12T12:14`
 baseNameTimeStamped() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
 # shellcheck disable=SC2046 # code is irrelevant because reasons
   echo $(echo "$1" |  sed -n  's:^.*[-]::p')-$(date +"%Y-%m-%dT%H:%M")
@@ -592,7 +589,7 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 # it handles invisible files.
 
 baseNameFromBackupFile() {
-if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
+if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
   echo "$1"  | sed -n 's,\(.*[-][^.]\+\).*,\1,p'
 }
@@ -620,12 +617,12 @@ validPathOrFileName() {
 
 function hasLevel0SnarFile() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "$PNAME/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
   if [[ ! -f "$1" ]] ; then
-    echo -e >&2 "${0##*/} : I can't find the file $1, something is terribly \
+    echo -e >&2 "$PNAME : I can't find the file $1, something is terribly \
 wrong.\nTerminating..."
     # Will be passed ont crit err in log, but will also make a notifcation.
     exit 9
@@ -641,7 +638,7 @@ wrong.\nTerminating..."
 
 nextSnarFile() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "$PNAME/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
@@ -657,6 +654,7 @@ nextSnarFile() {
   echo "$newfile"
 }
 
+
 # fullPathSymlinkName()
 # PARAMETERS: the full path to convert.
 
@@ -665,7 +663,7 @@ nextSnarFile() {
 
 fullPathSymlinkName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${0##*/}/${FUNCNAME[0]}: I need exactly 1\
+    echo -e >&2 "$PNAME/${FUNCNAME[0]}: I need exactly 1\
       parameter.\nTerminating"
     exit 5
   fi
@@ -675,6 +673,7 @@ fullPathSymlinkName() {
     -e 's:[-]\(\.\):-\\\1:' -e 'p'
 }
 
+
 # pathFromFullSymlinkName(){
 # PARAMETERS: the full symlink name to convert.
 # RETURNS the fullSymlinkName back to the path it once was.
@@ -682,13 +681,14 @@ fullPathSymlinkName() {
 
 pathFromFullSymlinkName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${0##*/}/pathFromFullSymlinkName: I need exactly 1 parameter.\
+    echo -e >&2 "$PNAME/pathFromFullSymlinkName: I need exactly 1 parameter.\
       \nTerminating"
     exit 5
   fi
   echo "$1" | sed -ne  's:^:/:' -e 's:-:/:g' -e ':/(.*/)$:\1\/:g' \
     -e 's:\\::' -e 'p'
 }
+
 
 # journalThis()
 # Sends output to the journal, not sure of the utility for most commandline\
@@ -704,7 +704,7 @@ pathFromFullSymlinkName() {
 journalThis() {
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >&2 "${0##*/}/journalThis(): I really need two \
+    echo -e >&2 "$PNAME/journalThis(): I really need two \
 parameters.\nTerminating..."
     exit 5
   fi
@@ -717,6 +717,7 @@ tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
   fi
 }
 
+
 # assertSchemeContainer()
 # asserts that both the $FB/Periodic and the 
 # $FB/Periodic/$BACKUP_SCHEME folder exists.
@@ -724,7 +725,7 @@ tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
 assertSchemeContainer() {
 
   if [[ $# -ne 1 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : Need an  argument: \
+    echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
 backup/kind/scheme \nTerminates..." >&2 ;
     exit 5
   fi
@@ -739,15 +740,16 @@ backup/kind/scheme \nTerminates..." >&2 ;
     mkdir -p "$SCHEME_CONTAINER"
     # we can go silent about this, or we can just send a message.
     if [[ $DEBUG -eq 0 ]] ; then
-      echo >&2 "$SCHEME_CONTAINER didn't exist, que to make backup"
+      routDebugMsg "$SCHEME_CONTAINER didn't exist, que to make backup" "$BACKUP_SCHEME"
     fi
   else
     if [[ $DEBUG -eq 0 ]] ; then
-      echo >&2 "$SCHEME_CONTAINER exists, NO que to make backup"
+      routDebugMsg "$SCHEME_CONTAINER exists, NO que to make backup" "$BACKUP_SCHEME"
     fi
   fi
   echo "SCHEME_CONTAINER"
 }
+
 
 export -f journalThis
 # manager()
@@ -763,19 +765,17 @@ manager() {
   local CANDIDATE_SCRIPT
 
   if [[ $# -ne 3 ]] ; then
-    echo -e  "$PNAME/${FUNCNAME[0]} : Wrong number of arguments, I need \
-BACKUP_SCHEME SYMLINK_NAME OPERATION\nTerminates..." \
-      | journalThis 2 "$BACKUP_SCHEME"
-    exit 5
+      routCriticialMsg "/${FUNCNAME[0]} : Wrong number of arguments, I need \
+BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." "$BACKUP_SCHEME"
+      exit 255
   else
     BACKUP_SCHEME=$1
     SYMLINK_NAME=$2
     OPERATION=$3
 
     if [[ $OPERATION != "backup" && $OPERATION != "restore" ]] ; then
-      echo -e  "$PNAME/manager() : Wrong value for \$OPERATION, MUST  be\
-either\"backup\" or \"restore\".\nTerminates..."\
-        | journalThis 2 "$BACKUP_SCHEME"
+      routCriticialMsg  "/${FUNCNAME[0]} : Wrong value for \$OPERATION, MUST \
+be either\"backup\" or \"restore\". Terminates..." "$BACKUP_SCHEME"
     exit 5
     fi
   fi
@@ -788,16 +788,15 @@ either\"backup\" or \"restore\".\nTerminates..."\
 
   if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
     # same if with DRYRUN or VERBOSE
-    echo -e "$PNAME/${FUNCNAME[0]} : I can't find the backup script \
-$CANDIDATE_SCRIPT.\nThis is a critical error.\nTerminates..."\
-      | journalThis 2 "$BACKUP_SCHEME"
+    routCriticialMsg "${FUNCNAME[0]} : I can't find the backup script \
+$CANDIDATE_SCRIPT. This is a critical error. Terminates..." "$BACKUP_SCHEME"
     exit 255
   else
 
     DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
     if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-      echo "$PNAME/${FUNCNAME[0]} : Current backup script is : \
-$DELEGATE_SCRIPT" | journalThis 7 "$BACKUP_SCHEME"
+      routDebugMsg "/${FUNCNAME[0]} : Current backup script is : \
+$DELEGATE_SCRIPT" "$BACKUP_SCHEME"
     fi
   fi
 # Looking for a GENERAL replacement is in the $BACKUP_SCHEME.d folder.
@@ -807,24 +806,24 @@ $DELEGATE_SCRIPT" | journalThis 7 "$BACKUP_SCHEME"
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0  || $DRYRUN = true ]] ; then
-      echo "$PNAME/${FUNCNAME[0]} :  I have a readable backup script: \
-$CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+      routDebugMsg"/${FUNCNAME[0]} :  I have a readable backup script: \
+$CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
     fi
     if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
-      echo -e "$PNAME/${FUNCNAME[0]} :  I found a backup dropin script: \
-$CANDIDATE_SCRIPT\nBut it isn't executabe.\nTerminates.."\
-        | journalThis 7 "$BACKUP_SCHEME"
+      routErrorMsg "/${FUNCNAME[0]} :  I found a backup dropin script: \
+$CANDIDATE_SCRIPT But it isn't executabe. Terminates.." \
+        "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
       if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-        echo "$PNAME/${FUNCNAME[0]} : I found a GENERAL backup dropin script: \
-Current backup script is : $DELEGATE_SCRIPT"  | journalThis 7 "$BACKUP_SCHEME"
+        routDebugMsg "/${FUNCNAME[0]} : I found a GENERAL backup dropin \
+script: Current backup script is : $DELEGATE_SCRIPT" "$BACKUP_SCHEME"
       fi
     fi
   elif [[  $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-    echo "$PNAME/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
-script at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+    routDebugMsg "/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
+script at: $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
   fi
 # Looking for a LOCAL replacement is in the $BACKUP_SCHEME.d folder.
   CANDIDATE_SCRIPT=\
@@ -832,25 +831,25 @@ script at: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
 
   if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
     if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-      echo "$PNAME/${FUNCNAME[0]} : I have a readable LOCAL dropin backup \
-script: $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+      routDebugMsg "/${FUNCNAME[0]} : I have a readable LOCAL dropin backup \
+script: $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
     fi
     if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
-      echo -e "$PNAME/${FUNCNAME[0]} :  I found a LOCAL backup dropin script:\
-        $CANDIDATE_SCRIPT.\nBut it isn't executabe.\nTerminates.."\
-        | journalThis 7 "$BACKUP_SCHEME"
+      routErrorMsg "/${FUNCNAME[0]} :  I found a LOCAL backup dropin script:\
+        $CANDIDATE_SCRIPT. But it isn't executabe. Terminates.." \
+        "$BACKUP_SCHEME"
       exit 5
     else
       DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
       if [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-        echo "$PNAME/${FUNCNAME[0]} : I found a LOCAL backup dropin script :\
-          Current backup script is : $DELEGATE_SCRIPT"\
-          | journalThis 7 "$BACKUP_SCHEME"
+        routDebugMsg "$/${FUNCNAME[0]} : I found a LOCAL backup dropin script :\
+          Current backup script is : $DELEGATE_SCRIPT" \
+         "$BACKUP_SCHEME"
       fi
     fi
   elif [[ $DEBUG -eq 0 || $DRYRUN = true ]] ; then
-    echo "$PNAME/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
-in : $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
+    routDebugMsg"/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
+in : $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
   fi
 
 }
@@ -860,6 +859,7 @@ in : $CANDIDATE_SCRIPT." | journalThis 7 "$BACKUP_SCHEME"
 # selects VISUAL over EDITOR
 # sets global THE_EDITOR with the correct editor.
 # RETURNS: any error code.
+# Only works in CONSOLE_MODE
 dieIfNoEditorSetToUse() {
   declare -g THE_EDITOR
   FOUND_EDITOR=1
@@ -877,10 +877,10 @@ dieIfNoEditorSetToUse() {
     fi
   fi
   if [[ $FOUND_EDITOR -ne 0  ]] ; then
-    echo -e  "$PNAME : Neither the  variable \$VISUAL nor \$EDITOR was set\
+    echo -e  >&2 "$PNAME : Neither the  variable \$VISUAL nor \$EDITOR was set\
       or didn't point to a binary.\nYou need to set assign the\
       \$EDITOR variable in .bashrc or .bash_profile, then  \"exec bash\" and\
-      try again.\nTerminating..." | journalThis 5 OneShot
+      try again.\nTerminating..." 
     exit 255
   fi
 
@@ -890,25 +890,29 @@ dieIfNoEditorSetToUse() {
 # PARAMETERS: SYMLINKNAME SCHEME
 # RETURNS: 0, if the symlink name is valid.
 dieIfNotValidFullSymlinkName() {
-  if [[ $# -ne 2 ]] ; then echo -e  "${0##*/}/${FUNCNAME[0]} : I need two\
-    arguments full-symlink-name and scheme.\nTerminates" >&2 ; exit 5 ; fi
+  if [[ $# -ne 2 ]] ; then
+    routErrorMsg "/${FUNCNAME[0]} : I need two\ arguments full-symlink-name \
+and scheme. Terminates" "$BACKUP_SCHEME"
+    exit 5
+  fi
   local FULL_SYMLINK_NAME SCHEME
   FULL_SYMLINK_NAME="$1" ; SCHEME=$2
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $FULL_SYMLINK_NAME"\
-      | journalThis 7 "$SCHEME"
+    routDebugMsg "$/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $FULL_SYMLINK_NAME" \
+      "$BACKUP_SCHEME"
   fi
   full_path="$(pathFromFullSymlinkName "$FULL_SYMLINK_NAME")"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} :full_path after :\
+    routDebugMsg "/${FUNCNAME[0]} :full_path after :\
       \$(pathFromFullSymlinkName \"\$FULL_SYMLINK_NAME\") : $full_path"\
-       | journalThis 7 "$SCHEME"
+       "$BACKUP_SCHEME"
   fi
   symlink_probe="$(fullPathSymlinkName "$full_path" )"
 
   if [[ "$FULL_SYMLINK_NAME" != "$symlink_probe" ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : $FULL_SYMLINK_NAME Not a valid symlink\
-      name! \nTerminates" >&2 ; exit 5
+    routErrorMsg "${FUNCNAME[0]} : $FULL_SYMLINK_NAME Not a valid symlink\
+      name!  Terminates"  "$BACKUP_SCHEME"
+    exit 5
    fi
 }
 
@@ -918,24 +922,19 @@ dieIfNotValidFullSymlinkName() {
 
 dieIfNotValidFbFolderName() {
 
-  if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : I need 1\
+  if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : I need 1\
     argument.\nTerminates" >&2 ; exit 5 ; fi
-  local validFbFolderNames
-  validFbFolderNames=( OneShot HourlySnapshot HourlyIncremental \
-    HourlyDifferential DailyFull WeeklyFull  WeeklyIncremental \
-    WeeklyDifferential MonthlyFull MonthlyDifferential \
-    MonthlyIncremental )
   FOUND_SCHEME=1
-  for backup_category in "${validFbFolderNames[@]}" ; do
+  for backup_category in "${SCHEMEFOLDERS[@]}" ; do
      if [[ $1 = "$backup_category" ]] ; then
       FOUND_SCHEME=0
       break
     fi
   done
   if [[ $FOUND_SCHEME -ne 0 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : $2 Not a valid scheme folder name in\
-      the $XDG_BIN_HOME/fb folder! \nTerminates"\
-      | journalThis 2 FolderBackup ; exit 2
+    routErrorMsg "/${FUNCNAME[0]} : $2 Not a valid scheme folder name in \
+      the $XDG_BIN_HOME/fb folder!  Terminates" FolderBackup 
+     exit 2
     # error_code 2, because can be user set from the command line.
   fi
 }
@@ -949,8 +948,10 @@ dieIfNotValidFbFolderName() {
 # symlink name (full symlink name)
 
 excludeFileHasContents() {
-  if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two\
-    argument\nTerminates" >&2 ; exit 5 ; fi
+  if [[ $# -ne 2 ]] ; then 
+    routErrorMsg "/${FUNCNAME[0]} : Need two\ argument Terminates" FolderBackup
+    exit 5 
+  fi
   local probe backup_scheme symlink_name
   # we have always vetted the parameters backup_scheme and symlink_name
   #  up front by our Callers.
@@ -961,15 +962,15 @@ excludeFileHasContents() {
 
   if [[ -s "$probe" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE == true || $DRYRUN == true ]] ; then
-        echo >&2 "$PNAME/${FUNCNAME[0]} : maybe we have an exclude file with\
-          contents"
+        routDebugMsg "/${FUNCNAME[0]} : maybe we have an exclude file with \
+contents" "$backup_scheme"
     fi
     grep '[-/.@+a-zA-Z0-9]\+'  < "$probe" &>/dev/null
     return $?
   else
     if [[ $DEBUG -eq 0 || $VERBOSE == true || $DRYRUN == true ]] ; then
-      echo >&2 "$PNAME/${FUNCNAME[0]} : we DON'T have an exclude file with\
-        contents"
+      routDebugMsg "/${FUNCNAME[0]} : we DON'T have an exclude file with \
+contents" "$backup_scheme"
     fi
     return 1
   fi
@@ -987,8 +988,8 @@ hasExcludeFile() {
 # for optimization.
 
   if [[ $# -ne 2 ]] ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} I need two parameters BACKUP_SCHEME and\
-      SYMLINK_NAME!\nTerminating... " 1>&2
+    routErrorMsg "/${FUNCNAME[0]} I need two parameters BACKUP_SCHEME and\
+SYMLINK_NAME! Terminating... " FolderBackup 
     exit 5
   fi
   declare -g EXCLUDE_FILE
@@ -1001,33 +1002,32 @@ hasExcludeFile() {
   if [[ -d "$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" ]] ; then
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-      echo -e >&2 "$PNAME : We have a dropin directory:\
-        \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d"
+      routDebugMsg "/${FUNCNAME[0]} : We have a dropin directory:\
+ $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
     fi
-
 
     if  excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
       export EXCLUDE_FILE=\
 "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
 
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-        echo -e >&2 "$PNAME : We have an \"exclude.file\" file:\
-          \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
+        routDebugMsg "/${FUNCNAME[0]} : We have an \"exclude.file\" file:\
+ $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 0
     else
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-        echo -e >&2 "$PNAME : We DON'T have an \"exclude.file\" file:\
-          \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
+        routDebugMsg "/${FUNCNAME[0]} : We DON'T have an \"exclude.file\" file:\
+ $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 1
     fi
   else
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ;  then
-      echo -e >&2 "$PNAME : We don't have  a dropin directory:\
-        $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d"
-      echo -e >&2 "$PNAME : We don't have an \"exclude.file\" file: \
-        $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
+      routDebugMsg "/${FUNCNAME[0]} : We don't have  a dropin directory: \
+$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
+      routDebugMsg "${FUNCNAME[0]} : We don't have an \"exclude.file\" file: \
+$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
     fi
     return 1
   fi
@@ -1041,9 +1041,9 @@ hasExcludeFile() {
 # a scheme name
 # A valid symlink name.
 # GLOBAL: uses  THE_EDITOR with the correct editor, if any.
-
+# ONLY USED FROM CONSOLE_MODE.
 createExcludeFile() {
-  if [[ $# -ne 2 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need two \
+  if [[ $# -ne 2 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need two \
 arguments\nTerminates" >&2 ; exit 5 ; fi
   # visual first, editor after.
   dieIfNotValidFbFolderName "$1"
@@ -1071,7 +1071,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
   if "$THE_EDITOR"\
     "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d/exclude.file ;\
   then
-    echo -e "${0##*/}/${FUNCNAME[0]} : Something went wrong during editing.\
+    echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
       \n $XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\
       \nTerminating..." | journalThis 2 OneShot
     exit 1
@@ -1080,7 +1080,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
   # Maybe we should check if there were any contents in the file we created
   #  before we see this as a success?
   if excludeFileHasContents "$SCHEME" "$FULL_SYMLINK_NAME" ; then
-    echo -e "${0##*/}/${FUNCNAME[0]} : The exclude file\
+    echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
       \n$XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\nIs empty!\
       \nTerminating..." | journalThis 2 "$SCHEME"
 
