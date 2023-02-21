@@ -27,11 +27,49 @@ notifyErr() {
   echo -e "${1} ${2}\nTerminating... "
 }
 
-# routDebugMsg()
+# routCriticialMsg()
+# PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
+# Routes critical error messages to the journal, or the console,
+# depending on CONSOLE or DEBUG RUNTIME_MODE.
+
+routCriticialMsg() {
+    if [[ $# -ne 2 ]] ; then
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
+  \nTerminating..."
+      exit 5
+    fi
+
+  if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 2 "${2}"
+  else
+    echo -e >&2 "$PNAME${1}\n"
+  fi
+
+}
+
+# routErrorMsg()
 # PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
 # Routes error messages to the journal, or the console,
-# depending on CONSOLE or DEBUG mode, we hit a lot of clutter
-# too.
+# depending on CONSOLE or DEBUG RUNTIME_MODE.
+
+routErrorMsg() {
+    if [[ $# -ne 2 ]] ; then
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
+  \nTerminating..."
+      exit 5
+    fi
+
+  if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 3 "${2}"
+  else
+    echo -e >&2 "$PNAME${1}\n"
+  fi
+
+}
+# routDebugMsg()
+# PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
+# Routes debug messages to the journal, or the console,
+# depending on CONSOLE or DEBUG RUNTIME_MODE.
 
 routDebugMsg() {
     if [[ $# -ne 2 ]] ; then
