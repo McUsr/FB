@@ -96,7 +96,8 @@ fi
 # `which ping` checks if it is already on your system.
 
 hasInternet() {
-  if ping -c 1 -q google.com >&/dev/null ; then
+#  if ping -c 1 -q google.com >&/dev/null ; then
+  if ping -c 1 -q 1.1.1.1 >&/dev/null ; then
     return 0
   else
     return 1
