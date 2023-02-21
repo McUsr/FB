@@ -140,7 +140,7 @@ export -f servHasInetCtrlC
 # consoleHasInternet()
 # checks if we have our Internet connection
 # and times out if we haven't got it still, after 5 minutes.
-# both SERVICE_MODE and DEBUG_MODE
+# both SERVICE_MODE and  CONSOLE_MODE
 # dies, TODO:  Maybe die in the name.
 consoleHasInternet() {
 trap 'servHasInetCtrlC' INT
@@ -708,7 +708,7 @@ journalThis() {
 parameters.\nTerminating..."
     exit 5
   fi
-  if [[ "$MODE" == "SERVICE" ]] ; then
+  if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
 # shellcheck disable=SC2086 # code is irrelevant because in sed expression.
 tee >(cat 1>&2) | sed -n '/[a-z][A-Z]*/ s:^:<'''$1'''>:p' \
       | systemd-cat -t "$2"

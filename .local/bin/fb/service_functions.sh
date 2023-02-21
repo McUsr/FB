@@ -99,7 +99,7 @@ And the current scheme\nTerminates" >&2 ;
   fi
   if isWithinPath "${1}" "$FB" ; then
 
-    if [[ $MODE == "SERVICE"  ]] ; then
+    if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
       notifyErr "$PNAME/${FUNCNAME[0]}" " : The target of the backup is not \
 allowed to be inside  $FB." |   journalThis 5 "${2}" -p crit
       exit 255
@@ -123,7 +123,7 @@ allowed to be inside \ $FB. Terminating..."
 
 dieIfNotDirectoryExist() {
   if [[ $# -eq 0 ]] ; then
-    if [[ "$MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need  one \
 argument, a directory to test if exists. Terminating..."
       exit 5
@@ -136,7 +136,7 @@ argument, a directory to test if exists. Terminating..." \
   fi
 
   if [[ ! -d "${1}" ]] ; then
-    if [[ "$MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : The Directory ${1} : doesn't \
 exist! Terminating..."
       exit 5
@@ -155,7 +155,7 @@ dieIfNotSchemeBinFolderExist() {
 
   if [[ $# -ne 1 ]] ; then
 
-    if [[ "$MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
       echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
 backup-scheme Terminating..." >&2 ;
       exit 5
@@ -166,7 +166,7 @@ backup-scheme  Terminating..." | journalThis 2 FolderBackup
     fi
   fi
   if [[ ! -d "$XDG_BIN_HOME"/fb/"${1}" ]] ; then
-    if [[ "$MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} :the system  Directory $XDG_BIN_HOME\
 /fb/${1} : doesn't exist! Terminating..."
       exit 5
@@ -191,7 +191,7 @@ dieIfJobsFolderDontExist(){
   local jobsfolder="${1}" backup_scheme="${2}" MODE="${3}"
 
   if [[ ! -d $jobsfolder ]] ; then
-      if [[ "$MODE" == "SERVICE" ]] ; then
+      if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
         notifyErr "$PNAME/${FUNCNAME[0]}" "The folder \
 $jobsfolder doesn't exist. Critical error. Terminating.." | journalThis 2 backup_scheme
       else
@@ -263,7 +263,7 @@ newestDirectory() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$MODE" == "SERVICE" ]] ; then
+    if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -305,7 +305,7 @@ oldestDirectory() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$MODE" == "SERVICE" ]] ; then
+    if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -347,7 +347,7 @@ backupDirectoryCount() {
   fi
   if [[ ! -d "${1}" ]] ; then
     # The Backup Container doesn't exist!
-    if [[ "$MODE" == "SERVICE" ]] ; then
+    if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
       notify-send "Folder Backup: ${0##*/}/${FUNCNAME[0]}" "The backup-container \
 ${1} doesn't exist. Hopefully you are executing from the commandline \
 and  misspelled ${1}."
@@ -379,7 +379,7 @@ assertBackupContainer() {
   if [[ ! -d "${1}" ]] ; then
     mkdir -p "${1}"
     if [[ $DEBUG -eq 0 ]] ; then
-      if [[ "$MODE" == "SERVICE" ]] ; then
+      if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} didn\'t exist"
       else
 # shellcheck disable=SC2086  # will be used!
@@ -388,7 +388,7 @@ assertBackupContainer() {
     fi
   else
     if [[ $DEBUG -eq 0  ]] ; then
-      if [[ "$MODE" == "SERVICE" ]] ; then
+      if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
         echo >&4 "<7>${PNAME}/${FUNCNAME[0]} : ${1} DID  exist"
       else
         echo >&2 "${PNAME}/${FUNCNAME[0]} : ${1} DID  exist"
