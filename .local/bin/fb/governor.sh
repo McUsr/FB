@@ -126,7 +126,7 @@ BACKUP_SCHEME=${1}
 JOBS_FOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
 
 dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
-
+#  the folder we pick up the symlinks we are going to backup.
 
 
 JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
@@ -143,6 +143,8 @@ fi
 
 
 SCHEME_CONTAINER="$( assertSchemeContainer "$BACKUP_SCHEME" )"
+# the container with backups of that scheme on the GoogleDrive.
+# makes the container, and parent! shouldn't one or both exist.
 
 for SYMLINK in $JOBS_LIST ; do
   if isASymlink "$JOBS_FOLDER"/"$SYMLINK" ; then
