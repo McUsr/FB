@@ -22,8 +22,8 @@ notifyErr() {
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two arguments. Terminating..."
       exit 5
     fi
-  notify-send "${1}" "${2} Terminating... "
-  echo -e "${1} ${2} Terminating... "
+  notify-send "${1}" "${2}"
+  echo -e "${1} ${2}"
 }
 
 # routCriticialMsg()
@@ -70,8 +70,7 @@ routErrorMsg() {
 
 routDebugMsg() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
-   Terminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. Terminating..."
       exit 5
     fi
 
