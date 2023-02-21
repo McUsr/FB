@@ -141,8 +141,8 @@ consoleFBfolderIsMounted "$CURSCHEME"
 if [[ $# -lt 2 ]] ; then
   if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
 # As a service, we need at least two parameters.
-    notifyErr "$PNAME/${FUNCNAME[0]}" "Too few parameters for us to \
-run propely. Terminating..." | journalThis 3 "$BACKUP_SCHEME"
+    notifyErr "$PNAME/${FUNCNAME[0]}" "Too few parameters for us to run propely. Terminating..." \
+      | journalThis 3 "$BACKUP_SCHEME"
     exit 255
   fi
 fi
@@ -150,6 +150,7 @@ fi
 
 if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
 # Normal argument parsing happens here as cli invoked here.
+  echo "BADABOOOM " | journalThis 7 "$BACKUP_SCHEME"
 
   if [[ $# -lt 1 ]] ; then
     echo -e "$PNAME : Too few arguments. At least I need a backup-scheme\
@@ -208,8 +209,7 @@ EOF
   done
 
   if [[ $# -ne 2 ]] ; then
-    echo -e >&2 "I didn't get two mandatory  parameters: A backup scheme, and \
-  a job-folder.\nTerminating..."
+    echo -e >&2 "I didn't get two mandatory  parameters: A backup scheme, and a job-folder. Terminating..."
     exit 2
   fi
 
