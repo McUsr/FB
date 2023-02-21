@@ -170,7 +170,7 @@ back. Continuing." &
         else
           echo >/dev/tty
         fi
-         echo "${0##*/}/${FUNCNAME[0]}  :Your internet connection is back. \
+         echo "${0##*/}/${FUNCNAME[0]} : Your internet connection is back. \
 Continuing..."  | journalThis 5 "$1"  &
       fi
       break
