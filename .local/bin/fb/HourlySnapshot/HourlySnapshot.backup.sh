@@ -141,7 +141,7 @@ consoleFBfolderIsMounted "$CURSCHEME"
 if [[ $# -lt 2 ]] ; then
   if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
 # As a service, we need at least two parameters.
-    notifyErr "${PNAME}/${FUNCNAME[0]}" "Too few parameters for us to \
+    notifyErr "$PNAME/${FUNCNAME[0]}" "Too few parameters for us to \
 run propely. Terminating..." | journalThis 3 "$BACKUP_SCHEME"
     exit 255
   fi
