@@ -364,8 +364,6 @@ unlinking of it before the restore!"
     fi
   fi
 fi
-echo "right before manager" 
-exit 0
 # At this level, we have "ironed out" KIND.
 manager "$BACKUP_SCHEME"  "$SYMLINK_NAME" restore
 EXIT_STATUS=$?
