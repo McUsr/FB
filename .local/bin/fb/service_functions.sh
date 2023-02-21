@@ -19,11 +19,10 @@ trap 'err_report $LINENO' ERR
 # USAGE: notifyErr "Section" " message " |  journalThis 5 FolderBackup
 notifyErr() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "${0##*/}/${FUNCNAME[0]} : I really need two arguments.\
-  \nTerminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two arguments. Terminating..."
       exit 5
     fi
-  notify-send "${1}" "${2}\nTerminating... "
+  notify-send "${1}" "${2} Terminating... "
   echo -e "${1} ${2}\nTerminating... "
 }
 
@@ -34,13 +33,12 @@ notifyErr() {
 
 routCriticialMsg() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
-  \nTerminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. Terminating..."
       exit 5
     fi
 
   if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 2 "${2}"
+    notifyErr  "$PNAME" "$PNAME${1} " | journalThis 2 "${2}"
   else
     echo -e >&2 "$PNAME${1}\n"
   fi
@@ -54,13 +52,12 @@ routCriticialMsg() {
 
 routErrorMsg() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
-  \nTerminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. Terminating..."
       exit 5
     fi
 
   if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 3 "${2}"
+    notifyErr  "$PNAME" "$PNAME${1} " | journalThis 3 "${2}"
   else
     echo -e >&2 "$PNAME${1}\n"
   fi
@@ -74,12 +71,12 @@ routErrorMsg() {
 routDebugMsg() {
     if [[ $# -ne 2 ]] ; then
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments.\
-  \nTerminating..."
+   Terminating..."
       exit 5
     fi
 
   if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-    notifyErr  "$PNAME" "$PNAME${1}\n" | journalThis 7 "${2}"
+    notifyErr  "$PNAME" "$PNAME${1} " | journalThis 7 "${2}"
   else
     echo -e >&2 "$PNAME${1}\n"
   fi
@@ -132,7 +129,7 @@ argument, a directory to test if exists.\nTerminating..."
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": Need one \
-argument, a directory to test if exists.\nTerminating..." \
+argument, a directory to test if exists. Terminating..." \
         | journalThis 2 FolderBackup
       exit 255
     fi
@@ -145,7 +142,7 @@ exist!\nTerminating..."
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": The Directory ${1} : doesn't \
-exist!\nTerminating..." | journalThis 2 FolderBackup
+exist! Terminating..." | journalThis 2 FolderBackup
       exit 255
     fi
   fi
@@ -164,7 +161,7 @@ backup-scheme \nTerminating..." >&2 ;
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": Need an  argument: \
-backup-scheme \nTerminating..." | journalThis 2 FolderBackup
+backup-scheme  Terminating..." | journalThis 2 FolderBackup
       exit 255
     fi
   fi
@@ -175,7 +172,7 @@ backup-scheme \nTerminating..." | journalThis 2 FolderBackup
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" "The system  Directory $XDG_BIN_HOME\
-/fb/${1} : doesn't  exist!\nTerminating..." journalThis 2 "${1}"
+/fb/${1} : doesn't  exist! Terminating..." journalThis 2 "${1}"
       exit 255
     fi
   fi
