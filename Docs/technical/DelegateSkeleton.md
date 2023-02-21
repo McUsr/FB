@@ -111,10 +111,40 @@ we let fbinstall run the notification, upon success.
 
 ### getting and validating parameters.
 
+Options were gotten by the parsing
+
+Do we have enough parameters?
+
+
+    param1 : BACKUP_SCHEME="${1}"
+    param2 : SYMLINK_NAME="\{2}"
+
+
+
+
 #### Validating our current job-environment/parameters.
 
+We check if we have enough parameters to go on,
+
+BACKUP\_SCHEME and  FULL\_SYMLINK\_NAME
 
 since we have chickened out and don't use CURSCHEME
+unless at the beginning, when routines not sourced yet
+forced our hand.
+
+##### Qualify the jobs folder
+
+That it exists
+
+
+
+#####  Qualify the targets folder
+
+that it exists, and isn't within the source tree.
+
+TODO:
+
+rename everywhere to source
 
 
 ...
@@ -137,4 +167,4 @@ we're going to perform a backup rotation.
 
 
 --------------------------------------
-  Last updated:23-02-11 20:41
+  Last updated:23-02-13 12:16
