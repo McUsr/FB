@@ -23,7 +23,7 @@ notifyErr() {
       exit 5
     fi
   notify-send "${1}" "${2} Terminating... "
-  echo -e "${1} ${2}\nTerminating... "
+  echo -e "${1} ${2} Terminating... "
 }
 
 # routCriticialMsg()
@@ -105,7 +105,7 @@ allowed to be inside  $FB." |   journalThis 5 "${2}" -p crit
       exit 255
     else
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : The target of the backup is not \
-allowed to be inside \ $FB.\nTerminating..."
+allowed to be inside \ $FB. Terminating..."
       exit 5
     fi
   fi
@@ -125,7 +125,7 @@ dieIfNotDirectoryExist() {
   if [[ $# -eq 0 ]] ; then
     if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need  one \
-argument, a directory to test if exists.\nTerminating..."
+argument, a directory to test if exists. Terminating..."
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": Need one \
@@ -138,7 +138,7 @@ argument, a directory to test if exists. Terminating..." \
   if [[ ! -d "${1}" ]] ; then
     if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : The Directory ${1} : doesn't \
-exist!\nTerminating..."
+exist! Terminating..."
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": The Directory ${1} : doesn't \
@@ -157,7 +157,7 @@ dieIfNotSchemeBinFolderExist() {
 
     if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
-backup-scheme \nTerminating..." >&2 ;
+backup-scheme Terminating..." >&2 ;
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" ": Need an  argument: \
@@ -168,7 +168,7 @@ backup-scheme  Terminating..." | journalThis 2 FolderBackup
   if [[ ! -d "$XDG_BIN_HOME"/fb/"${1}" ]] ; then
     if [[ "$MODE" == "CONSOLE" ]] ; then 
       echo -e >&2 "$PNAME/${FUNCNAME[0]} :the system  Directory $XDG_BIN_HOME\
-/fb/${1} : doesn't exist!\nTerminating..."
+/fb/${1} : doesn't exist! Terminating..."
       exit 5
     else
       notifyErr "$PNAME/${FUNCNAME[0]}" "The system  Directory $XDG_BIN_HOME\
