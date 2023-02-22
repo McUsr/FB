@@ -151,7 +151,6 @@ fi
 
 if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
 # Normal argument parsing happens here as cli invoked here.
-  echo "BADABOOOM " | journalThis 7 "$BACKUP_SCHEME"
 
   if [[ $# -lt 1 ]] ; then
     echo -e "$PNAME : Too few arguments. At least I need a backup-scheme\
@@ -323,11 +322,10 @@ We will take a backup"  "$BACKUP_SCHEME"
     fi
   else
     if [[  $DEBUG -eq 0 ]] ; then
-      routDebugMsg " : No new or modifieed files, since last backup" \
+      routDebugMsg " : No new or modified files, since last backup" \
 "$BACKUP_SCHEME"
     fi
     # But, maybe the reason is, there are no files there?
-
   fi
 fi
 
@@ -481,8 +479,8 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
 
       if [[ -f "$TAR_BALL_NAME" ]] ; then
         if [[ $DEBUG -eq 0 ]] ; then
-            routDebugMsg "$PNAME" " : A tarball was made, probably full of errors\
-  rm -f $TAR_BALL_NAME" "$BACKUP_SCHEME" 
+            routDebugMsg "$PNAME" " : A tarball was made, probably full of \
+errors rm -f $TAR_BALL_NAME" "$BACKUP_SCHEME"
         fi
 
         rm -f "$TAR_BALL_NAME"
@@ -501,9 +499,16 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
-      notifyErr "$PNAME :Successful backup: ($TAR_BALL_NAME) " "$BACKUP_SCHEME" | journalThis 5 "$BACKUP_SCHEME"
+      notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
+        | journalThis 5 "$BACKUP_SCHEME"
     fi
   fi
+else
+  if [[ $DEBUG -ne 0 ]] ; then
+    notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
+changed or added since last backup. "  | journalThis 5 "$BACKUP_SCHEME"
+  fi
+
 fi
 
 
