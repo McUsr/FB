@@ -39,6 +39,10 @@ ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
 #   off.  The level of VERBOSITY is another option that will kick in, once
 #   ARCHIVE_OUPUT is true (-1).
 
+${TERSE_OUTPUT:=1}
+# If we are called from the command line and not by governor.sh, then 
+# TERSE_OUTPUT wasn't set, so we set it false.
+
 SILENT=1
 # Controls whether to send success message
 # when verbose = false, upon completed backup.
@@ -500,14 +504,14 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
         fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
 
-      if [[ $SILENT -ne 0 ]] ; then
+      if [[ $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
         notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
         | journalThis 5 "$BACKUP_SCHEME"
       fi
     fi
   fi
 else
-  if [[ $DEBUG -ne 0 && $SILENT -ne 0 ]] ; then
+  if [[ $DEBUG -ne 0 && $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
     notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
 changed or added since last backup. "  | journalThis 5 "$BACKUP_SCHEME"
   fi
