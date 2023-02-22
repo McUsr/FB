@@ -60,7 +60,7 @@ DEBUG=1 # controls output during debugging.
 
 DRYRUN=false
 
-VERBOSE=true # controls output during normal runs.
+VERBOSE=false # controls output during normal runs.
 
 
 # dieIfCantSourceShellLibrary()
