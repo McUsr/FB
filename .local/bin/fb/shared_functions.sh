@@ -163,12 +163,12 @@ BACKUP_SCHEME in use! Terminating... "  FolderBackup
 
         if [[ ! -t 1 ]] ; then
           notify-send "$PNAME/${FUNCNAME[0]}" "Your internet connection is \
-back. Continuing." &
+back. Continuing." 
         else
           echo >/dev/tty
         fi
          echo "$PNAME/${FUNCNAME[0]} : Your internet connection is back. \
-Continuing..."  | journalThis 5 "$1"  &
+Continuing..."  | journalThis 5 "$1" 
       fi
       break
     else
