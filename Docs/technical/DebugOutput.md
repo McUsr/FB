@@ -1,6 +1,8 @@
 ~/wrk/BackupProject/technical/DebugOutput.md
 --------------------------------------------
 
+Initial thoughts :22-04-18 01:18
+
 This document/these thoughts, pertains mostly to services,
 and not cli programs.
 
@@ -23,5 +25,12 @@ So, when service scripts are executed in "DEBUG_MODE", they
 act like the command line commands, and sends output to the
 console, and not to the journal.
 
-  Last updated:22-04-18 01:18
+The conclusion of this: 23-02-22
+
+We keep output from command line utilities, and services
+that runs in console mode to the Terminal window, and not
+into any journal. The backed up files in the backup tree,
+is the evidence oof successful backups.
+
+  Last updated:23-02-22 06:23
 
