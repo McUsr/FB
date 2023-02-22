@@ -499,18 +499,24 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
     elif [[ $EXIT_STATUS -eq 0 ]] ; then
-      notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
+
+      if [[ $SILENT -ne 0 ]] ; then
+        notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
         | journalThis 5 "$BACKUP_SCHEME"
+      fi
     fi
   fi
 else
-  if [[ $DEBUG -ne 0 ]] ; then
+  if [[ $DEBUG -ne 0 && $SILENT -ne 0 ]] ; then
     notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
 changed or added since last backup. "  | journalThis 5 "$BACKUP_SCHEME"
   fi
-
+  EXIT_STATUS=1
 fi
 
+if [[ $EXIT_STATUS -ne 0 ]] ; then
+  exit $EXIT_STATUS ;
+fi
 
 if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
   && $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
