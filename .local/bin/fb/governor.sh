@@ -22,11 +22,18 @@ DEBUG=1
 VERBOSE=false
 # VERBOSE = TRUE is more of a debug option giving the hints as to what is processed
 # With what.
+export TERSE_OUTPUT=0
+# Maybe we want a per scheme handling of  TERSE_OUTPUT
+success_jobs=()
 
+
+ERR_IGNORE=1
 err_report() {
-  echo >&2 "$PNAME : Error on line $1"
-  echo >&2 "$PNAME : Please report this issue at \
+  if [[ $ERR_IGNORE -ne 0  ]] ; then
+    echo >&2 "$PNAME : Error on line $1"
+    echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
+  fi
 }
 
 trap 'err_report $LINENO' ERR
@@ -191,7 +198,13 @@ backup." "$BACKUP_SCHEME"
           routDebugMsg " : Command line after manager: \
 $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
         fi
+        ERR_IGNORE=0
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
+        EXIT_STATUS=$?
+        ERR_IGNORE=1
+        if [[ $EXIT_STATUS -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
+          success_jobs+=( "$(pathFromFullSymlinkName "$SYMLINK" )" )
+        fi
         # TODO:  If exit status ok, put symlink into array,
         # for possible collective message.
       else
@@ -213,7 +226,17 @@ $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
   # else NOT A SYMLINK, we just ignore.
   fi
 done
-# TODO: if a variable is set, then we'll write a collective message here.
+
+if [[ $TERSE_OUTPUT -eq 0 ]] ; then
+
+  if [[ ${#success_jobs[@]} -ne 0 ]] ; then
+    notifyErr "$PNAME" " : Successful backup: of ${success_jobs[@]} " \
+        | journalThis 5 "$BACKUP_SCHEME"
+  else
+    notifyErr "$PNAME" " : Nothing to backup: at this time " \
+        | journalThis 5 "$BACKUP_SCHEME"
+  fi
+fi
 
 # // kommandoer for å se meldinger for jobb i logg.
 # forexample : DailyDifflog.
