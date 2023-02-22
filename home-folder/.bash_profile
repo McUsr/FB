@@ -12,10 +12,17 @@ export XDG_BIN_HOMR=$HOME/.local/fb
 
 export PATH=.:$HOME/.local/bin/fb:/bin:$PATH
 export LC_ALL=C.UTF-8
+# It's the varible for mounting the backup system.
 export FB=/mnt/chromeos/GoogleDrive/MyDrive/FB
 
-# It's the varible for mounting the backup system.
 
+# the lines below are for importing the environment into the
+# systemd --user processes, as they are started up in parallell.
+xrdb ~/.Xresources -display :1
+dbus-update-activation-environment --systemd \
+        DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY FB
+
+systemctl --user import-environment
 
 # We source ~/.bashrc, since the login shell becomes interactive the first time,
 source ~/.bashrc
