@@ -776,7 +776,7 @@ BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." "$BACKUP_SCHEME"
     if [[ $OPERATION != "backup" && $OPERATION != "restore" ]] ; then
       routCriticialMsg  "/${FUNCNAME[0]} : Wrong value for \$OPERATION, MUST \
 be either\"backup\" or \"restore\". Terminates..." "$BACKUP_SCHEME"
-    exit 5
+    exit 255
     fi
   fi
 
