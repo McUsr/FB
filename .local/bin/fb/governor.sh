@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2034
 VERSION="v0.0.4"
 # Governor.sh
 # We are getting the backup-scheme passed as parameter from the
@@ -67,8 +68,6 @@ pathToSourcedFiles() {
 
 PNAME=${0##*/}
 
-# shellcheck disable=SC2034
-VERSION='v0.0.4'
 CURSCHEME="${PNAME%%.*}"
 
 if [[ -t 1 ]] ; then
@@ -193,6 +192,8 @@ backup." "$BACKUP_SCHEME"
 $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
         fi
         "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK"
+        # TODO:  If exit status ok, put symlink into array,
+        # for possible collective message.
       else
         # there was a pause file
         if [[ $DEBUG -eq 0  ]] ; then
@@ -212,6 +213,7 @@ $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK" "$BACKUP_SCHEME"
   # else NOT A SYMLINK, we just ignore.
   fi
 done
+# TODO: if a variable is set, then we'll write a collective message here.
 
 # // kommandoer for å se meldinger for jobb i logg.
 # forexample : DailyDifflog.
