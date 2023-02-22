@@ -70,9 +70,9 @@ fi
 
 SILENCE=0
 
-DRYRUN=false
+DRY_RUN=false
 # controls whether we are going to print the backup command to the
-# console/journal, (when DRYRUN=0) or if were actually going to perform.
+# console/journal, (when DRY_RUN=0) or if were actually going to perform.
 DEBUG=1
 #
 # prints out debug messages to the console/journal if its on when instigated\
@@ -145,7 +145,7 @@ SILENCE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 
-DRYRUN=false
+DRY_RUN=false
 VERBOSE=false
 FORCE=false
 DST_FOLDER_SET=false
@@ -153,7 +153,7 @@ DST_FOLDER_SET=false
 while true; do
     case "$1" in
       -h | --help )  help ; exit 0 ;;
-      -n | --dry-run ) DRYRUN=true; shift ;;
+      -n | --dry-run ) DRY_RUN=true; shift ;;
       -v | --verbose ) VERBOSE=true; shift ;;
       -o | --dest-dir ) DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
       -F | --force ) FORCE=true ; shift ;;
@@ -169,7 +169,7 @@ done
 if [[ $DST_FOLDER_SET = false ]] ; then
   if [[ $DEBUG -eq 0 ]] ; then
     echo "$PNAME : DEST_FOLDER not set restoring into a /tmp folder."
-  elif [[ $DRYRUN = true ]] ; then
+  elif [[ $DRY_RUN = true ]] ; then
     echo "$PNAME : DEST_FOLDER not set, making one under /tmp."
   fi
 else
@@ -196,7 +196,7 @@ fi
 
 PARSE_DEBUG=1
 if [[ $PARSE_DEBUG -eq 0 ]] ; then
-  echo "$PNAME DRYRUN : $DRYRUN"
+  echo "$PNAME DRY_RUN : $DRY_RUN"
   echo "$PNAME VERBOSE : $VERBOSE"
   echo "$PNAME DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER"
   echo "$PNAME FORCE : $FORCE"
@@ -221,7 +221,7 @@ fi
 
 RESTORE_OPTIONS=
 
-if [[ $DRYRUN = true ]] ; then
+if [[ $DRY_RUN = true ]] ; then
   RESTORE_OPTIONS+="--dry-run"
 fi
 if [[ $VERBOSE = true ]] ; then
@@ -319,7 +319,7 @@ MADE_FOLDER=false
 if [[ $DST_FOLDER_SET = false ]] ; then
   # We will make a folder under /tmp
   DEST_FOLDER=/tmp/$SYMLINK_NAME/$BACKUP_CONTAINER
-  if [[ $DRYRUN = false ]] ; then
+  if [[ $DRY_RUN = false ]] ; then
     if [[ ! -d "$DEST_FOLDER" ]] ; then
       MADE_FOLDER=true
       mkdir -p "$DEST_FOLDER"
@@ -339,7 +339,7 @@ else
 
     if [[ $FORCE = false ]] ; then
 
-      # DRYRUN not considered here, since the result is the same.
+      # DRY_RUN not considered here, since the result is the same.
 
       echo -e >&2 "$PNAME : You want to to restore the backup into the original \
 folder.\nYou need to apply the '--force' option on the command line to \
@@ -349,7 +349,7 @@ achieve that.\nTerminating..."
   else
     # no protection from doing stupid things as to restore/dump a backup into
     # the $HOME folder
-    if [[ $DRYRUN = false  ]] ; then
+    if [[ $DRY_RUN = false  ]] ; then
       if [ ! -d "$DEST_FOLDER" ] ; then
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
           echo >&2 "$PNAME : mkdir -p $DEST_FOLDER"
@@ -381,7 +381,7 @@ fi
 
 
 EXIT_STATUS=0
-if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
 $RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $DEST_FOLDER\n" \
 | journalThis 7 OneShot
@@ -394,7 +394,7 @@ $RESTORE_SCRIPT $RESTORE_OPTIONS "$BACKUP_SOURCE_REALPATH" "$DEST_FOLDER"
 EXIT_STATUS=$?
 
 # We do some cleanup in OneShot.restore.sh
-if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false && \
+if [[ $EXIT_STATUS -eq 0 &&  $DRY_RUN = false && \
   $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
   echo  -e >&2 "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into \
@@ -409,7 +409,7 @@ elif [ $EXIT_STATUS -gt 1 ] ; then
   fi
   if [[ $MADE_FOLDER = true && -d "$DEST_FOLDER" ]] ; then
 
-    if [ $DRYRUN = false ] ; then
+    if [ $DRY_RUN = false ] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
 \n rm -fr $TODAYS_BACKUP_FOLDER"

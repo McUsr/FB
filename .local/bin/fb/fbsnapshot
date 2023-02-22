@@ -68,9 +68,9 @@ fi
 
 SILENCE=0
 
-DRYRUN=1
+DRY_RUN=1
 # controls whether we are going to print the backup command to the
-# console/journal, (when DRYRUN=0) or if were actually going to perform.
+# console/journal, (when DRY_RUN=0) or if were actually going to perform.
 DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated\
@@ -142,7 +142,7 @@ fi
 SILENCE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
-DRYRUN=false
+DRY_RUN=false
 VERBOSE=false
 CREATE_EXCLUDE_FILE=false
 
@@ -153,7 +153,7 @@ fi
 while true; do
   case "$1" in
     -h | --help )  help ; exit 0 ;;
-    -n | --dry-run ) DRYRUN=true; shift ;;
+    -n | --dry-run ) DRY_RUN=true; shift ;;
     -v | --verbose ) VERBOSE=true; shift ;;
     -V | --version ) echo "$PNAME" : "$VERSION" ; exit 0 ;;
     -c | --create-exclude-file ) echo 'create exclude file' ; \
@@ -172,7 +172,7 @@ if [[ $# -ne 1 ]] ; then
 fi
 BACKUP_OPTIONS=
 
-if [[ $DRYRUN = true ]] ; then
+if [[ $DRY_RUN = true ]] ; then
   BACKUP_OPTIONS+="--dry-run"
 fi
 if [[ $VERBOSE = true ]] ; then
@@ -214,7 +214,7 @@ fi
 # we are here to solve problems, not create them.
 
 if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
-  # selv om det er DRYRUN så beholder vi denne!
+  # selv om det er DRY_RUN så beholder vi denne!
   mkdir -p "$BACKUP_CONTAINER"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo -e >&2 "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER didn\'t exist.\
@@ -230,11 +230,11 @@ fi
 TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER"/"$(baseNameDateStamped "$SYMLINK_NAME")"
 CREATED_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
-  if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRYRUN = false ]] ; then
+  if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRY_RUN = false ]] ; then
     echo -e >&2 "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
       exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER."
   fi
-  if [[ $DRYRUN = false ]] ; then
+  if [[ $DRY_RUN = false ]] ; then
     CREATED_TODAYS_BACKUP_FOLDER=0
     mkdir -p "$TODAYS_BACKUP_FOLDER"
   else
@@ -267,7 +267,7 @@ else
   exit "$exitcode"
 fi
 
-if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = true ]] ; then
+if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
     $SOURCE_FOLDER  $TODAYS_BACKUP_FOLDER"
 fi
@@ -280,7 +280,7 @@ $BACKUP_SCRIPT $BACKUP_OPTIONS  "$SOURCE_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
 EXIT_STATUS=$?
 
 # We do some cleanup in OneShot.backup.sh
-if [[ $EXIT_STATUS -eq 0 &&  $DRYRUN = false  ]] ; then
+if [[ $EXIT_STATUS -eq 0 &&  $DRY_RUN = false  ]] ; then
    echo  -e >&2 "$PNAME : backup  of $SOURCE_FOLDER into $TODAYS_BACKUP_FOLDER \
      complete!"   | journalThis 5 "$CURSCHEME"
 
@@ -295,7 +295,7 @@ elif [[ $EXIT_STATUS -gt 1 ]] ; then
   if [[  -d "$TODAYS_BACKUP_FOLDER" && \
     $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then
 
-    if [[ $DRYRUN = false ]] ; then
+    if [[ $DRY_RUN = false ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo -e >&2 "$PNAME : Removing todays backup folder due to fatal errors:\
           \n rm -fr $TODAYS_BACKUP_FOLDER"

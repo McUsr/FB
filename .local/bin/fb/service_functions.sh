@@ -86,7 +86,7 @@ routDebugMsg() {
 # dieIfSourceIsWithinFBTree()
 # PARAMETERS: path1: curent schem
 # GLOBALS: FB, MODE, VERBOSE
-# This will end the same way,if DRYRUN, so not considering.
+# This will end the same way,if DRY_RUN, so not considering.
 
 dieIfSourceIsWithinFBTree() {
 

@@ -60,9 +60,9 @@ else
 fi
 
 # Configuration variables that will be overruled by options.
-DRYRUN=false
+DRY_RUN=false
 # controls whether we are going to print the backup command to the
-# console/journal, (when DRYRUN=0) or if were actually going to perform.
+# console/journal, (when DRY_RUN=0) or if were actually going to perform.
 DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated\
@@ -126,7 +126,7 @@ eval set -- "$TEMP"
 while true; do
     case "$1" in
       -h | --help )  help ; exit 0 ;;
-      -n | --dry-run ) DRYRUN=true; shift ;;
+      -n | --dry-run ) DRY_RUN=true; shift ;;
       -v | --verbose ) VERBOSE=true; shift ;;
       -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
       -- ) shift; break ;;
@@ -200,7 +200,7 @@ else
   VERBOSE_OPTIONS="-v"
 fi
 EXIT_STATUS=0
-if [[ $DRYRUN = true  ]] ; then
+if [[ $DRY_RUN = true  ]] ; then
 
   DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.backup.sh.XXX")
   trap "HAVING_ERRORS=true;ctrl_c" INT
@@ -241,7 +241,7 @@ $TAR_BALL_NAME  -C $SOURCE_FOLDER . "
     echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
 else
-# DRYRUN == false
+# DRY_RUN == false
   TAR_BALL_NAME=\
 "$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
 

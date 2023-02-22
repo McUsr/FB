@@ -28,7 +28,7 @@ trap 'err_report $LINENO' ERR
 
 DAYS_TO_KEEP_BACKUPS=14 # set to 0 to disable backup rotation.
 
-ARCHIVE_OUTPUT=1 # only controls ouput during  DRYRUN
+ARCHIVE_OUTPUT=1 # only controls ouput during  DRY_RUN
 
 #   Controls whether the  output (file listing) from tar will be sent to the
 #   journal when the script is run as a service.  output is not normally sent
@@ -62,7 +62,7 @@ DEBUG=1 # controls output during debugging.
 # TODO: check if it only touches folders of correct form when
 # performing backup rotation.
 
-DRYRUN=false
+DRY_RUN=false
 
 VERBOSE=false # controls output during normal runs.
 
@@ -205,7 +205,7 @@ EOF
   while true; do
       case "$1" in
         -h | --help )  help ; exit 0 ;;
-        -n | --dry-run ) DRYRUN=true; shift ;;
+        -n | --dry-run ) DRY_RUN=true; shift ;;
         -v | --verbose ) VERBOSE=true; shift ;;
         -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
         -- ) shift; break ;;
@@ -246,7 +246,7 @@ fi
 
 dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$BACKUP_SCHEME"
 
-if [[ $DEBUG -eq 0 || $DRYRUN == true ]] ;  then
+if [[ $DEBUG -eq 0 || $DRY_RUN == true ]] ;  then
   routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$BACKUP_SCHEME"
 fi
 
@@ -362,7 +362,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
   EXIT_STATUS=0
 
-  if [[ $DRYRUN == true  ]] ; then
+  if [[ $DRY_RUN == true  ]] ; then
 
     if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
       trap "ctrl_c" INT
@@ -440,7 +440,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
       fi
     fi
 
-  else  # DRYRUN == false
+  else  # DRY_RUN == false
 
     if [[ $RUNTIME_MODE != "SERVICE"  ]] ; then
       trap "trl_c" INT
@@ -522,7 +522,7 @@ if [[ $EXIT_STATUS -ne 0 ]] ; then
   exit $EXIT_STATUS ;
 fi
 
-if [[ $DRYRUN == false && $MUST_MAKE_BACKUP -eq 0 \
+if [[ $DRY_RUN == false && $MUST_MAKE_BACKUP -eq 0 \
   && $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
 
   # Is the number of backups we have bigger than  $DAYS_TO_KEEP_BACKUPS?

@@ -13,7 +13,7 @@ trap 'err_report $LINENO' ERR
 
 VERBOSE=false
 DEBUG=1
-DRYRUN=false
+DRY_RUN=false
 
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
@@ -62,11 +62,11 @@ else
 fi
 
 # Configuration variables that will be overruled by options.
-DRYRUN=false
+DRY_RUN=false
 VERBOSE=false
 FORCE=false
 # controls whether we are going to print the backup command to the
-# console/journal, (when DRYRUN=0) or if were actually going to perform.
+# console/journal, (when DRY_RUN=0) or if were actually going to perform.
 DEBUG=0
 #
 # prints out debug messages to the console/journal if its on when instigated\
@@ -136,7 +136,7 @@ eval set -- "$TEMP"
 while true; do
   case "$1" in
     -h | --help )  help ; exit 0 ;;
-    -n | --dry-run ) DRYRUN=true; shift ;;
+    -n | --dry-run ) DRY_RUN=true; shift ;;
     -v | --verbose ) VERBOSE=true; shift ;;
     -F | --force )  FORCE=true; shift ;;
     -V | --version ) echo "$PNAME" : "$VERSION" ; exit 0 ;;
@@ -168,7 +168,7 @@ if [[ -r "$2" ]] ; then
   fi
 elif [[ ! -d "$2" ]] ;then
   ## Error : we ignore this further down 'e
-  if [[ $DRYRUN = false ]] ; then
+  if [[ $DRY_RUN = false ]] ; then
     echo -e >&2 "$PNAME : The destination folder $2 does not exist.\
 \nTerminating..."
     exit 2
@@ -207,7 +207,7 @@ if [[ -f "$1" ]] ;then
 
   TAR_PROBE="${1/.tar.gz/}"
   if [[ "$TAR_PROBE" = "$1" ]] ; then
-    if [[ $DRYRUN = false ]] ; then
+    if [[ $DRY_RUN = false ]] ; then
       echo -e >&2 "$PNAME : The file  specified:\n \"$1\":\n isn't a .tar.gz \
 file. Terminating..."
       exit 2
@@ -225,7 +225,7 @@ elif [[ -d "$1" ]] ;then
     echo -e >&2 "$PNAME : The backup source is a folder!"
   fi
 else
-  if [[ $DRYRUN = false ]] ; then
+  if [[ $DRY_RUN = false ]] ; then
     echo -e >&2 "$PNAME : The backup source to restore:\n\t \"$1\"\nis \
 neither a file, nor a folder\nTerminating..."
     exit 2
@@ -248,12 +248,12 @@ if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
 
   BACKUP_CANDIDATE=($( find "$1" -name "*.tar.gz"))
   EXIT_STATUS=$?
-  if [[ $DRYRUN = false &&  $EXIT_STATUS -ne 0 ]] ; then
+  if [[ $DRY_RUN = false &&  $EXIT_STATUS -ne 0 ]] ; then
      exit $EXIT_STATUS
   fi
 
   if [[ ${#BACKUP_CANDIDATE[@]} -eq 0 ]] ; then
-    if [[ $DRYRUN = false ]] ; then
+    if [[ $DRY_RUN = false ]] ; then
       echo -e >&2 "$PNAME : The backup source folder to restore from:\n\t \
 \"${1}\"\ndoesn't have any content.\nTerminating..."
       exit 1
@@ -309,7 +309,7 @@ if [[ "$PROBE" = "$DEST_FOLDER" ]] ; then
     # and we will since $FORCE is false
     DEST_FOLDER=$DEST_FOLDER/${FOLDER_STEM_NAME}
 
-    if [[ $DRYRUN = false ]] ; then
+    if [[ $DRY_RUN = false ]] ; then
       if [[ ! -d "$DEST_FOLDER" ]] ; then
         if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then
           echo >&2 "$PNAME : $DEST_FOLDER didn't exist: mkdir -p $DEST_FOLDER."
@@ -341,7 +341,7 @@ used : bailing out"
     fi
   else
     # FORCE=true : we will dump the  the restore where specified.
-    if [[ $DRYRUN = true ]] ; then
+    if [[ $DRY_RUN = true ]] ; then
       # it can't happen that the folder doesn't exist, because
       # then we would have terminated when we tested for it's existence!
       echo >&2 "$PNAME : Destination folder exists : $DEST_FOLDER"
@@ -356,7 +356,7 @@ else
 # to put the backup in.
   DEST_FOLDER="$DEST_FOLDER/${FOLDER_STEM_NAME}"
 # This is the full folder name, that will contain the files of the tar backup.
-  if [[ $DRYRUN = false ]] ; then
+  if [[ $DRY_RUN = false ]] ; then
     MADE_FOLDER=true
     if [[  -d "$DEST_FOLDER" ]] ; then
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
@@ -380,7 +380,7 @@ else
 fi
 
 
-if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRYRUN = false ]] ; then
+if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = false ]] ; then
   VERBOSE_OPTIONS="-v -v"
 else
   VERBOSE_OPTIONS="-v"
@@ -388,7 +388,7 @@ fi
 
 
 EXIT_STATUS=0
-if [[ $DRYRUN = true ]] ; then
+if [[ $DRY_RUN = true ]] ; then
 trap "ctrl_c" INT
 
 ctrl_c() {
