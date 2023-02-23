@@ -1,17 +1,55 @@
 ~/wrk/BackupProject/technical/DelegateSkeleton.md
 -------------------------------------------------
 
+The actual delegate is passed control to from the governor,
+when it comes to periodic backup jobs, it performs the
+actual backup of a folder, and also the rotation of backups
+if the threshold is reached. The delegate will read in any
+exclude file from a dropin folder, if the dropin folder of
+the symlink in question, and an exclude file within it
+exists.
+
+The delegates can also be run from the commandline, with
+options like dryrun or verbose set, in order to see what is
+backed up before it is started up as a service for instance.
+
+
+The governor, finds the correct delegate for the symlink
+that represents the folder that is to be backed up.
+
+The original delegates can be copied into dropin folders,
+under the backcup scheme folder , and customized. The
+customization can be done in whatever way that works for the
+you, but the general idea is to  let you edit the
+configurable variables, as to how many days of backups  to
+be saved before rotation, and adjust the output, maybe for
+debug purposes, should you do more elaborate customizations. 
+
+
+
+
+
 ### Tasks
 
 The delegate:
 
+* Determines  RUNTIME_MODE
+
+* Bootstraps source files before system context is
+established.
+
+
 * Gets a symlink and the backup scheme from the Governor to
-process.
+process if in SERVICE_MODE, otherwise reads in the command
+line.
+
 
 * Sets up the job by asserting that we have everything we
 need.
 
 * Checks if we need to make the backup.
+
+* Checks out if we have an exclude file.
 
 * Prepares the destination folder if we do need to make a
 backup.
@@ -162,29 +200,10 @@ That it exists
 
 that it exists, and isn't within the source tree.
 
-TODO:
+todays backup folder a backup folder timestamped byt this
+date.
 
-rename everywhere to source
+this only works for hourly and daily schemes. it will look
+like Weekly and Monthly folder for other schemes.
 
-
-...
-
-todays backup folder"
-
-Den måten vi bruker nå, er ikke okay, hvis vi ikke SKAL ha
-en backup på en bestemt dato. fordi: kanskje unoedvendig, og
-TVINGER frem en rotasjon.
-
-burde egentlig LETE IGJENNOM DOKUMENTASJON.
-
-made or not, is a condition we will use for figuring out if
-we're going to perform a backup rotation.
-
-
-! alt som går til console bruker setbuf
-
-
-
-
---------------------------------------
-  Last updated:23-02-21 22:54
+  Last updated:23-02-23 01:59
