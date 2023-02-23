@@ -172,13 +172,13 @@ if [[ $# -ne 1 ]] ; then
       back up.\n\"$PNAME -h\" for help.\nTerminating..."
     exit 2
 fi
-BACKUP_OPTIONS=
+backup_options=
 
 if [[ $DRY_RUN = true ]] ; then
-  BACKUP_OPTIONS+="--dry-run"
+  backup_options+="--dry-run"
 fi
 if [[ $VERBOSE = true ]] ; then
-  BACKUP_OPTIONS+=" --verbose"
+  backup_options+=" --verbose"
 fi
 
 # --create-exclude-file isn't an option, it's more of a command.
@@ -270,14 +270,14 @@ else
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-  echo -e >&2 "$PNAME : EXECUTING:\n $backup_script $BACKUP_OPTIONS  \
+  echo -e >&2 "$PNAME : EXECUTING:\n $backup_script $backup_options  \
     $source_folder  $todays_backup_folder"
 fi
 
 
 exit_code=0
 trap '' ERR
-$backup_script $BACKUP_OPTIONS  "$source_folder"  "$todays_backup_folder" \
+$backup_script $backup_options  "$source_folder"  "$todays_backup_folder" \
 "$symlink_name"
 exit_code=$?
 
