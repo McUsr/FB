@@ -49,7 +49,7 @@ intervention as possible.
 
 The naming conventions, and the file/folder organization,
 varies first and foremost with the frequency of the backups
-per interval, be it day, week, or month.
+per interval, be it per day, per week, or per month.
 
 The second factor is whether there are, or can be  more than
 one backup per day.
@@ -292,5 +292,5 @@ break the scripts.
 
 They are hardcoded into the scripts as kinds as described above.
 
-  Last updated:23-02-03 11:26
+  Last updated:23-02-23 18:24
 

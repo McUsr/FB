@@ -17,14 +17,9 @@ you don't want to do that.
 	to filter further: `journalctl --user  -t OneShot -xe`.
 
 
-* the $DEBUG variable is there, to replicate verbose when
-	you are debugging/seeing how a script is running through 
-	the services/governor.
-
-
 * You can and maybe you should, turn on DRYRUN **explicitly**
 *after* the parsing of arguments, if you would want to see
 what would have been done when running the service.
 
-  Last updated:23-01-29 15:27
+  Last updated:23-02-23 20:06
 

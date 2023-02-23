@@ -5,7 +5,7 @@
     |_|  \___/|_|\__,_|\___|_|    |____/ \__,_|\___|_|\_\\__,_| .__/ 
                                                               |_|    
 
-# README v0.0.3
+# README v0.0.4
 
 Folder Backup is a dedicated back up system to easily back
 up folders from Linux containers on ChromeOs to your
@@ -125,4 +125,4 @@ always manual, so, there are only two manual commands,
 	be viewed in ChromeOs's Filer.
 	
 
-  Last updated:23-02-05 13:04
+  Last updated:23-02-23 20:21
