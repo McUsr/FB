@@ -924,14 +924,14 @@ dieIfNotValidFbFolderName() {
 
   if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : I need 1\
     argument.\nTerminates" >&2 ; exit 5 ; fi
-  FOUND_SCHEME=1
+  found_scheme=1
   for backup_category in "${SCHEMEFOLDERS[@]}" ; do
      if [[ $1 = "$backup_category" ]] ; then
-      FOUND_SCHEME=0
+      found_scheme=0
       break
     fi
   done
-  if [[ $FOUND_SCHEME -ne 0 ]] ; then
+  if [[ $found_scheme -ne 0 ]] ; then
     routErrorMsg "/${FUNCNAME[0]} : $2 Not a valid scheme folder name in \
       the $XDG_BIN_HOME/fb folder!  Terminates" FolderBackup 
      exit 2
