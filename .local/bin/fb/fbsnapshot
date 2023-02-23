@@ -229,24 +229,24 @@ else
 fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
-TODAYS_BACKUP_FOLDER="$backup_container"/"$(baseNameDateStamped "$symlink_name")"
+todays_backup_folder="$backup_container"/"$(baseNameDateStamped "$symlink_name")"
 created_todays_backup_folder=1
-if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
+if [[ ! -d "$todays_backup_folder" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRY_RUN = false ]] ; then
-    echo -e >&2 "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
-      exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER."
+    echo -e >&2 "$PNAME : todays_backup_folder: $todays_backup_folder didn't \
+      exist. Creating it:\nmkdir -p $todays_backup_folder."
   fi
   if [[ $DRY_RUN = false ]] ; then
     created_todays_backup_folder=0
-    mkdir -p "$TODAYS_BACKUP_FOLDER"
+    mkdir -p "$todays_backup_folder"
   else
     created_todays_backup_folder=0
     echo -e  >&2 "$PNAME : Todays backup folder didn't exist, creating it:\n \
-      mkdir -p $TODAYS_BACKUP_FOLDER"
+      mkdir -p $todays_backup_folder"
   fi
 else
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo -e  >&2 "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER DID \
+    echo -e  >&2 "$PNAME : todays_backup_folder: $todays_backup_folder DID \
       exist."
   fi
 fi
@@ -271,19 +271,19 @@ fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
-    $source_folder  $TODAYS_BACKUP_FOLDER"
+    $source_folder  $todays_backup_folder"
 fi
 
 
 exit_code=0
 trap '' ERR
-$BACKUP_SCRIPT $BACKUP_OPTIONS  "$source_folder"  "$TODAYS_BACKUP_FOLDER" \
+$BACKUP_SCRIPT $BACKUP_OPTIONS  "$source_folder"  "$todays_backup_folder" \
 "$symlink_name"
 exit_code=$?
 
 # We do some cleanup in OneShot.backup.sh
 if [[ $exit_code -eq 0 &&  $DRY_RUN = false  ]] ; then
-   echo  -e >&2 "$PNAME : backup  of $source_folder into $TODAYS_BACKUP_FOLDER \
+   echo  -e >&2 "$PNAME : backup  of $source_folder into $todays_backup_folder \
      complete!"   | journalThis 5 "$curscheme"
 
 elif [[ $exit_code -gt 1 ]] ; then
@@ -294,18 +294,18 @@ elif [[ $exit_code -gt 1 ]] ; then
       echo >&2 "$PNAME : A fatal error occurred."
   fi
 
-  if [[  -d "$TODAYS_BACKUP_FOLDER" && \
+  if [[  -d "$todays_backup_folder" && \
     $created_todays_backup_folder -eq 0  ]] ; then
 
     if [[ $DRY_RUN = false ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo -e >&2 "$PNAME : Removing todays backup folder due to fatal errors:\
-          \n rm -fr $TODAYS_BACKUP_FOLDER"
+          \n rm -fr $todays_backup_folder"
       fi
-      rm -fr "$TODAYS_BACKUP_FOLDER"
+      rm -fr "$todays_backup_folder"
     else
       echo -e >&2 "$PNAME : Removing todays backup folder due to fatal errors:\
-        \n rm -fr $TODAYS_BACKUP_FOLDER"
+        \n rm -fr $todays_backup_folder"
     fi
   fi
 fi

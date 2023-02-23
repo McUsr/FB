@@ -413,12 +413,12 @@ elif [ $exit_code -gt 1 ] ; then
     if [ $DRY_RUN = false ] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
-\n rm -fr $TODAYS_BACKUP_FOLDER"
+\n rm -fr $todays_backup_folder"
       fi
       rm -fr "$DEST_FOLDER"
     else
       echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
-\n rm -fr $TODAYS_BACKUP_FOLDER"
+\n rm -fr $todays_backup_folder"
     fi
   fi
 
