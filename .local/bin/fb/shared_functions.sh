@@ -21,6 +21,7 @@ export SCHEMEFOLDERS=( OneShot HourlySnapshot HourlyIncremental \
 # the one with arrays. declare -g, and test -v
 # https://wiki.bash-hackers.org/scripting/bashchanges
 ok_version() {
+
   if [[ ${BASH_VERSINFO[0]} -eq 4 && ${BASH_VERSINFO[1]} -lt 2 ]] ; then
     return 1
   elif [[ ${BASH_VERSINFO[0]} -lt 4 ]]  ; then
@@ -30,6 +31,25 @@ ok_version() {
   fi
 }
 
+# dieIfNotOkBashVersion()
+# PARAMETERS: jobsfolder, backupscheme, mode
+# The jobs folder is the folder where the symlinks are stored,
+# also the full-symlink-name.paused files.
+dieIfNotOkBashVersion(){
+  if ! ok_version ; then
+      if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
+        notifyErr "$PNAME/${FUNCNAME[0]}" "The bash \
+version you currently are using  are too old: \ 
+${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} Terminating..." \
+| journalThis 2 backup_scheme
+      else
+        echo >&2 "$PNAME/${FUNCNAME[0]}: The bash \
+version you currently are using  are too old: \ 
+${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} Terminating..."
+      fi
+      exit 255
+  fi
+}
 
 # isASymlink()
 # RETURNS 0 if the parameter is a symlink.

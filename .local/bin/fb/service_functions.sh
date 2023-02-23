@@ -204,23 +204,6 @@ $backup_scheme."
 }
 
 
-# dieIfNotOkBashVersion()
-# PARAMETERS: jobsfolder, backupscheme, mode
-# The jobs folder is the folder where the symlinks are stored,
-# also the full-symlink-name.paused files.
-dieIfNotOkBashVersion(){
-  if ! ok_version ; then
-      if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
-        notifyErr "$PNAME/${FUNCNAME[0]}" "The bash \
-version you currently are using  are too old. Terminating..." \
-| journalThis 2 backup_scheme
-      else
-        echo >&2 "$PNAME/${FUNCNAME[0]}: The bash \
-version you currently are using  are too old. Terminating..."
-      fi
-      exit 255
-  fi
-}
 
 
 # TODO: Descriptin.
