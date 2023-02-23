@@ -281,12 +281,12 @@ if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then
   echo -e >&2 "$PNAME : The folder base name we will use for basis for the \
 tar-dump in is:\n$folder_base_name"
 fi
-FOLDER_STEM_NAME="$( baseNameFromBackupFile "$folder_base_name")"
-# FOLDER_STEM_NAME="${folder_base_name%%.*}"
+folder_stem_name="$( baseNameFromBackupFile "$folder_base_name")"
+# folder_stem_name="${folder_base_name%%.*}"
 
 if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then
   echo -e >&2 "$PNAME : The folder stem name we will use for storing the \
-tar-dump in is:\n$FOLDER_STEM_NAME"
+tar-dump in is:\n$folder_stem_name"
 fi
 
 # TWO MAIN CASES HERE:
@@ -308,7 +308,7 @@ if [[ "$PROBE" = "$dest_folder" ]] ; then
   # even if it isn't inside the tmp folder.
   if [[ $FORCE = false ]] ; then
     # and we will since $FORCE is false
-    dest_folder=$dest_folder/${FOLDER_STEM_NAME}
+    dest_folder=$dest_folder/${folder_stem_name}
 
     if [[ $DRY_RUN = false ]] ; then
       if [[ ! -d "$dest_folder" ]] ; then
@@ -355,7 +355,7 @@ else
   fi
 # The folder is within /tmp, and we just make the folder
 # to put the backup in.
-  dest_folder="$dest_folder/${FOLDER_STEM_NAME}"
+  dest_folder="$dest_folder/${folder_stem_name}"
 # This is the full folder name, that will contain the files of the tar backup.
   if [[ $DRY_RUN = false ]] ; then
     MADE_FOLDER=true
