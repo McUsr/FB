@@ -223,42 +223,42 @@ fi
 # End of command line parsing.
 
 # Getting and validating parameters
-BACKUP_SCHEME="${1}"
+backup_scheme="${1}"
 
 SYMLINK_NAME="${2}"
 
 # Qualify the jobs folder
-JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
+JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
 
-dieIfJobsFolderDontExist "$JOBSFOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
+dieIfJobsFolderDontExist "$JOBSFOLDER" "$backup_scheme" "$RUNTIME_MODE"
 
 if [[ $DEBUG -eq 0 ]] ; then
-  routDebugMsg " : JOBSFOLDER: $JOBSFOLDER" "$BACKUP_SCHEME"
+  routDebugMsg " : JOBSFOLDER: $JOBSFOLDER" "$backup_scheme"
 fi
 
 #  Qualify the source folder
 
-dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$BACKUP_SCHEME"
+dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$backup_scheme"
 
 SOURCE_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [[ $DEBUG -eq 0 ]] ; then
-  routDebugMsg " : SOURCE_FOLDER: $SOURCE_FOLDER" "$BACKUP_SCHEME"
+  routDebugMsg " : SOURCE_FOLDER: $SOURCE_FOLDER" "$backup_scheme"
 fi
 
-dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$BACKUP_SCHEME"
+dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$backup_scheme"
 
 if [[ $DEBUG -eq 0 || $DRY_RUN == true ]] ;  then
-  routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$BACKUP_SCHEME"
+  routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$backup_scheme"
 fi
 
-BACKUP_CONTAINER=$FB/Periodic/$BACKUP_SCHEME/$SYMLINK_NAME
+BACKUP_CONTAINER=$FB/Periodic/$backup_scheme/$SYMLINK_NAME
 
 assertBackupContainer "$BACKUP_CONTAINER"
 
 if [[ $DEBUG -eq 0 ]] ; then
   routDebugMsg " : the backups of $SOURCE_FOLDER are stored in:\
-$BACKUP_CONTAINER" "$BACKUP_SCHEME"
+$BACKUP_CONTAINER" "$backup_scheme"
 fi
 
 MUST_MAKE_TODAYS_FOLDER=1
@@ -272,12 +272,12 @@ if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
   if [[  $DEBUG -eq 0  ]] ; then
 
     routDebugMsg " : qualification:  TODAYS_BACKUP_FOLDER_NAME : \
-$TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$BACKUP_SCHEME"
+$TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$backup_scheme"
   fi
   probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
 
   if [[  $DEBUG -eq 0 ]] ; then
-    routDebugMsg " : qualification probeDir =>$probeDir<=" "$BACKUP_SCHEME"
+    routDebugMsg " : qualification probeDir =>$probeDir<=" "$backup_scheme"
   fi
 
   if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then
@@ -287,7 +287,7 @@ else
   probeDir="$TODAYS_BACKUP_FOLDER_NAME"
   if [[  $DEBUG -eq 0 ]] ; then
     routDebugMsg " : qualification: Todays backup folder existed : \
-$probeDir" "$BACKUP_SCHEME"
+$probeDir" "$backup_scheme"
   fi
 
   if  find "$probeDir" -maxdepth 0  -empty  -print | grep '.*' >/dev/null ; then
@@ -295,7 +295,7 @@ $probeDir" "$BACKUP_SCHEME"
   fi
 fi
 if [[ $DEBUG -eq 0  ]] ; then
-  routDebugMsg " : probeDir AFTER qualification  = : $probeDir" "$BACKUP_SCHEME"
+  routDebugMsg " : probeDir AFTER qualification  = : $probeDir" "$backup_scheme"
 fi
 
 if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
@@ -303,7 +303,7 @@ if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
   # so this is the first backup!
   if [[  $DEBUG -eq 0 ]] ; then
     routDebugMsg " : no files in probedir, it's empty and we need  to take a \
-backup." "$BACKUP_SCHEME"
+backup." "$backup_scheme"
   fi
   MUST_MAKE_TODAYS_FOLDER=0
   MUST_MAKE_BACKUP=0
@@ -311,7 +311,7 @@ else
 
   if [[  $DEBUG -eq 0 ]] ; then
     routDebugMsg " : we might have  modified files probedir = $probeDir" \
-      "$BACKUP_SCHEME"
+      "$backup_scheme"
   fi
 
   # we need to compare timestamps.
@@ -319,7 +319,7 @@ else
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
       routDebugMsg " : There are modified or added files since last backup. \
-We will take a backup"  "$BACKUP_SCHEME"
+We will take a backup"  "$backup_scheme"
     fi
     # there are files to back up.
     MUST_MAKE_BACKUP=0
@@ -329,7 +329,7 @@ We will take a backup"  "$BACKUP_SCHEME"
   else
     if [[  $DEBUG -eq 0 ]] ; then
       routDebugMsg " : No new or modified files, since last backup" \
-"$BACKUP_SCHEME"
+"$backup_scheme"
     fi
     # But, maybe the reason is, there are no files there?
   fi
@@ -341,12 +341,12 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     mkdir -p "$TODAYS_BACKUP_FOLDER_NAME"
   fi
 
-  if hasExcludeFile "$BACKUP_SCHEME" "$SYMLINK_NAME" ; then
+  if hasExcludeFile "$backup_scheme" "$SYMLINK_NAME" ; then
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
-      routDebugMsg " : I have an exclude file : $EXCLUDE_FILE " "$BACKUP_SCHEME"
+      routDebugMsg " : I have an exclude file : $EXCLUDE_FILE " "$backup_scheme"
       if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
-        cat "$EXCLUDE_FILE" | systemd-cat -p 7 -t "$BACKUP_SCHEME"
+        cat "$EXCLUDE_FILE" | systemd-cat -p 7 -t "$backup_scheme"
       else
         cat "$EXCLUDE_FILE" 1>&2
       fi
@@ -375,22 +375,22 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
       }
     fi
 
-    DRY_RUN_FOLDER=$(mktemp -d "/tmp/$BACKUP_SCHEME.backup.sh.XXX")
+    DRY_RUN_FOLDER=$(mktemp -d "/tmp/$backup_scheme.backup.sh.XXX")
 
     TAR_BALL_NAME=\
 "$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER ."   | journalThis 7 "$BACKUP_SCHEME"
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER ."   | journalThis 7 "$backup_scheme"
 
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
         if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
--C "$SOURCE_FOLDER" . | journalThis 7 "$BACKUP_SCHEME"
+-C "$SOURCE_FOLDER" . | journalThis 7 "$backup_scheme"
         else
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$SOURCE_FOLDER" . | journalThis 7 "$BACKUP_SCHEME"
+"$EXCLUDE_OPTIONS" -C "$SOURCE_FOLDER" . | journalThis 7 "$backup_scheme"
         fi
       else
         if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
@@ -422,7 +422,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ $EXIT_STATUS -gt 1 ]] ; then
       if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then 
         notifyErr "$PNAME : exit status after tar commmand = $EXIT_STATUS" \
-| journalThis 5 "$BACKUP_SCHEME"
+| journalThis 5 "$backup_scheme"
       else
         echo >&2 "$PNAME : exit status after tar commmand = $EXIT_STATUS"
       fi
@@ -434,7 +434,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
       if [[  $DEBUG -eq 0 ]] ; then
         routDebugMsg "$PNAME" " : rm -fr $DRY_RUN_FOLDER" \
-| journalThis 7 "$BACKUP_SCHEME"
+| journalThis 7 "$backup_scheme"
       fi
     else
       if [[  $DEBUG -eq 0 ]] ; then
@@ -459,7 +459,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  \
-          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER ." "$BACKUP_SCHEME"
+          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER ." "$backup_scheme"
       fi
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
 -C "$SOURCE_FOLDER" .
@@ -477,7 +477,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
 
       if [[ $RUNTIME_MODE == "SERVICE"   ]] ; then
         notifyErr "$PNAME" " : exit status after tar commmand (fatal error)\
-= $EXIT_STATUS" | journalThis 3 "$BACKUP_SCHEME"
+= $EXIT_STATUS" | journalThis 3 "$backup_scheme"
       else
         echo >&2 "$PNAME : exit status after tar commmand (fatal error)\
 = $EXIT_STATUS"
@@ -486,19 +486,19 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
       if [[ -f "$TAR_BALL_NAME" ]] ; then
         if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg "$PNAME" " : A tarball was made, probably full of \
-errors rm -f $TAR_BALL_NAME" "$BACKUP_SCHEME"
+errors rm -f $TAR_BALL_NAME" "$backup_scheme"
         fi
 
         rm -f "$TAR_BALL_NAME"
 
         if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg " : Removing the tar ball we  made: \
-$TAR_BALL_NAME " "$BACKUP_SCHEME"
+$TAR_BALL_NAME " "$backup_scheme"
         fi
         if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
           if [[  $DEBUG -eq 0 ]] ; then
               routDebugMsg " : Removing the backup folder made: \
-$TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
+$TODAYS_BACKUP_FOLDER_NAME " "$backup_scheme"
             fi
           fi
           rmdir -fr "$TODAYS_BACKUP_FOLDER_NAME"
@@ -508,14 +508,14 @@ $TODAYS_BACKUP_FOLDER_NAME " "$BACKUP_SCHEME"
 
       if [[ $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
         notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
-        | journalThis 5 "$BACKUP_SCHEME"
+        | journalThis 5 "$backup_scheme"
       fi
     fi
   fi
 else
   if [[ $DEBUG -ne 0 && $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
     notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
-changed or added since last backup. "  | journalThis 5 "$BACKUP_SCHEME"
+changed or added since last backup. "  | journalThis 5 "$backup_scheme"
   fi
   EXIT_STATUS=1
 fi
@@ -540,18 +540,18 @@ if [[ $DRY_RUN == false && $MUST_MAKE_BACKUP -eq 0 \
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
           routDebugMsg  " : The backup  container ${BACKUP_CONTAINER} doesn't \
 have any older folders than itself!  You need to investigate the situation, \
-to remedy it!"  "$BACKUP_SCHEME"
+to remedy it!"  "$backup_scheme"
         fi
       else
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
             routDebugMsg " : Removing the old backup ${dirToRemove} by \
-rotation." "$BACKUP_SCHEME"
+rotation." "$backup_scheme"
         fi
 
         if !  rm -fr "$dirToRemove" ; then
           if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
             routDebugMsg "E[0]}" "Removing the  old backup ${dirToRemove} by \
-rotation FAILED Terminates..." "$BACKUP_SCHEME"
+rotation FAILED Terminates..." "$backup_scheme"
           fi
           exit 1
         else

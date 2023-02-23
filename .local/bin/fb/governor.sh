@@ -129,11 +129,11 @@ dieIfNotOkBashVersion
 consoleHasInternet "$curscheme"
 consoleFBfolderIsMounted "$curscheme"
 
-BACKUP_SCHEME=${1}
+backup_scheme=${1}
 
-JOBS_FOLDER="$XDG_DATA_HOME"/fbjobs/"$BACKUP_SCHEME"
+JOBS_FOLDER="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-dieIfJobsFolderDontExist "$JOBS_FOLDER" "$BACKUP_SCHEME" "$RUNTIME_MODE"
+dieIfJobsFolderDontExist "$JOBS_FOLDER" "$backup_scheme" "$RUNTIME_MODE"
 #  the folder we pick up the symlinks we are going to backup.
 
 
@@ -144,13 +144,13 @@ if [[ -z "$JOBS_LIST" ]] ; then
   # We have nothing to  do, and die silently.
   if [[ $DEBUG -eq 0 ]] ; then
    routDebugMsg " : No symlinks, nothing to do. We are \
-shutting down this service." "$BACKUP_SCHEME"
+shutting down this service." "$backup_scheme"
   fi
   exit 0
 fi
 
 
-SCHEME_CONTAINER="$( assertSchemeContainer "$BACKUP_SCHEME" )"
+SCHEME_CONTAINER="$( assertSchemeContainer "$backup_scheme" )"
 # the container with backups of that scheme on the GoogleDrive.
 # makes the container, and parent! shouldn't one or both exist.
 
@@ -158,18 +158,18 @@ for SYMLINK_NAME in $JOBS_LIST ; do
   if isASymlink "$JOBS_FOLDER"/"$SYMLINK_NAME" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg " : $SYMLINK_NAME is a  SYMLINK_NAME." "$BACKUP_SCHEME"
+      routDebugMsg " : $SYMLINK_NAME is a  SYMLINK_NAME." "$backup_scheme"
     fi
 
     if isUnbrokenSymlink "$JOBS_FOLDER"/"$SYMLINK_NAME" ; then
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
         routDebugMsg ": currently processing the symlink $SYMLINK_NAME\
-(unbroken).\n" "$BACKUP_SCHEME"
+(unbroken).\n" "$backup_scheme"
       fi
       # we need the real path
       target_folder="$(realpath "$JOBS_FOLDER"/"$SYMLINK_NAME")"
       if [[ $DEBUG -eq 0 ]] ; then
-        routDebugMsg " : Realpath is $target_folder." "$BACKUP_SCHEME"
+        routDebugMsg " : Realpath is $target_folder." "$backup_scheme"
       fi
 
       if [[ ! -f $JOBS_FOLDER/$SYMLINK_NAME.pause ]] ; then
@@ -180,16 +180,16 @@ for SYMLINK_NAME in $JOBS_LIST ; do
           # we can go silent about this, or we can just send a message.
           if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg " : $BACKUP_CONTAINER didn't exist, que to \
-make backup" "$BACKUP_SCHEME"
+make backup" "$backup_scheme"
           fi
         else
           if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg " :$BACKUP_CONTAINER exists, NO que to make \
-backup." "$BACKUP_SCHEME"
+backup." "$backup_scheme"
           fi
         fi
 
-        manager "$BACKUP_SCHEME"  "$SYMLINK_NAME" backup
+        manager "$backup_scheme"  "$SYMLINK_NAME" backup
         exit_code=$?
         if [[ $exit_code  -eq 0 ]] ; then
           BACKUP_SCRIPT="$DELEGATE_SCRIPT"
@@ -198,10 +198,10 @@ backup." "$BACKUP_SCHEME"
         fi
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then 
           routDebugMsg " : Command line after manager: \
-$BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK_NAME" "$BACKUP_SCHEME"
+$BACKUP_SCRIPT $backup_scheme $SYMLINK_NAME" "$backup_scheme"
         fi
         ERR_IGNORE=0
-        "$BACKUP_SCRIPT" "$BACKUP_SCHEME" "$SYMLINK_NAME"
+        "$BACKUP_SCRIPT" "$backup_scheme" "$SYMLINK_NAME"
         EXIT_STATUS=$?
         ERR_IGNORE=1
         if [[ $EXIT_STATUS -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
@@ -213,17 +213,17 @@ $BACKUP_SCRIPT $BACKUP_SCHEME $SYMLINK_NAME" "$BACKUP_SCHEME"
         # there was a pause file
         if [[ $DEBUG -eq 0  ]] ; then
           routDebugMsg " : I found a $JOBS_FOLDER/$SYMLINK_NAME.pause\
- file and skips this job ... for now." "$BACKUP_SCHEME"
+ file and skips this job ... for now." "$backup_scheme"
         fi
       fi
     else
       # broken symlink
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
         routDebugMsg "$PNAME : The symlink $SYMLINK_NAME is broken." \
-"$BACKUP_SCHEME"
+"$backup_scheme"
       fi
       # this goes to the journal land a notification is sent.
-      brokenSymlink "$JOBS_FOLDER" "$SYMLINK_NAME" "$BACKUP_SCHEME:${0##*/}"
+      brokenSymlink "$JOBS_FOLDER" "$SYMLINK_NAME" "$backup_scheme:${0##*/}"
     fi
   # else NOT A SYMLINK_NAME, we just ignore.
   fi
@@ -233,10 +233,10 @@ if [[ $TERSE_OUTPUT -eq 0 ]] ; then
 
   if [[ ${#success_jobs[@]} -ne 0 ]] ; then
     notifyErr "$PNAME" " : Successful backup: of ${success_jobs[@]} " \
-        | journalThis 5 "$BACKUP_SCHEME"
+        | journalThis 5 "$backup_scheme"
   else
     notifyErr "$PNAME" " : Nothing to backup: at this time " \
-        | journalThis 5 "$BACKUP_SCHEME"
+        | journalThis 5 "$backup_scheme"
   fi
 fi
 
