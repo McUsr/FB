@@ -487,8 +487,8 @@ ${FUNCNAME[0]}\nTerminating..."
 
   de_esced_bit_to_rm="$(echo "$bit_to_rm" | sed -ne 's:\\::g' -e 'p')"
 
-  local DBG_ESC=1
-  if [[ $DBG_ESC -eq 0 ]] ; then
+  local dbg_esc=1
+  if [[ $dbg_esc -eq 0 ]] ; then
     echo orig : "$orig" >&2
     echo de_esced_orig : "$de_esced_orig" >&2
     echo bit_to_rm :"$bit_to_rm" >&2
@@ -514,7 +514,7 @@ timestamped folder that contains the actual files containing the backup.)\
 
   fi
 
-  OLDIFS=$IFS
+  oldifs=$IFS
   export IFS='/'
 # shellcheck disable=SC2086 # NO QUOTING == disastrous!
   set -- $replaced
@@ -529,7 +529,7 @@ timestamped folder that contains the actual files containing the backup.)\
     exit 2
 
   fi
-  export IFS=$OLDIFS
+  export IFS=$oldifs
   # We check here if the folder conforms with the naming standard.
   if validateFormatOfTimeStampedBackupContainingFolder "$2" ; then
 
