@@ -198,10 +198,10 @@ else
 fi
 
 # We need to sort out which backup to restore.
-BACKUP_SOURCE_TYPE=
+backup_source_type=
 # is it a file or a directory we got?
 if [[ -f "$1" ]] ;then
-  BACKUP_SOURCE_TYPE="file"
+  backup_source_type="file"
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
     echo -e >&2 "$PNAME : The backup source is a file!"
   fi
@@ -221,7 +221,7 @@ file."
     echo -e >&2 "$PNAME : The file  specified:\n \"$1\":\n IS a .tar.gz file."
   fi
 elif [[ -d "$1" ]] ;then
-  BACKUP_SOURCE_TYPE=folder
+  backup_source_type=folder
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
     echo -e >&2 "$PNAME : The backup source is a folder!"
   fi
@@ -238,7 +238,7 @@ neither a file, nor a folder."
 fi
 
 BACKUP_SOURCE=
-if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
+if [[ "$backup_source_type" = "folder" ]] ; then
 # Find the newest backup by convention.
 # As the design is per today, if we should just be able to
 # retrieve the latest by specifying the Container, then we should probably
@@ -270,7 +270,7 @@ if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
 \n$BACKUP_SOURCE"
     fi
   fi
-elif [[ "$BACKUP_SOURCE_TYPE" = "file" ]] ; then
+elif [[ "$backup_source_type" = "file" ]] ; then
   BACKUP_SOURCE="$1"
 fi
 
