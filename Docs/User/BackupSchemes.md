@@ -1,4 +1,4 @@
-~/wrk/BackupProject/technical/BackupSchemes.md
+Backup Schemes for Folder Backup
 --------------------------------------
 
 ### Periodic Backup schemes.
@@ -69,5 +69,5 @@ backups will only be made if there is something new to
 backup there.
 
 
-  Last updated:23-02-23 19:35
+  Last updated:23-02-23 20:23
 
