@@ -101,6 +101,9 @@ leading dots in the folders in the path escaped with `\` and
 `/` are replaced with `-`.
 
 
+#### KIND:
+KIND: Whether the backup is of Periodical or OneShot kind. 
+
 ### Runtime variables governing the output
 
 
@@ -140,5 +143,5 @@ ERR_IGNORE: controls if the ERR trap shall emit an error
 message.
 
 ( fra governor.sh, kan kanskje brukes. )
-  Last updated:23-02-23 13:36
+  Last updated:23-02-23 15:41
 
