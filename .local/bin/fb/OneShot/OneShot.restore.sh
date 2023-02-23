@@ -157,8 +157,8 @@ fi
 
 # Can we use the submitted destination folder?
 if [[ -r "$2" ]] ; then
-  DEST_TEST="${2/$FB/}"
-  if [[ "$DEST_TEST" != "$2" ]] ; then
+  dest_test="${2/$FB/}"
+  if [[ "$dest_test" != "$2" ]] ; then
     # same whether dry-run, verbose, or not.
     echo -e >&2 "$PNAME : The destination folder are not allowed to be inside \
 \$FB: $FB.\nTerminating..."
@@ -185,8 +185,8 @@ if [[ -r "$1" ]] ; then
   if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then
     echo -e >&2 "$PNAME : The backup source (candidate) exists!"
   fi
-  DEST_TEST="${1/$FB/}"
-  if [[  "$DEST_TEST" = "$1" ]] ; then
+  dest_test="${1/$FB/}"
+  if [[  "$dest_test" = "$1" ]] ; then
       echo -e >&2 "$PNAME : The backup source to restore  are not allowed to \
 be outside $FB.\nTerminating..."
       exit 2
