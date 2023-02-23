@@ -975,6 +975,8 @@ contents" "$backup_scheme"
     return 1
   fi
 }
+
+
 # hasExcludeFile()
 # PARAMETERS: BACKUP_SCHEME, SYMLINK_NAME
 # RETURNS true/0 if we have an exclude file
@@ -1047,42 +1049,42 @@ createExcludeFile() {
 arguments\nTerminates" >&2 ; exit 5 ; fi
   # visual first, editor after.
   dieIfNotValidFbFolderName "$1"
-  SCHEME=$1
+  backup_scheme=$1
   dieIfNotValidFullSymlinkName "$2" "$1"
-  FULL_SYMLINK_NAME="$2"
+  symlink_name="$2"
 
 # Only one place a the exclude file.
 # And if it doesn't exist, then we'll make it.
-  if [[ ! -d "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d ]] ; then
-    echo >&2 "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d
+  if [[ ! -d "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d ]] ; then
+    echo >&2 "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d
 
     if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
       echo -e "$PNAME : The folder\
-        \"$XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d\" didn't exist.\
-        \nMaking it.\nmkdir -p ~/.local/bin/fb/OneShot/$FULL_SYMLINK_NAME.d"\
-        | journalThis 7 "$SCHEME"
+        \"$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d\" didn't exist.\
+        \nMaking it.\nmkdir -p ~/.local/bin/fb/OneShot/$symlink_name.d"\
+        | journalThis 7 "$backup_scheme"
     fi
-    mkdir -p "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d
-    touch "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d/exclude.file
+    mkdir -p "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d
+    touch "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
   fi
 
   dieIfNoEditorSetToUse
 
   if "$THE_EDITOR"\
-    "$XDG_BIN_HOME"/fb/"$SCHEME"/"$FULL_SYMLINK_NAME".d/exclude.file ;\
+    "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file ;\
   then
     echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
-      \n $XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\
+      \n $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file\
       \nTerminating..." | journalThis 2 OneShot
     exit 1
   fi
 
   # Maybe we should check if there were any contents in the file we created
   #  before we see this as a success?
-  if excludeFileHasContents "$SCHEME" "$FULL_SYMLINK_NAME" ; then
+  if excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
     echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
-      \n$XDG_BIN_HOME/fb/$SCHEME/$FULL_SYMLINK_NAME.d/exclude.file\nIs empty!\
-      \nTerminating..." | journalThis 2 "$SCHEME"
+      \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file\nIs empty!\
+      \nTerminating..." | journalThis 2 "$backup_scheme"
 
     exit 1
   fi
