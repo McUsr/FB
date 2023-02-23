@@ -740,11 +740,13 @@ backup/kind/scheme \nTerminates..." >&2 ;
     mkdir -p "$scheme_container"
     # we can go silent about this, or we can just send a message.
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg "$scheme_container didn't exist, que to make backup" "$backup_scheme"
+      routDebugMsg "$scheme_container didn't exist, que to make backup" \
+        "$backup_scheme"
     fi
   else
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg "$scheme_container exists, NO que to make backup" "$backup_scheme"
+      routDebugMsg "$scheme_container exists, NO que to make backup" \
+        "$backup_scheme"
     fi
   fi
   echo "$scheme_container"
@@ -766,7 +768,7 @@ manager() {
 
   if [[ $# -ne 3 ]] ; then
       routCriticialMsg "/${FUNCNAME[0]} : Wrong number of arguments, I need \
-BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." "$BACKUP_SCHEME"
+BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." FolderBackup
       exit 255
   else
     backup_scheme=$1
@@ -892,7 +894,7 @@ dieIfNoEditorSetToUse() {
 dieIfNotValidFullSymlinkName() {
   if [[ $# -ne 2 ]] ; then
     routErrorMsg "/${FUNCNAME[0]} : I need two\ arguments full-symlink-name \
-and scheme. Terminates" "$BACKUP_SCHEME"
+and scheme. Terminates" FolderBackup
     exit 5
   fi
   local full_symlink_name="$1" backup_scheme=$2
