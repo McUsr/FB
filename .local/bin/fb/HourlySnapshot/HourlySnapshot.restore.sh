@@ -396,21 +396,21 @@ trap "ctrl_c" INT
 
 ctrl_c() {
   echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
-  echo >&2 "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
-  rm -fr "$DRY_RUN_FOLDER"
+  echo >&2 "$PNAME : We: rm -fr $dry_run_folder."
+  rm -fr "$dry_run_folder"
 }
   if [[ $HAVING_ERRORS = false ]] ; then
-    DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
-    sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$DRY_RUN_FOLDER"
+    dry_run_folder=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
+    sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$dry_run_folder"
     if [[ $? -lt 130 ]] ; then
-      rm -fr "$DRY_RUN_FOLDER"
+      rm -fr "$dry_run_folder"
     fi
   else
-    echo -e >&2 "$PNAME : DRY_RUN_FOLDER=\$(mktemp -d \
+    echo -e >&2 "$PNAME : dry_run_folder=\$(mktemp -d \
 \"/tmp/OneShot.restore.sh.XXX\")"
     echo -e >&2 "$PNAME : tar -x -z $verbose_options -f  \"$BACKUP_SOURCE\" \
--C $DRY_RUN_FOLDER"
-    echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
+-C $dry_run_folder"
+    echo -e >&2 "$PNAME : rm -fr $dry_run_folder"
   fi
 
 else

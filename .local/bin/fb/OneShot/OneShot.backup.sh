@@ -203,17 +203,17 @@ fi
 exit_code=0
 if [[ $DRY_RUN = true  ]] ; then
 
-  DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.backup.sh.XXX")
+  dry_run_folder=$(mktemp -d "/tmp/OneShot.backup.sh.XXX")
   trap "HAVING_ERRORS=true;ctrl_c" INT
 
 ctrl_c() {
   echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
-  echo >&2  "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
-  rm -fr "$DRY_RUN_FOLDER"
+  echo >&2  "$PNAME : We: rm -fr $dry_run_folder."
+  rm -fr "$dry_run_folder"
 }
 
   TAR_BALL_NAME=\
-"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
+"$dry_run_folder"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo >&2 "$PNAME : sudo tar -z $verbose_options -c -f \
@@ -226,20 +226,20 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
       sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" -C "$source_folder" .
     fi
 
-    if [[ -d "$DRY_RUN_FOLDER" ]] ; then
-        rm -fr "$DRY_RUN_FOLDER"
+    if [[ -d "$dry_run_folder" ]] ; then
+        rm -fr "$dry_run_folder"
     fi
     exit_code=$?
     if [[ $exit_code -gt 1 ]] ; then
       echo >&2 "$PNAME : exit status after tar commmand = $exit_code"
-      echo ">&2 $PNAME : rm -fr $DRY_RUN_FOLDER"
+      echo ">&2 $PNAME : rm -fr $dry_run_folder"
     fi
   else
     echo -e >&2 "$PNAME \
-: DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
+: dry_run_folder=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
     echo -e "$PNAME : sudo tar -z -c $verbose_options -c  $exclude_options -f \
 $TAR_BALL_NAME  -C $source_folder . "
-    echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
+    echo -e >&2 "$PNAME : rm -fr $dry_run_folder"
   fi
 else
 # DRY_RUN == false

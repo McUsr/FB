@@ -370,15 +370,15 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
       trap "ctrl_c" INT
       ctrl_c() {
         echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
-        echo >&2 "$PNAME : We: rm -fr $DRY_RUN_FOLDER."
-        rm -fr "$DRY_RUN_FOLDER"
+        echo >&2 "$PNAME : We: rm -fr $dry_run_folder."
+        rm -fr "$dry_run_folder"
       }
     fi
 
-    DRY_RUN_FOLDER=$(mktemp -d "/tmp/$backup_scheme.backup.sh.XXX")
+    dry_run_folder=$(mktemp -d "/tmp/$backup_scheme.backup.sh.XXX")
 
     TAR_BALL_NAME=\
-"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
+"$dry_run_folder"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $verbose_options -c -f \
@@ -428,17 +428,17 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
       fi
     fi
 
-    if [[ -d "$DRY_RUN_FOLDER" ]] ; then
-        rm -fr "$DRY_RUN_FOLDER"
+    if [[ -d "$dry_run_folder" ]] ; then
+        rm -fr "$dry_run_folder"
     fi
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
       if [[  $DEBUG -eq 0 ]] ; then
-        routDebugMsg "$PNAME" " : rm -fr $DRY_RUN_FOLDER" \
+        routDebugMsg "$PNAME" " : rm -fr $dry_run_folder" \
 | journalThis 7 "$backup_scheme"
       fi
     else
       if [[  $DEBUG -eq 0 ]] ; then
-        echo >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
+        echo >&2 "$PNAME : rm -fr $dry_run_folder"
       fi
     fi
 
