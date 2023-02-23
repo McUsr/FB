@@ -200,7 +200,7 @@ if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 else
   VERBOSE_OPTIONS="-v"
 fi
-EXIT_STATUS=0
+exit_code=0
 if [[ $DRY_RUN = true  ]] ; then
 
   DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.backup.sh.XXX")
@@ -229,9 +229,9 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
         rm -fr "$DRY_RUN_FOLDER"
     fi
-    EXIT_STATUS=$?
-    if [[ $EXIT_STATUS -gt 1 ]] ; then
-      echo >&2 "$PNAME : exit status after tar commmand = $EXIT_STATUS"
+    exit_code=$?
+    if [[ $exit_code -gt 1 ]] ; then
+      echo >&2 "$PNAME : exit status after tar commmand = $exit_code"
       echo ">&2 $PNAME : rm -fr $DRY_RUN_FOLDER"
     fi
   else
@@ -262,13 +262,13 @@ ctrl_c() {
     else
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" -C "$SOURCE_FOLDER" .
     fi
-    EXIT_STATUS=$?
+    exit_code=$?
 
-    if [[ $EXIT_STATUS -gt 1 ]] ; then
+    if [[ $exit_code -gt 1 ]] ; then
 
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo >&2 "$PNAME : exit status after tar commmand (fatal error)\
-          = $EXIT_STATUS"
+          = $exit_code"
       fi
 
       if [[ -f "$TAR_BALL_NAME" ]] ; then
@@ -277,9 +277,9 @@ ctrl_c() {
         fi
         rm -f "$TAR_BALL_NAME"
       fi
-    elif [[ $EXIT_STATUS -eq 0 ]] ; then
+    elif [[ $exit_code -eq 0 ]] ; then
       echo -e >&2 "\n($TAR_BALL_NAME)\n"
     fi
 fi
 
-exit $EXIT_STATUS
+exit $exit_code

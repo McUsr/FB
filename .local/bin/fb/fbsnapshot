@@ -275,20 +275,20 @@ if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
 fi
 
 
-EXIT_STATUS=0
+exit_code=0
 trap '' ERR
 $BACKUP_SCRIPT $BACKUP_OPTIONS  "$SOURCE_FOLDER"  "$TODAYS_BACKUP_FOLDER" \
 "$SYMLINK_NAME"
-EXIT_STATUS=$?
+exit_code=$?
 
 # We do some cleanup in OneShot.backup.sh
-if [[ $EXIT_STATUS -eq 0 &&  $DRY_RUN = false  ]] ; then
+if [[ $exit_code -eq 0 &&  $DRY_RUN = false  ]] ; then
    echo  -e >&2 "$PNAME : backup  of $SOURCE_FOLDER into $TODAYS_BACKUP_FOLDER \
      complete!"   | journalThis 5 "$curscheme"
 
-elif [[ $EXIT_STATUS -gt 1 ]] ; then
+elif [[ $exit_code -gt 1 ]] ; then
 
-  if [[ $EXIT_STATUS -eq 130 ]] ; then
+  if [[ $exit_code -eq 130 ]] ; then
       echo >&2 "$PNAME : User interrupted the operation"
   else
       echo >&2 "$PNAME : A fatal error occurred."
@@ -309,4 +309,4 @@ elif [[ $EXIT_STATUS -gt 1 ]] ; then
     fi
   fi
 fi
-exit $EXIT_STATUS
+exit $exit_code

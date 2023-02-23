@@ -362,7 +362,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     VERBOSE_OPTIONS="-v"
   fi
 
-  EXIT_STATUS=0
+  exit_code=0
 
   if [[ $DRY_RUN == true  ]] ; then
 
@@ -417,14 +417,14 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
 
     fi
 
-    EXIT_STATUS=$?
+    exit_code=$?
 
-    if [[ $EXIT_STATUS -gt 1 ]] ; then
+    if [[ $exit_code -gt 1 ]] ; then
       if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then 
-        notifyErr "$PNAME : exit status after tar commmand = $EXIT_STATUS" \
+        notifyErr "$PNAME : exit status after tar commmand = $exit_code" \
 | journalThis 5 "$backup_scheme"
       else
-        echo >&2 "$PNAME : exit status after tar commmand = $EXIT_STATUS"
+        echo >&2 "$PNAME : exit status after tar commmand = $exit_code"
       fi
     fi
 
@@ -472,15 +472,15 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
       sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f \
 "$TAR_BALL_NAME" -C "$SOURCE_FOLDER" .
     fi
-    EXIT_STATUS=$?
-    if [[ $EXIT_STATUS -gt 1 ]] ; then
+    exit_code=$?
+    if [[ $exit_code -gt 1 ]] ; then
 
       if [[ $RUNTIME_MODE == "SERVICE"   ]] ; then
         notifyErr "$PNAME" " : exit status after tar commmand (fatal error)\
-= $EXIT_STATUS" | journalThis 3 "$backup_scheme"
+= $exit_code" | journalThis 3 "$backup_scheme"
       else
         echo >&2 "$PNAME : exit status after tar commmand (fatal error)\
-= $EXIT_STATUS"
+= $exit_code"
       fi
 
       if [[ -f "$TAR_BALL_NAME" ]] ; then
@@ -504,7 +504,7 @@ $TODAYS_BACKUP_FOLDER_NAME " "$backup_scheme"
           rmdir -fr "$TODAYS_BACKUP_FOLDER_NAME"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
-    elif [[ $EXIT_STATUS -eq 0 ]] ; then
+    elif [[ $exit_code -eq 0 ]] ; then
 
       if [[ $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
         notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
@@ -517,11 +517,11 @@ else
     notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
 changed or added since last backup. "  | journalThis 5 "$backup_scheme"
   fi
-  EXIT_STATUS=1
+  exit_code=1
 fi
 
-if [[ $EXIT_STATUS -ne 0 ]] ; then
-  exit $EXIT_STATUS ;
+if [[ $exit_code -ne 0 ]] ; then
+  exit $exit_code ;
 fi
 
 if [[ $DRY_RUN == false && $MUST_MAKE_BACKUP -eq 0 \

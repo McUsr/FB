@@ -248,9 +248,9 @@ if [[ "$BACKUP_SOURCE_TYPE" = "folder" ]] ; then
 # backup.
 
   BACKUP_CANDIDATE=($( find "$1" -name "*.tar.gz"))
-  EXIT_STATUS=$?
-  if [[ $DRY_RUN = false &&  $EXIT_STATUS -ne 0 ]] ; then
-     exit $EXIT_STATUS
+  exit_code=$?
+  if [[ $DRY_RUN = false &&  $exit_code -ne 0 ]] ; then
+     exit $exit_code
   fi
 
   if [[ ${#BACKUP_CANDIDATE[@]} -eq 0 ]] ; then
@@ -388,7 +388,7 @@ else
 fi
 
 
-EXIT_STATUS=0
+exit_code=0
 if [[ $DRY_RUN = true ]] ; then
 trap "ctrl_c" INT
 
@@ -430,24 +430,24 @@ ctrl_c() {
 -C $DEST_FOLDER"
   fi
   sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$DEST_FOLDER"
-  EXIT_STATUS=$?
+  exit_code=$?
    #   | journalThis 7 OneShot
 
-  if [[ $EXIT_STATUS -gt 1 ]] ; then
+  if [[ $exit_code -gt 1 ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo >&2 "$PNAME : exit status after tar commmand (fatal error) \
-= $EXIT_STATUS"
+= $exit_code"
       fi
 
-    if [[ $EXIT_STATUS -ne 130 ]] ; then
+    if [[ $exit_code -ne 130 ]] ; then
       if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then
         rm -fr "$DEST_FOLDER"
       fi
     fi
-  elif [[ $EXIT_STATUS -eq 0 ]] ; then
+  elif [[ $exit_code -eq 0 ]] ; then
       echo -e  >&2 "\n($DEST_FOLDER)\n"
       # This only looks like this here, not when the script is implicitly
       # initiated from a daemon.
   fi
 fi
-exit $EXIT_STATUS
+exit $exit_code

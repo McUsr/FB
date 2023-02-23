@@ -202,9 +202,9 @@ $BACKUP_SCRIPT $backup_scheme $symlink_name" "$backup_scheme"
         fi
         ERR_IGNORE=0
         "$BACKUP_SCRIPT" "$backup_scheme" "$symlink_name"
-        EXIT_STATUS=$?
+        exit_code=$?
         ERR_IGNORE=1
-        if [[ $EXIT_STATUS -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
+        if [[ $exit_code -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
           success_jobs+=( "$(pathFromFullSymlinkName "$symlink_name" )" )
         fi
         # TODO:  If exit status ok, put symlink into array,

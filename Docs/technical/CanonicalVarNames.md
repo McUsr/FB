@@ -135,8 +135,10 @@ SILENT: Controls whether to send success message
 when verbose = false, upon completed backup. It is governed
 by TERSE\_OUTPUT,  which  turns SILENT on, when set.
 
-
+#### ERR_IGNORE:
+ERR_IGNORE: controls if the ERR trap shall emit an error
+message.
 
 ( fra governor.sh, kan kanskje brukes. )
-  Last updated:23-02-23 11:27
+  Last updated:23-02-23 13:36
 
