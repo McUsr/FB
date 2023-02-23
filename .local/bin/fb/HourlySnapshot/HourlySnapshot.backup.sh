@@ -228,20 +228,20 @@ backup_scheme="${1}"
 symlink_name="${2}"
 
 # Qualify the jobs folder
-JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
 
-dieIfJobsFolderDontExist "$JOBSFOLDER" "$backup_scheme" "$RUNTIME_MODE"
+jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+dieIfJobsFolderDontExist "$jobs_folder" "$backup_scheme" "$RUNTIME_MODE"
 
 if [[ $DEBUG -eq 0 ]] ; then
-  routDebugMsg " : JOBSFOLDER: $JOBSFOLDER" "$backup_scheme"
+  routDebugMsg " : jobs_folder: $jobs_folder" "$backup_scheme"
 fi
 
 #  Qualify the source folder
 
-dieIfBrokenSymlink "$JOBSFOLDER" "$symlink_name" "$backup_scheme"
+dieIfBrokenSymlink "$jobs_folder" "$symlink_name" "$backup_scheme"
 
-source_folder=$(realpath "$JOBSFOLDER"/"$symlink_name")
+source_folder=$(realpath "$jobs_folder"/"$symlink_name")
 if [[ $DEBUG -eq 0 ]] ; then
   routDebugMsg " : source_folder: $source_folder" "$backup_scheme"
 fi
@@ -315,7 +315,7 @@ else
   fi
 
   # we need to compare timestamps.
-  modfiles=$(find -H "$JOBSFOLDER"/"$symlink_name" -cnewer "$probeDir" 2>&1)
+  modfiles=$(find -H "$jobs_folder"/"$symlink_name" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
       routDebugMsg " : There are modified or added files since last backup. \
