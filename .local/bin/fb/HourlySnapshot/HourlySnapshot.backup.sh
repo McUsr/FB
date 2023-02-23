@@ -351,9 +351,9 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
         cat "$EXCLUDE_FILE" 1>&2
       fi
     fi
-    EXCLUDE_OPTIONS="--exclude-from=$EXCLUDE_FILE"
+    exclude_options="--exclude-from=$EXCLUDE_FILE"
   else
-    EXCLUDE_OPTIONS=
+    exclude_options=
   fi
 
   if [[ $VERBOSE = true ]] ; then
@@ -382,37 +382,37 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder ."   | journalThis 7 "$backup_scheme"
+$TAR_BALL_NAME $exclude_options -C $source_folder ."   | journalThis 7 "$backup_scheme"
 
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
-        if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+        if [[ -z "$exclude_options"  ]] ; then
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
 -C "$source_folder" . | journalThis 7 "$backup_scheme"
         else
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$source_folder" . | journalThis 7 "$backup_scheme"
+"$exclude_options" -C "$source_folder" . | journalThis 7 "$backup_scheme"
         fi
       else
-        if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+        if [[ -z "$exclude_options"  ]] ; then
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
 -C "$source_folder" "."
         else
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$source_folder" . >/dev/null
+"$exclude_options" -C "$source_folder" . >/dev/null
         fi
       fi
 
     else
       # CONSOLE
        echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
+$TAR_BALL_NAME $exclude_options -C $source_folder . "
 
-      if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+      if [[ -z "$exclude_options"  ]] ; then
         sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME"  \
 -C "$source_folder" "."
       else
         sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$source_folder" "."
+"$exclude_options" -C "$source_folder" "."
       fi
 
     fi
@@ -456,7 +456,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
     TAR_BALL_NAME=\
 "$todays_backup_folder_name"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
-    if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
+    if [[ -z "$exclude_options"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  \
           -f $TAR_BALL_NAME  -C $source_folder ." "$backup_scheme"
@@ -466,10 +466,10 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
     else
       # TODO: MAYBE  put in a block, testing for CONSOLE and adding setbuf
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-        routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
+        routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  $exclude_options\
           -f $TAR_BALL_NAME  -C $source_folder" .
       fi
-      sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f \
+      sudo tar -z $VERBOSE_OPTIONS -c "$exclude_options" -f \
 "$TAR_BALL_NAME" -C "$source_folder" .
     fi
     exit_code=$?

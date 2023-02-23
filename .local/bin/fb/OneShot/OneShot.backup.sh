@@ -44,13 +44,13 @@ pathToSourcedFiles() {
 }
 
 
-# Program vars, read only, 
+# Program vars, read only,
 PNAME=${0##*/}
 
 MODE="CONSOLE"
 
 fbBinDir="$(pathToSourcedFiles)"
-through_shellcheck=1 
+through_shellcheck=1
 if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
@@ -190,9 +190,9 @@ if hasExcludeFile OneShot "$symlink_name" ; then
    echo >&2 "$PNAME : I have an exclude file : $EXCLUDE_FILE "
    cat  >&2 "$EXCLUDE_FILE"
  fi
- EXCLUDE_OPTIONS="--exclude-from=$EXCLUDE_FILE"
+ exclude_options="--exclude-from=$EXCLUDE_FILE"
 else
-  EXCLUDE_OPTIONS=
+  exclude_options=
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
@@ -217,10 +217,10 @@ ctrl_c() {
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
+$TAR_BALL_NAME $exclude_options -C $source_folder . "
 
-    if [[ -n "$EXCLUDE_OPTIONS" ]] ; then
-      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$EXCLUDE_OPTIONS" \
+    if [[ -n "$exclude_options" ]] ; then
+      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$exclude_options" \
 -C "$source_folder" .
     else
       sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" -C "$source_folder" .
@@ -237,7 +237,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
   else
     echo -e >&2 "$PNAME \
 : DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
-    echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS -f \
+    echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $exclude_options -f \
 $TAR_BALL_NAME  -C $source_folder . "
     echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
@@ -253,11 +253,11 @@ ctrl_c() {
   rm -f "$TAR_BALL_NAME"
 }
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-      echo -e >&2 "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
+      echo -e >&2 "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $exclude_options\
         -f $TAR_BALL_NAME  -C $source_folder" .
     fi
-    if [[ -n "$EXCLUDE_OPTIONS" ]] ; then 
-      sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C\
+    if [[ -n "$exclude_options" ]] ; then 
+      sudo tar -z $VERBOSE_OPTIONS -c "$exclude_options" -f "$TAR_BALL_NAME" -C\
 "$source_folder" .
     else
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" -C "$source_folder" .
