@@ -762,94 +762,94 @@ export -f journalThis
 
 manager() {
   declare -g DELEGATE_SCRIPT
-  local CANDIDATE_SCRIPT
+  local candidate_script
 
   if [[ $# -ne 3 ]] ; then
       routCriticialMsg "/${FUNCNAME[0]} : Wrong number of arguments, I need \
 BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." "$BACKUP_SCHEME"
       exit 255
   else
-    BACKUP_SCHEME=$1
-    SYMLINK_NAME=$2
-    OPERATION=$3
+    backup_scheme=$1
+    symlink_name=$2
+    operation=$3
 
-    if [[ $OPERATION != "backup" && $OPERATION != "restore" ]] ; then
+    if [[ $operation != "backup" && $operation != "restore" ]] ; then
       routCriticialMsg  "/${FUNCNAME[0]} : Wrong value for \$OPERATION, MUST \
-be either\"backup\" or \"restore\". Terminates..." "$BACKUP_SCHEME"
+be either\"backup\" or \"restore\". Terminates..." "$backup_scheme"
     exit 255
     fi
   fi
 
-  dieIfNotSchemeBinFolderExist "$BACKUP_SCHEME"
+  dieIfNotSchemeBinFolderExist "$backup_scheme"
 
-  local SCHEME_BIN_FOLDER=$XDG_BIN_HOME/fb/$BACKUP_SCHEME
+  local scheme_bin_folder="$XDG_BIN_HOME"/fb/"$backup_scheme"
 
-  local CANDIDATE_SCRIPT="$SCHEME_BIN_FOLDER"/"$BACKUP_SCHEME"."$OPERATION".sh
+  local candidate_script="$scheme_bin_folder"/"$backup_scheme"."$operation".sh
 
-  if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
+  if [[ ! -x "$candidate_script" ]] ; then
     # same if with DRY_RUN or VERBOSE
     routCriticialMsg "${FUNCNAME[0]} : I can't find the backup script \
-$CANDIDATE_SCRIPT. This is a critical error. Terminates..." "$BACKUP_SCHEME"
+$candidate_script. This is a critical error. Terminates..." "$backup_scheme"
     exit 255
   else
 
-    DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
+    DELEGATE_SCRIPT="$candidate_script"
     if [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
       routDebugMsg "/${FUNCNAME[0]} : Current backup script is : \
-$DELEGATE_SCRIPT" "$BACKUP_SCHEME"
+$DELEGATE_SCRIPT" "$backup_scheme"
     fi
   fi
-# Looking for a GENERAL replacement is in the $BACKUP_SCHEME.d folder.
+# Looking for a GENERAL replacement is in the $backup_scheme.d folder.
 
-  CANDIDATE_SCRIPT=\
-"$SCHEME_BIN_FOLDER"/"$BACKUP_SCHEME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+  candidate_script=\
+"$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme"."$operation".sh
 
-  if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
+  if [[  -f "$candidate_script" ]] ; then
     if [[ $DEBUG -eq 0  || $DRY_RUN = true ]] ; then
       routDebugMsg"/${FUNCNAME[0]} :  I have a readable backup script: \
-$CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
+$candidate_script." "$backup_scheme"
     fi
-    if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
+    if [[ ! -x "$candidate_script" ]] ; then
       routErrorMsg "/${FUNCNAME[0]} :  I found a backup dropin script: \
-$CANDIDATE_SCRIPT But it isn't executabe. Terminates.." \
-        "$BACKUP_SCHEME"
+$candidate_script But it isn't executabe. Terminates.." \
+        "$backup_scheme"
       exit 5
     else
-      DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
+      DELEGATE_SCRIPT="$candidate_script"
       if [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
         routDebugMsg "/${FUNCNAME[0]} : I found a GENERAL backup dropin \
-script: Current backup script is : $DELEGATE_SCRIPT" "$BACKUP_SCHEME"
+script: Current backup script is : $DELEGATE_SCRIPT" "$backup_scheme"
       fi
     fi
   elif [[  $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
     routDebugMsg "/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
-script at: $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
+script at: $candidate_script." "$backup_scheme"
   fi
 # Looking for a LOCAL replacement is in the $BACKUP_SCHEME.d folder.
-  CANDIDATE_SCRIPT=\
-"$SCHEME_BIN_FOLDER"/"$SYMLINK_NAME".d/"$BACKUP_SCHEME"."$OPERATION".sh
+  candidate_script=\
+"$scheme_bin_folder"/"$symlink_name".d/"$backup_scheme"."$operation".sh
 
-  if [[  -f "$CANDIDATE_SCRIPT" ]] ; then
+  if [[  -f "$candidate_script" ]] ; then
     if [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
       routDebugMsg "/${FUNCNAME[0]} : I have a readable LOCAL dropin backup \
-script: $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
+script: $candidate_script." "$backup_scheme"
     fi
-    if [[ ! -x "$CANDIDATE_SCRIPT" ]] ; then
+    if [[ ! -x "$candidate_script" ]] ; then
       routErrorMsg "/${FUNCNAME[0]} :  I found a LOCAL backup dropin script:\
-        $CANDIDATE_SCRIPT. But it isn't executabe. Terminates.." \
-        "$BACKUP_SCHEME"
+        $candidate_script. But it isn't executabe. Terminates.." \
+        "$backup_scheme"
       exit 5
     else
-      DELEGATE_SCRIPT="$CANDIDATE_SCRIPT"
+      DELEGATE_SCRIPT="$candidate_script"
       if [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
         routDebugMsg "$/${FUNCNAME[0]} : I found a LOCAL backup dropin script :\
           Current backup script is : $DELEGATE_SCRIPT" \
-         "$BACKUP_SCHEME"
+         "$backup_scheme"
       fi
     fi
   elif [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
     routDebugMsg"/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
-in : $CANDIDATE_SCRIPT." "$BACKUP_SCHEME"
+in : $candidate_script." "$backup_scheme"
   fi
 
 }
@@ -999,35 +999,37 @@ SYMLINK_NAME! Terminating... " FolderBackup
   backup_scheme=$1
   symlink_name="$2"
 
-  if [[ -d "$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" ]] ; then
+  local scheme_bin_folder="$XDG_BIN_HOME"/fb/"$backup_scheme"
+ 
+  if [[ -d "$scheme_bin_folder/$symlink_name.d" ]] ; then
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
       routDebugMsg "/${FUNCNAME[0]} : We have a dropin directory:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d" "$backup_scheme"
     fi
 
     if  excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
       export EXCLUDE_FILE=\
-"$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
+"$scheme_bin_folder"/"$symlink_name".d/exclude.file
 
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
         routDebugMsg "/${FUNCNAME[0]} : We have an \"exclude.file\" file:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 0
     else
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
         routDebugMsg "/${FUNCNAME[0]} : We DON'T have an \"exclude.file\" file:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 1
     fi
   else
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
       routDebugMsg "/${FUNCNAME[0]} : We don't have  a dropin directory: \
-$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
+$scheme_bin_folder/$symlink_name.d" "$backup_scheme"
       routDebugMsg "${FUNCNAME[0]} : We don't have an \"exclude.file\" file: \
-$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+$scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
     fi
     return 1
   fi
