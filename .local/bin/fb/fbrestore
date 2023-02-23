@@ -252,7 +252,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
     echo >&2 "$PNAME : Current backup KIND is One Shot Backup."
   fi
   SYMLINK_NAME="$(identifyBackupSourceFolder OneShot \"$BACKUP_SOURCE_REALPATH\" )"
-  echo >&2 "SYMLINK_NAME : $SYMLINK_NAME "
+  echo >&2 "symnlink_name : $symnlink_name "
   # still need this one for figuring if we are restoring to the
   # original folder, which we won't without the --force flag.
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
@@ -290,7 +290,7 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   backup_container="$(identifyBackupContainerByTimeStampedFolder \
     "$KIND/$backup_scheme/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
   if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$PNAME SYMLINK_NAME : $SYMLINK_NAME"
+    echo >&2 "$PNAME symnlink_name : $symnlink_name"
     echo >&2 "$PNAME backup_container == $backup_container"
   fi
 

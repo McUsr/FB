@@ -154,11 +154,11 @@ scheme_container="$( assertSchemeContainer "$backup_scheme" )"
 # the container with backups of that scheme on the GoogleDrive.
 # makes the container, and parent! shouldn't one or both exist.
 
-for SYMLINK_NAME in $jobs_list ; do
+for symnlink_name in $jobs_list ; do
   if isASymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg " : $SYMLINK_NAME is a  SYMLINK_NAME." "$backup_scheme"
+      routDebugMsg " : $symnlink_name is a  symnlink_name." "$backup_scheme"
     fi
 
     if isUnbrokenSymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
@@ -219,7 +219,7 @@ $BACKUP_SCRIPT $backup_scheme $SYMLINK_NAME" "$backup_scheme"
     else
       # broken symlink
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-        routDebugMsg "$PNAME : The symlink $SYMLINK_NAME is broken." \
+        routDebugMsg "$PNAME : The symlink $symnlink_name is broken." \
 "$backup_scheme"
       fi
       # this goes to the journal land a notification is sent.

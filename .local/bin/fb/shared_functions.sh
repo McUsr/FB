@@ -788,7 +788,7 @@ manager() {
 
   if [[ $# -ne 3 ]] ; then
       routCriticialMsg "/${FUNCNAME[0]} : Wrong number of arguments, I need \
-backup_scheme SYMLINK_NAME and OPERATION Terminates..." FolderBackup
+backup_scheme symnlink_name and OPERATION Terminates..." FolderBackup
       exit 255
   else
     backup_scheme=$1
@@ -920,7 +920,7 @@ and scheme. Terminates" FolderBackup
   local full_symlink_name="$1" backup_scheme=$2
 
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    routDebugMsg "$/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $full_symlink_name" \
+    routDebugMsg "$/${FUNCNAME[0]} :FULL_symnlink_name : $full_symlink_name" \
       "$backup_scheme"
   fi
   full_path="$(pathFromFullSymlinkName "$full_symlink_name")"
