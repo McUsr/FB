@@ -316,13 +316,13 @@ fi
 # Never do we delete the backup container if it exists, even if we happily \
 # make them!
 
-MADE_FOLDER=false
+made_folder=false
 if [[ $dst_folder_set = false ]] ; then
   # We will make a folder under /tmp
   dest_folder=/tmp/$symlink_name/$backup_container
   if [[ $DRY_RUN = false ]] ; then
     if [[ ! -d "$dest_folder" ]] ; then
-      MADE_FOLDER=true
+      made_folder=true
       mkdir -p "$dest_folder"
     fi
   else
@@ -355,7 +355,7 @@ achieve that.\nTerminating..."
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
           echo >&2 "$PNAME : mkdir -p $dest_folder"
         fi
-        MADE_FOLDER=true
+        made_folder=true
         mkdir -p "$dest_folder"
       else
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
@@ -365,7 +365,7 @@ unlinking of it before the restore!"
       fi
     else
       if [ ! -d "$dest_folder" ] ; then
-        MADE_FOLDER=true
+        made_folder=true
         echo >&2 "$PNAME : mkdir -p $dest_folder"
       fi
     fi
@@ -408,7 +408,7 @@ elif [ $exit_code -gt 1 ] ; then
   else
       echo >&2 "$PNAME : A fatal error occurred."
   fi
-  if [[ $MADE_FOLDER = true && -d "$dest_folder" ]] ; then
+  if [[ $made_folder = true && -d "$dest_folder" ]] ; then
 
     if [ $DRY_RUN = false ] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then

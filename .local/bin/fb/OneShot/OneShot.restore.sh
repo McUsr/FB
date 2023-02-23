@@ -296,7 +296,7 @@ fi
 # the commandline.
 
 within_tmp=true
-MADE_FOLDER=false
+made_folder=false
 # Is the destination folder within /tmp?
 PROBE=${dest_folder/\/tmp/}
 if [[ "$PROBE" = "$dest_folder" ]] ; then
@@ -316,7 +316,7 @@ if [[ "$PROBE" = "$dest_folder" ]] ; then
           echo >&2 "$PNAME : $dest_folder didn't exist: mkdir -p $dest_folder."
         fi
         mkdir -p "$dest_folder"
-        MADE_FOLDER=true
+        made_folder=true
       else
         # the folder we should dump into already exists.
           echo >&2 "$PNAME : $dest_folder already exist and --force isn't \
@@ -358,7 +358,7 @@ else
   dest_folder="$dest_folder/${folder_stem_name}"
 # This is the full folder name, that will contain the files of the tar backup.
   if [[ $DRY_RUN = false ]] ; then
-    MADE_FOLDER=true
+    made_folder=true
     if [[  -d "$dest_folder" ]] ; then
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
           ls -ld "$dest_folder"
@@ -420,7 +420,7 @@ ctrl_c() {
     echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
     echo >&2 "$PNAME : We: rm -fr $dest_folder ."
   fi
-  if [[ $MADE_FOLDER = true || $within_tmp = true ]] ; then
+  if [[ $made_folder = true || $within_tmp = true ]] ; then
     rm -fr "$dest_folder"
   fi
 }
@@ -440,7 +440,7 @@ ctrl_c() {
       fi
 
     if [[ $exit_code -ne 130 ]] ; then
-      if [[ $MADE_FOLDER = true || $within_tmp = true ]] ; then
+      if [[ $made_folder = true || $within_tmp = true ]] ; then
         rm -fr "$dest_folder"
       fi
     fi
