@@ -69,7 +69,7 @@ fi
 
 ERR_IGNORE=0
 
-DRY_RUN=1
+DRY_RUN=false
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRY_RUN=0) or if were actually going to perform.
 DEBUG=0
@@ -145,7 +145,6 @@ fi
 ERR_IGNORE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
-DRY_RUN=false
 VERBOSE=false
 CREATE_EXCLUDE_FILE=false
 

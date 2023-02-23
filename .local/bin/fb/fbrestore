@@ -70,6 +70,8 @@ else
 fi
 
 
+ERR_IGNORE=0
+
 DRY_RUN=false
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRY_RUN=0) or if were actually going to perform.
@@ -107,7 +109,6 @@ consoleFBfolderIsMounted  "$curscheme"
 # shellcheck disable=SC2034
 GETOPT_COMPATIBLE=true
 
-ERR_IGNORE=0
 if [[ $# -eq 0 ]] ; then
   echo -e "$PNAME : Too few arguments. At least I need a backup source to \
 restore from.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
@@ -146,7 +147,6 @@ ERR_IGNORE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 
-DRY_RUN=false
 VERBOSE=false
 FORCE=false
 DST_FOLDER_SET=false
