@@ -225,7 +225,7 @@ fi
 # Getting and validating parameters
 backup_scheme="${1}"
 
-SYMLINK_NAME="${2}"
+symlink_name="${2}"
 
 # Qualify the jobs folder
 JOBSFOLDER="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
@@ -239,9 +239,9 @@ fi
 
 #  Qualify the source folder
 
-dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$backup_scheme"
+dieIfBrokenSymlink "$JOBSFOLDER" "$symlink_name" "$backup_scheme"
 
-source_folder=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
+source_folder=$(realpath "$JOBSFOLDER"/"$symlink_name")
 if [[ $DEBUG -eq 0 ]] ; then
   routDebugMsg " : source_folder: $source_folder" "$backup_scheme"
 fi
@@ -252,7 +252,7 @@ if [[ $DEBUG -eq 0 || $DRY_RUN == true ]] ;  then
   routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$backup_scheme"
 fi
 
-backup_container=$FB/Periodic/$backup_scheme/$SYMLINK_NAME
+backup_container=$FB/Periodic/$backup_scheme/$symlink_name
 
 assertBackupContainer "$backup_container"
 
@@ -265,7 +265,7 @@ MUST_MAKE_TODAYS_FOLDER=1
 MUST_MAKE_BACKUP=1
 
 TODAYS_BACKUP_FOLDER_NAME=\
-"$backup_container"/$(baseNameDateStamped "$SYMLINK_NAME")
+"$backup_container"/$(baseNameDateStamped "$symlink_name")
 emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
@@ -315,7 +315,7 @@ else
   fi
 
   # we need to compare timestamps.
-  modfiles=$(find -H "$JOBSFOLDER"/"$SYMLINK_NAME" -cnewer "$probeDir" 2>&1)
+  modfiles=$(find -H "$JOBSFOLDER"/"$symlink_name" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
     if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
       routDebugMsg " : There are modified or added files since last backup. \
@@ -341,7 +341,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     mkdir -p "$TODAYS_BACKUP_FOLDER_NAME"
   fi
 
-  if hasExcludeFile "$backup_scheme" "$SYMLINK_NAME" ; then
+  if hasExcludeFile "$backup_scheme" "$symlink_name" ; then
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
       routDebugMsg " : I have an exclude file : $EXCLUDE_FILE " "$backup_scheme"
@@ -378,7 +378,7 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
     DRY_RUN_FOLDER=$(mktemp -d "/tmp/$backup_scheme.backup.sh.XXX")
 
     TAR_BALL_NAME=\
-"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
@@ -454,7 +454,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
     fi
 
     TAR_BALL_NAME=\
-"$TODAYS_BACKUP_FOLDER_NAME"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+"$TODAYS_BACKUP_FOLDER_NAME"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
@@ -514,7 +514,7 @@ $TODAYS_BACKUP_FOLDER_NAME " "$backup_scheme"
   fi
 else
   if [[ $DEBUG -ne 0 && $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
-    notifyErr "$PNAME" " : No need to  backup $SYMLINK_NAME: No files \
+    notifyErr "$PNAME" " : No need to  backup $symlink_name: No files \
 changed or added since last backup. "  | journalThis 5 "$backup_scheme"
   fi
   exit_code=1

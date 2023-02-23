@@ -199,13 +199,13 @@ fi
 
 # next up, is to construct the full-symlink  name
 
-SYMLINK_NAME=$(fullPathSymlinkName "$1")
+symlink_name=$(fullPathSymlinkName "$1")
 
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-  echo >&2 "$PNAME : SYMLINK_NAME: $SYMLINK_NAME."
+  echo >&2 "$PNAME : symlink_name: $symlink_name."
 fi
 
-backup_container="$FB"/"$curscheme"/"$SYMLINK_NAME"
+backup_container="$FB"/"$curscheme"/"$symlink_name"
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
   echo >&2  "$PNAME : Backups of $source_folder are stored in: $backup_container"
 fi
@@ -229,7 +229,7 @@ else
 fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
-TODAYS_BACKUP_FOLDER="$backup_container"/"$(baseNameDateStamped "$SYMLINK_NAME")"
+TODAYS_BACKUP_FOLDER="$backup_container"/"$(baseNameDateStamped "$symlink_name")"
 CREATED_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRY_RUN = false ]] ; then
@@ -254,14 +254,14 @@ fi
 # creating an exclude file -- the block refactored into shared_functions?
 # there is no dryrun in fbctl?
 if [[ $CREATE_EXCLUDE_FILE = true ]] ; then
-  createExcludeFile "$curscheme" "$SYMLINK_NAME"
+  createExcludeFile "$curscheme" "$symlink_name"
 fi
 
 # Exclude file out of the way, time to figure out if there are any "dropin"-
 # scripts that should be used.
 
 # Time to figure out which script we are going to use and making preparations:
-manager "$curscheme"  "$SYMLINK_NAME" backup
+manager "$curscheme"  "$symlink_name" backup
 exit_code=$?
 if [[ $exit_code  -eq 0 ]] ; then
   BACKUP_SCRIPT="$DELEGATE_SCRIPT"
@@ -278,7 +278,7 @@ fi
 exit_code=0
 trap '' ERR
 $BACKUP_SCRIPT $BACKUP_OPTIONS  "$source_folder"  "$TODAYS_BACKUP_FOLDER" \
-"$SYMLINK_NAME"
+"$symlink_name"
 exit_code=$?
 
 # We do some cleanup in OneShot.backup.sh

@@ -181,11 +181,11 @@ of the root folder of the backup:\n$TODAYS_BACKUP_FOLDER"
   fi
   # else .. silently moving on ...
 fi
-SYMLINK_NAME="${3}"
+symlink_name="${3}"
 
 # time to look for any exclude files
 
-if hasExcludeFile OneShot "$SYMLINK_NAME" ; then
+if hasExcludeFile OneShot "$symlink_name" ; then
  if [[  $DEBUG -eq 0 ]] ; then
    echo >&2 "$PNAME : I have an exclude file : $EXCLUDE_FILE "
    cat  >&2 "$EXCLUDE_FILE"
@@ -213,7 +213,7 @@ ctrl_c() {
 }
 
   TAR_BALL_NAME=\
-"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$SYMLINK_NAME" )"-backup.tar.gz
+"$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
@@ -244,7 +244,7 @@ $TAR_BALL_NAME  -C $source_folder . "
 else
 # DRY_RUN == false
   TAR_BALL_NAME=\
-"$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$SYMLINK_NAME" )-backup.tar.gz
+"$TODAYS_BACKUP_FOLDER"/$(baseNameTimeStamped "$symlink_name" )-backup.tar.gz
 
   trap "HAVING_ERRORS=true;ctrl_c" INT
 ctrl_c() {

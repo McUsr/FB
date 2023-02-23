@@ -779,7 +779,7 @@ export -f journalThis
 # Passes the DELEGATE back to the caller by  global  DELEGATE_SCRIPT variable.
 # PARAMETERS (mandatory!)
 # backup_scheme, or kind what considers OneShot.
-# SYMLINK_NAME
+# symlink_name
 # OPERATION backup/restore, so we can use it everywhere.
 
 manager() {
@@ -909,7 +909,7 @@ dieIfNoEditorSetToUse() {
 }
 
 # dieIfNotValidFullSymlinkName()
-# PARAMETERS: SYMLINK_NAME SCHEME
+# PARAMETERS: symlink_name SCHEME
 # RETURNS: 0, if the symlink name is valid.
 dieIfNotValidFullSymlinkName() {
   if [[ $# -ne 2 ]] ; then
@@ -926,7 +926,7 @@ and scheme. Terminates" FolderBackup
   full_path="$(pathFromFullSymlinkName "$symlink_name")"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     routDebugMsg "/${FUNCNAME[0]} :full_path after :\
-      \$(pathFromFullSymlinkName \"\$FULL_SYMLINK_NAME\") : $full_path"\
+      \$(pathFromFullSymlinkName \"\$symlink_name\") : $full_path"\
        "$backup_scheme"
   fi
   symlink_probe="$(fullPathSymlinkName "$full_path" )"
@@ -1002,7 +1002,7 @@ contents" "$backup_scheme"
 
 
 # hasExcludeFile()
-# PARAMETERS: backup_scheme, SYMLINK_NAME
+# PARAMETERS: backup_scheme, symlink_name
 # RETURNS true/0 if we have an exclude file
 # GLOBALS : EXCLUDE_FILE : the full path to any exclude file is delivered\
 # through this.
@@ -1015,7 +1015,7 @@ hasExcludeFile() {
 
   if [[ $# -ne 2 ]] ; then
     routErrorMsg "/${FUNCNAME[0]} I need two parameters backup_scheme and\
-SYMLINK_NAME! Terminating... " FolderBackup 
+symlink_name! Terminating... " FolderBackup 
     exit 5
   fi
   declare -g EXCLUDE_FILE
