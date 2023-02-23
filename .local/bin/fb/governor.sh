@@ -137,10 +137,10 @@ dieIfJobsFolderDontExist "$jobs_folder" "$backup_scheme" "$RUNTIME_MODE"
 #  the folder we pick up the symlinks we are going to backup.
 
 
-JOBS_LIST="$(find "$jobs_folder" -mindepth 1 -maxdepth 1 \
+jobs_list="$(find "$jobs_folder" -mindepth 1 -maxdepth 1 \
   | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
 
-if [[ -z "$JOBS_LIST" ]] ; then
+if [[ -z "$jobs_list" ]] ; then
   # We have nothing to  do, and die silently.
   if [[ $DEBUG -eq 0 ]] ; then
    routDebugMsg " : No symlinks, nothing to do. We are \
@@ -154,7 +154,7 @@ SCHEME_CONTAINER="$( assertSchemeContainer "$backup_scheme" )"
 # the container with backups of that scheme on the GoogleDrive.
 # makes the container, and parent! shouldn't one or both exist.
 
-for SYMLINK_NAME in $JOBS_LIST ; do
+for SYMLINK_NAME in $jobs_list ; do
   if isASymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
