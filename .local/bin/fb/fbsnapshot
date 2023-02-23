@@ -230,17 +230,17 @@ fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
 TODAYS_BACKUP_FOLDER="$backup_container"/"$(baseNameDateStamped "$symlink_name")"
-CREATED_TODAYS_BACKUP_FOLDER=1
+created_todays_backup_folder=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRY_RUN = false ]] ; then
     echo -e >&2 "$PNAME : TODAYS_BACKUP_FOLDER: $TODAYS_BACKUP_FOLDER didn't \
       exist. Creating it:\nmkdir -p $TODAYS_BACKUP_FOLDER."
   fi
   if [[ $DRY_RUN = false ]] ; then
-    CREATED_TODAYS_BACKUP_FOLDER=0
+    created_todays_backup_folder=0
     mkdir -p "$TODAYS_BACKUP_FOLDER"
   else
-    CREATED_TODAYS_BACKUP_FOLDER=0
+    created_todays_backup_folder=0
     echo -e  >&2 "$PNAME : Todays backup folder didn't exist, creating it:\n \
       mkdir -p $TODAYS_BACKUP_FOLDER"
   fi
@@ -295,7 +295,7 @@ elif [[ $exit_code -gt 1 ]] ; then
   fi
 
   if [[  -d "$TODAYS_BACKUP_FOLDER" && \
-    $CREATED_TODAYS_BACKUP_FOLDER -eq 0  ]] ; then
+    $created_todays_backup_folder -eq 0  ]] ; then
 
     if [[ $DRY_RUN = false ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
