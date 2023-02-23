@@ -862,21 +862,21 @@ in : $candidate_script." "$backup_scheme"
 # Only works in CONSOLE_MODE
 dieIfNoEditorSetToUse() {
   declare -g THE_EDITOR
-  FOUND_EDITOR=1
+  found_editor=1
 
   if [[  -v VISUAL  ]] ; then
     if type -a "$VISUAL" &>/dev/null ; then
       # if 0, found  executable
-       FOUND_EDITOR=0 ; THE_EDITOR="$VISUAL"
+       found_editor=0 ; THE_EDITOR="$VISUAL"
     fi
   fi
 
-  if [[ $FOUND_EDITOR -eq 0 && -v EDITOR  ]] ; then
+  if [[ $found_editor -eq 0 && -v EDITOR  ]] ; then
     if type -a "$EDITOR" >/dev/null ; then
-       FOUND_EDITOR=0 ; THE_EDITOR="$EDITOR"
+       found_editor=0 ; THE_EDITOR="$EDITOR"
     fi
   fi
-  if [[ $FOUND_EDITOR -ne 0  ]] ; then
+  if [[ $found_editor -ne 0  ]] ; then
     echo -e  >&2 "$PNAME : Neither the  variable \$VISUAL nor \$EDITOR was set\
       or didn't point to a binary.\nYou need to set assign the\
       \$EDITOR variable in .bashrc or .bash_profile, then  \"exec bash\" and\
