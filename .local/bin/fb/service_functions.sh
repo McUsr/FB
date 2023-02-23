@@ -422,7 +422,7 @@ is fixed."
 
 
 # dieIfBrokenSymlink()
-# PARAMETERS: JOBS_FOLDER SYMLINK BACKUP_SCHEME
+# PARAMETERS: jobs_folder SYMLINK BACKUP_SCHEME
 # terminates if the
 dieIfBrokenSymlink() {
 

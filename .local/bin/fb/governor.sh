@@ -131,13 +131,13 @@ consoleFBfolderIsMounted "$curscheme"
 
 backup_scheme=${1}
 
-JOBS_FOLDER="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-dieIfJobsFolderDontExist "$JOBS_FOLDER" "$backup_scheme" "$RUNTIME_MODE"
+dieIfJobsFolderDontExist "$jobs_folder" "$backup_scheme" "$RUNTIME_MODE"
 #  the folder we pick up the symlinks we are going to backup.
 
 
-JOBS_LIST="$(find "$JOBS_FOLDER" -mindepth 1 -maxdepth 1 \
+JOBS_LIST="$(find "$jobs_folder" -mindepth 1 -maxdepth 1 \
   | sed -ne 's,^.*[/],,' -e '/.pause/ !p')"
 
 if [[ -z "$JOBS_LIST" ]] ; then
@@ -155,24 +155,24 @@ SCHEME_CONTAINER="$( assertSchemeContainer "$backup_scheme" )"
 # makes the container, and parent! shouldn't one or both exist.
 
 for SYMLINK_NAME in $JOBS_LIST ; do
-  if isASymlink "$JOBS_FOLDER"/"$SYMLINK_NAME" ; then
+  if isASymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
       routDebugMsg " : $SYMLINK_NAME is a  SYMLINK_NAME." "$backup_scheme"
     fi
 
-    if isUnbrokenSymlink "$JOBS_FOLDER"/"$SYMLINK_NAME" ; then
+    if isUnbrokenSymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
         routDebugMsg ": currently processing the symlink $SYMLINK_NAME\
 (unbroken).\n" "$backup_scheme"
       fi
       # we need the real path
-      target_folder="$(realpath "$JOBS_FOLDER"/"$SYMLINK_NAME")"
+      target_folder="$(realpath "$jobs_folder"/"$SYMLINK_NAME")"
       if [[ $DEBUG -eq 0 ]] ; then
         routDebugMsg " : Realpath is $target_folder." "$backup_scheme"
       fi
 
-      if [[ ! -f $JOBS_FOLDER/$SYMLINK_NAME.pause ]] ; then
+      if [[ ! -f $jobs_folder/$SYMLINK_NAME.pause ]] ; then
         BACKUP_CONTAINER=$SCHEME_CONTAINER/$SYMLINK_NAME
         # Alt med BACKUP_CONTAINER skal over i fbinst e.l fbctl
         if [[ ! -d $BACKUP_CONTAINER ]] ; then
@@ -212,7 +212,7 @@ $BACKUP_SCRIPT $backup_scheme $SYMLINK_NAME" "$backup_scheme"
       else
         # there was a pause file
         if [[ $DEBUG -eq 0  ]] ; then
-          routDebugMsg " : I found a $JOBS_FOLDER/$SYMLINK_NAME.pause\
+          routDebugMsg " : I found a $jobs_folder/$SYMLINK_NAME.pause\
  file and skips this job ... for now." "$backup_scheme"
         fi
       fi
@@ -223,7 +223,7 @@ $BACKUP_SCRIPT $backup_scheme $SYMLINK_NAME" "$backup_scheme"
 "$backup_scheme"
       fi
       # this goes to the journal land a notification is sent.
-      brokenSymlink "$JOBS_FOLDER" "$SYMLINK_NAME" "$backup_scheme:${0##*/}"
+      brokenSymlink "$jobs_folder" "$SYMLINK_NAME" "$backup_scheme:${0##*/}"
     fi
   # else NOT A SYMLINK_NAME, we just ignore.
   fi
