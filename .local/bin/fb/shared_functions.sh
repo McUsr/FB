@@ -895,23 +895,23 @@ dieIfNotValidFullSymlinkName() {
 and scheme. Terminates" "$BACKUP_SCHEME"
     exit 5
   fi
-  local FULL_SYMLINK_NAME SCHEME
-  FULL_SYMLINK_NAME="$1" ; SCHEME=$2
+  local full_symlink_name="$1" backup_scheme=$2
+
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    routDebugMsg "$/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $FULL_SYMLINK_NAME" \
-      "$BACKUP_SCHEME"
+    routDebugMsg "$/${FUNCNAME[0]} :FULL_SYMLINK_NAME : $full_symlink_name" \
+      "$backup_scheme"
   fi
-  full_path="$(pathFromFullSymlinkName "$FULL_SYMLINK_NAME")"
+  full_path="$(pathFromFullSymlinkName "$full_symlink_name")"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     routDebugMsg "/${FUNCNAME[0]} :full_path after :\
       \$(pathFromFullSymlinkName \"\$FULL_SYMLINK_NAME\") : $full_path"\
-       "$BACKUP_SCHEME"
+       "$backup_scheme"
   fi
   symlink_probe="$(fullPathSymlinkName "$full_path" )"
 
-  if [[ "$FULL_SYMLINK_NAME" != "$symlink_probe" ]] ; then
-    routErrorMsg "${FUNCNAME[0]} : $FULL_SYMLINK_NAME Not a valid symlink\
-      name!  Terminates"  "$BACKUP_SCHEME"
+  if [[ "$full_symlink_name" != "$symlink_probe" ]] ; then
+    routErrorMsg "${FUNCNAME[0]} : $full_symlink_name Not a valid symlink\
+      name!  Terminates"  "$backup_scheme"
     exit 5
    fi
 }
