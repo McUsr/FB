@@ -72,6 +72,9 @@ DEBUG=0
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
 
+dieIfNotOkBashVersion
+
+
 # asserting system/configuration context.
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"

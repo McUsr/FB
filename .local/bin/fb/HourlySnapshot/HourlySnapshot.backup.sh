@@ -123,6 +123,8 @@ else
   source "$fbBinDir"/../service_functions.sh
 fi
 
+dieIfNotOkBashVersion
+
 # asserting system/configuration context.
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"

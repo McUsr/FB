@@ -107,6 +107,8 @@ if [[ $# -ne 1 ]] ; then
   fi
 fi
 
+dieIfNotOkBashVersion
+
 dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
 dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
