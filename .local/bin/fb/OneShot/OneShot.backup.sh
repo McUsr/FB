@@ -150,7 +150,7 @@ fi
 
 dieIfNotDirectoryExist "${1}"
 SOURCE_FOLDER="$1"
-dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$BACKUP_SCHEME"
+dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" OneShot
 
 
 # we check if the destination path exists, and within the FB-backup tree.
