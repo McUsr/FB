@@ -730,24 +730,24 @@ backup/kind/scheme \nTerminates..." >&2 ;
     exit 5
   fi
 
-  local BACKUP_SCHEME=${1}
+  local backup_scheme=${1}
 
   mkdir -p "$FB/Periodic"
   # just in case, no harm, no foul.
 
-  SCHEME_CONTAINER="$FB/Periodic/$BACKUP_SCHEME"
-  if [[ ! -d "$SCHEME_CONTAINER" ]] ; then
-    mkdir -p "$SCHEME_CONTAINER"
+  scheme_container="$FB/Periodic/$backup_scheme"
+  if [[ ! -d "$scheme_container" ]] ; then
+    mkdir -p "$scheme_container"
     # we can go silent about this, or we can just send a message.
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg "$SCHEME_CONTAINER didn't exist, que to make backup" "$BACKUP_SCHEME"
+      routDebugMsg "$scheme_container didn't exist, que to make backup" "$backup_scheme"
     fi
   else
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg "$SCHEME_CONTAINER exists, NO que to make backup" "$BACKUP_SCHEME"
+      routDebugMsg "$scheme_container exists, NO que to make backup" "$backup_scheme"
     fi
   fi
-  echo "SCHEME_CONTAINER"
+  echo "$scheme_container"
 }
 
 
