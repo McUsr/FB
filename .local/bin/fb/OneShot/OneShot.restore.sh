@@ -295,12 +295,12 @@ fi
 # This routine is really not intended to be executed from
 # the commandline.
 
-WITHIN_TMP=true
+within_tmp=true
 MADE_FOLDER=false
 # Is the destination folder within /tmp?
 PROBE=${dest_folder/\/tmp/}
 if [[ "$PROBE" = "$dest_folder" ]] ; then
-  WITHIN_TMP=false
+  within_tmp=false
   if [[ $DEBUG -eq 0 ]] ;  then
     echo -e >&2 "$PNAME : The destination folder isn't within /tmp."
   fi
@@ -420,7 +420,7 @@ ctrl_c() {
     echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
     echo >&2 "$PNAME : We: rm -fr $dest_folder ."
   fi
-  if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then
+  if [[ $MADE_FOLDER = true || $within_tmp = true ]] ; then
     rm -fr "$dest_folder"
   fi
 }
@@ -440,7 +440,7 @@ ctrl_c() {
       fi
 
     if [[ $exit_code -ne 130 ]] ; then
-      if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then
+      if [[ $MADE_FOLDER = true || $within_tmp = true ]] ; then
         rm -fr "$dest_folder"
       fi
     fi
