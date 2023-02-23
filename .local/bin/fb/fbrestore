@@ -375,7 +375,7 @@ fi
 manager "$backup_scheme"  "$symlink_name" restore
 exit_code=$?
 if [ $exit_code  -eq 0 ] ; then
-  RESTORE_SCRIPT="$DELEGATE_SCRIPT"
+  restore_script="$DELEGATE_SCRIPT"
 else
   exit $exit_code
 fi
@@ -383,7 +383,7 @@ fi
 
 exit_code=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-  echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
+  echo -e >&2 "$PNAME : EXECUTING:\n$restore_script \
 $restore_options $backup_source_realpath $dest_folder\n" \
 | journalThis 7 OneShot
 fi
@@ -391,7 +391,7 @@ fi
 exit_code=0
 trap '' ERR
 # shellcheck disable=SC2086 # No quoting of options!
-$RESTORE_SCRIPT $restore_options "$backup_source_realpath" "$dest_folder"
+$restore_script $restore_options "$backup_source_realpath" "$dest_folder"
 exit_code=$?
 
 # We do some cleanup in OneShot.restore.sh
