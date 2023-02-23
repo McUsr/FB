@@ -212,18 +212,18 @@ ctrl_c() {
   rm -fr "$dry_run_folder"
 }
 
-  TAR_BALL_NAME=\
+  tar_ball_name=\
 "$dry_run_folder"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo >&2 "$PNAME : sudo tar -z $verbose_options -c -f \
-$TAR_BALL_NAME $exclude_options -C $source_folder . "
+$tar_ball_name $exclude_options -C $source_folder . "
 
     if [[ -n "$exclude_options" ]] ; then
-      sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" "$exclude_options" \
+      sudo tar -z  -c $verbose_options -f "$tar_ball_name" "$exclude_options" \
 -C "$source_folder" .
     else
-      sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" -C "$source_folder" .
+      sudo tar -z  -c $verbose_options -f "$tar_ball_name" -C "$source_folder" .
     fi
 
     if [[ -d "$dry_run_folder" ]] ; then
@@ -238,29 +238,29 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
     echo -e >&2 "$PNAME \
 : dry_run_folder=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
     echo -e "$PNAME : sudo tar -z -c $verbose_options -c  $exclude_options -f \
-$TAR_BALL_NAME  -C $source_folder . "
+$tar_ball_name  -C $source_folder . "
     echo -e >&2 "$PNAME : rm -fr $dry_run_folder"
   fi
 else
 # DRY_RUN == false
-  TAR_BALL_NAME=\
+  tar_ball_name=\
 "$todays_backup_folder"/$(baseNameTimeStamped "$symlink_name" )-backup.tar.gz
 
   trap "HAVING_ERRORS=true;ctrl_c" INT
 ctrl_c() {
   echo >&2 trapped ctrl-c
-  echo >&2 rm -f "$TAR_BALL_NAME"
-  rm -f "$TAR_BALL_NAME"
+  echo >&2 rm -f "$tar_ball_name"
+  rm -f "$tar_ball_name"
 }
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
       echo -e >&2 "$PNAME : sudo tar -z -c $verbose_options -c  $exclude_options\
-        -f $TAR_BALL_NAME  -C $source_folder" .
+        -f $tar_ball_name  -C $source_folder" .
     fi
     if [[ -n "$exclude_options" ]] ; then 
-      sudo tar -z $verbose_options -c "$exclude_options" -f "$TAR_BALL_NAME" -C\
+      sudo tar -z $verbose_options -c "$exclude_options" -f "$tar_ball_name" -C\
 "$source_folder" .
     else
-      sudo tar -z $verbose_options -c -f "$TAR_BALL_NAME" -C "$source_folder" .
+      sudo tar -z $verbose_options -c -f "$tar_ball_name" -C "$source_folder" .
     fi
     exit_code=$?
 
@@ -271,14 +271,14 @@ ctrl_c() {
           = $exit_code"
       fi
 
-      if [[ -f "$TAR_BALL_NAME" ]] ; then
+      if [[ -f "$tar_ball_name" ]] ; then
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-          echo >&2 "$PNAME : rm -f $TAR_BALL_NAME"
+          echo >&2 "$PNAME : rm -f $tar_ball_name"
         fi
-        rm -f "$TAR_BALL_NAME"
+        rm -f "$tar_ball_name"
       fi
     elif [[ $exit_code -eq 0 ]] ; then
-      echo -e >&2 "\n($TAR_BALL_NAME)\n"
+      echo -e >&2 "\n($tar_ball_name)\n"
     fi
 fi
 

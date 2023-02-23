@@ -377,27 +377,27 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
     dry_run_folder=$(mktemp -d "/tmp/$backup_scheme.backup.sh.XXX")
 
-    TAR_BALL_NAME=\
+    tar_ball_name=\
 "$dry_run_folder"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $verbose_options -c -f \
-$TAR_BALL_NAME $exclude_options -C $source_folder ."   | journalThis 7 "$backup_scheme"
+$tar_ball_name $exclude_options -C $source_folder ."   | journalThis 7 "$backup_scheme"
 
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
         if [[ -z "$exclude_options"  ]] ; then
-          sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" \
+          sudo tar -z  -c $verbose_options -f "$tar_ball_name" \
 -C "$source_folder" . | journalThis 7 "$backup_scheme"
         else
-          sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" \
+          sudo tar -z  -c $verbose_options -f "$tar_ball_name" \
 "$exclude_options" -C "$source_folder" . | journalThis 7 "$backup_scheme"
         fi
       else
         if [[ -z "$exclude_options"  ]] ; then
-          sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" \
+          sudo tar -z  -c $verbose_options -f "$tar_ball_name" \
 -C "$source_folder" "."
         else
-          sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" \
+          sudo tar -z  -c $verbose_options -f "$tar_ball_name" \
 "$exclude_options" -C "$source_folder" . >/dev/null
         fi
       fi
@@ -405,13 +405,13 @@ $TAR_BALL_NAME $exclude_options -C $source_folder ."   | journalThis 7 "$backup_
     else
       # CONSOLE
        echo >&2 "$PNAME : sudo tar -z $verbose_options -c -f \
-$TAR_BALL_NAME $exclude_options -C $source_folder . "
+$tar_ball_name $exclude_options -C $source_folder . "
 
       if [[ -z "$exclude_options"  ]] ; then
-        sudo tar -z   $verbose_options -c -f "$TAR_BALL_NAME"  \
+        sudo tar -z   $verbose_options -c -f "$tar_ball_name"  \
 -C "$source_folder" "."
       else
-        sudo tar -z   $verbose_options -c -f "$TAR_BALL_NAME" \
+        sudo tar -z   $verbose_options -c -f "$tar_ball_name" \
 "$exclude_options" -C "$source_folder" "."
       fi
 
@@ -448,29 +448,29 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
       trap "trl_c" INT
       ctrl_c() {
         echo trapped ctrl-c
-        echo rm -f "$TAR_BALL_NAME"
-        rm -f "$TAR_BALL_NAME"
+        echo rm -f "$tar_ball_name"
+        rm -f "$tar_ball_name"
       }
     fi
 
-    TAR_BALL_NAME=\
+    tar_ball_name=\
 "$todays_backup_folder_name"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ -z "$exclude_options"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $verbose_options -c  \
-          -f $TAR_BALL_NAME  -C $source_folder ." "$backup_scheme"
+          -f $tar_ball_name  -C $source_folder ." "$backup_scheme"
       fi
-      sudo tar -z $verbose_options -c -f "$TAR_BALL_NAME" \
+      sudo tar -z $verbose_options -c -f "$tar_ball_name" \
 -C "$source_folder" .
     else
       # TODO: MAYBE  put in a block, testing for CONSOLE and adding setbuf
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $verbose_options -c  $exclude_options\
-          -f $TAR_BALL_NAME  -C $source_folder" .
+          -f $tar_ball_name  -C $source_folder" .
       fi
       sudo tar -z $verbose_options -c "$exclude_options" -f \
-"$TAR_BALL_NAME" -C "$source_folder" .
+"$tar_ball_name" -C "$source_folder" .
     fi
     exit_code=$?
     if [[ $exit_code -gt 1 ]] ; then
@@ -483,17 +483,17 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
 = $exit_code"
       fi
 
-      if [[ -f "$TAR_BALL_NAME" ]] ; then
+      if [[ -f "$tar_ball_name" ]] ; then
         if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg "$PNAME" " : A tarball was made, probably full of \
-errors rm -f $TAR_BALL_NAME" "$backup_scheme"
+errors rm -f $tar_ball_name" "$backup_scheme"
         fi
 
-        rm -f "$TAR_BALL_NAME"
+        rm -f "$tar_ball_name"
 
         if [[ $DEBUG -eq 0 ]] ; then
             routDebugMsg " : Removing the tar ball we  made: \
-$TAR_BALL_NAME " "$backup_scheme"
+$tar_ball_name " "$backup_scheme"
         fi
         if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
           if [[  $DEBUG -eq 0 ]] ; then
@@ -507,7 +507,7 @@ $todays_backup_folder_name " "$backup_scheme"
     elif [[ $exit_code -eq 0 ]] ; then
 
       if [[ $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
-        notifyErr "$PNAME" " : Successful backup: ($TAR_BALL_NAME) " \
+        notifyErr "$PNAME" " : Successful backup: ($tar_ball_name) " \
         | journalThis 5 "$backup_scheme"
       fi
     fi
