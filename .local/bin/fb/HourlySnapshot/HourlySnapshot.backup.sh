@@ -104,7 +104,7 @@ pathToSourcedFiles() {
 
 PNAME=${0##*/}
 VERSION='v0.0.4'
-CURSCHEME="${PNAME%%.*}"
+curscheme="${PNAME%%.*}"
 
 
 if [[ -t 1 ]] ; then
@@ -123,12 +123,11 @@ else
   source "$fbBinDir"/../service_functions.sh
 fi
 
-dieIfNotOkBashVersion
 
 # asserting system/configuration context.
-dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$curscheme"
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
@@ -141,8 +140,9 @@ else
   source "$fbBinDir"/../shared_functions.sh
 fi
 
-consoleHasInternet "$CURSCHEME"
-consoleFBfolderIsMounted "$CURSCHEME"
+dieIfNotOkBashVersion
+consoleHasInternet "$curscheme"
+consoleFBfolderIsMounted "$curscheme"
 
 
 if [[ $# -lt 2 ]] ; then

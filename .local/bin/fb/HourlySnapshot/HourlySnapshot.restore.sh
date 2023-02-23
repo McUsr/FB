@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2089
 VERSION="\"v0.0.4\""
-CURSCHEME="HourlySnapShot"
+curscheme="HourlySnapShot"
 
 err_report() {
   echo >&2 "$PNAME : Error on line $1"
@@ -72,12 +72,11 @@ DEBUG=0
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
 
-dieIfNotOkBashVersion
 
 
 # asserting system/configuration context.
-dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$curscheme"
 
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
@@ -90,6 +89,7 @@ else
 fi
 
 
+dieIfNotOkBashVersion
 consoleHasInternet OneShot
 consoleFBfolderIsMounted OneShot
 

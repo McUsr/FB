@@ -75,7 +75,7 @@ pathToSourcedFiles() {
 
 PNAME=${0##*/}
 
-CURSCHEME="${PNAME%%.*}"
+curscheme="${PNAME%%.*}"
 
 if [[ -t 1 ]] ; then
   RUNTIME_MODE="CONSOLE"
@@ -85,8 +85,8 @@ fi
 
 
 fbBinDir="$(pathToSourcedFiles)"
-
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+through_shellsheck=1
+if [[ $through_shellsheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
@@ -107,18 +107,17 @@ if [[ $# -ne 1 ]] ; then
   fi
 fi
 
-dieIfNotOkBashVersion
 
-dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$CURSCHEME"
-dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$CURSCHEME"
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$curscheme"
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME/fbjobs"
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+if [[ $through_shellsheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
 else
 # shellcheck source=shared_functions.sh
@@ -126,8 +125,9 @@ else
 fi
 
 
-consoleHasInternet "$CURSCHEME"
-consoleFBfolderIsMounted "$CURSCHEME"
+dieIfNotOkBashVersion
+consoleHasInternet "$curscheme"
+consoleFBfolderIsMounted "$curscheme"
 
 BACKUP_SCHEME=${1}
 
