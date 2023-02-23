@@ -8,8 +8,9 @@ VERSION="\"v0.0.4\""
 curscheme="FolderBackup"
 # We don't really have a scheme, restoring from every scheme.
 
+ERR_IGNORE=1
 err_report() {
-  if [ $SILENCE -eq 1 ] ; then
+  if [[ $ERR_IGNORE -ne 0  ]] ; then
     echo >&2 "$PNAME : Error on line $1"
     echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
@@ -68,7 +69,6 @@ else
   source "$fbBinDir"/service_functions.sh
 fi
 
-SILENCE=0
 
 DRY_RUN=false
 # controls whether we are going to print the backup command to the
@@ -107,6 +107,7 @@ consoleFBfolderIsMounted  "$curscheme"
 # shellcheck disable=SC2034
 GETOPT_COMPATIBLE=true
 
+ERR_IGNORE=0
 if [[ $# -eq 0 ]] ; then
   echo -e "$PNAME : Too few arguments. At least I need a backup source to \
 restore from.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
@@ -141,7 +142,7 @@ TEMP=$(getopt -o hno:vFV --longoptions help,dest-dir:,verbose,dry-run,force,vers
 if [[ $? != 0 ]] ; then echo "$PNAME -h | --help for help : Terminating..." \
   |  journalThis 2 OneShot ; exit 2 ; fi
 
-SILENCE=1
+ERR_IGNORE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 

@@ -7,10 +7,11 @@ VERSION="\"v0.0.4\""
 curscheme="OneShot"
 
 
+ERR_IGNORE=1
 err_report() {
-  if [[ $SILENCE -eq 0 ]] ; then
+  if [[ $ERR_IGNORE -ne 0  ]] ; then
     echo >&2 "$PNAME : Error on line $1"
-    echo >&2 "$PNAME : Please report this issue at\
+    echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
   fi
 }
@@ -66,7 +67,7 @@ else
   source "$fbBinDir"/service_functions.sh
 fi
 
-SILENCE=0
+ERR_IGNORE=0
 
 DRY_RUN=1
 # controls whether we are going to print the backup command to the
@@ -141,7 +142,7 @@ if [[ $? != 0 ]] ; then
   exit 2
 fi
 
-SILENCE=1
+ERR_IGNORE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 DRY_RUN=false
