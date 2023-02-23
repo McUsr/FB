@@ -249,13 +249,13 @@ if [[ "$backup_source_type" = "folder" ]] ; then
 # the destination folder we passed along, as well as on the Source for the
 # backup.
 
-  BACKUP_CANDIDATE=($( find "$1" -name "*.tar.gz"))
+  restore_candidate=($( find "$1" -name "*.tar.gz"))
   exit_code=$?
   if [[ $DRY_RUN = false &&  $exit_code -ne 0 ]] ; then
      exit $exit_code
   fi
 
-  if [[ ${#BACKUP_CANDIDATE[@]} -eq 0 ]] ; then
+  if [[ ${#restore_candidate[@]} -eq 0 ]] ; then
     if [[ $DRY_RUN = false ]] ; then
       echo -e >&2 "$PNAME : The backup source folder to restore from:\n\t \
 \"${1}\"\ndoesn't have any content.\nTerminating..."
@@ -266,7 +266,7 @@ if [[ "$backup_source_type" = "folder" ]] ; then
 \"${1}\"\ndoesn't have any content."
     fi
   else
-    backup_source="${BACKUP_CANDIDATE[0]}"
+    backup_source="${restore_candidate[0]}"
     if [[ $DEBUG -eq  0 || $VERBOSE = true  ]] ;  then
       echo -e >&2 "$PNAME : We found the latest file within the folder:\
 \n$backup_source"
