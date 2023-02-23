@@ -27,13 +27,10 @@ export TERSE_OUTPUT=0
 success_jobs=()
 
 
-ERR_IGNORE=1
 err_report() {
-  if [[ $ERR_IGNORE -ne 0  ]] ; then
-    echo >&2 "$PNAME : Error on line $1"
-    echo >&2 "$PNAME : Please report this issue at \
+  echo >&2 "$PNAME : Error on line $1"
+  echo >&2 "$PNAME : Please report this issue at \
 'https://github.com/McUsr/FB/issues'"
-  fi
 }
 
 trap 'err_report $LINENO' ERR
@@ -200,10 +197,10 @@ backup." "$backup_scheme"
           routDebugMsg " : Command line after manager: \
 $backup_script $backup_scheme $symlink_name" "$backup_scheme"
         fi
-        ERR_IGNORE=0
+        trap '' ERR
         "$backup_script" "$backup_scheme" "$symlink_name"
         exit_code=$?
-        ERR_IGNORE=1
+        trap 'err_report $LINENO' ERR
         if [[ $exit_code -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
           success_jobs+=( "$(pathFromFullSymlinkName "$symlink_name" )" )
         fi
@@ -232,11 +229,19 @@ done
 if [[ $TERSE_OUTPUT -eq 0 ]] ; then
 
   if [[ ${#success_jobs[@]} -ne 0 ]] ; then
-    notifyErr "$PNAME" " : Successful backup: of ${success_jobs[@]} " \
+    if [[ "$MODE" == "SERVICE" ]] ; then
+      notifyErr "$PNAME" " : Successful backup: of ${success_jobs[@]}." \
         | journalThis 5 "$backup_scheme"
+    else
+      echo >&2 "$PNAME" " : Successful backup: of ${success_jobs[@]}."
+    fi
   else
-    notifyErr "$PNAME" " : Nothing to backup: at this time " \
+    if [[ "$MODE" == "SERVICE" ]] ; then
+      notifyErr "$PNAME" " : Nothing to backup: at this time. " \
         | journalThis 5 "$backup_scheme"
+    else
+      echo >&2 "$PNAME" " : Nothing to backup: at this time. "
+    fi
   fi
 fi
 
