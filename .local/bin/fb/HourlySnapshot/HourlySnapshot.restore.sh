@@ -239,7 +239,7 @@ neither a file, nor a folder."
   fi
 fi
 
-BACKUP_SOURCE=
+backup_source=
 if [[ "$backup_source_type" = "folder" ]] ; then
 # Find the newest backup by convention.
 # As the design is per today, if we should just be able to
@@ -266,19 +266,19 @@ if [[ "$backup_source_type" = "folder" ]] ; then
 \"${1}\"\ndoesn't have any content."
     fi
   else
-    BACKUP_SOURCE="${BACKUP_CANDIDATE[0]}"
+    backup_source="${BACKUP_CANDIDATE[0]}"
     if [[ $DEBUG -eq  0 || $VERBOSE = true  ]] ;  then
       echo -e >&2 "$PNAME : We found the latest file within the folder:\
-\n$BACKUP_SOURCE"
+\n$backup_source"
     fi
   fi
 elif [[ "$backup_source_type" = "file" ]] ; then
-  BACKUP_SOURCE="$1"
+  backup_source="$1"
 fi
 
 
 # Preparing the folder name we shall append, or not.
-FOLDER_BASE_NAME="${BACKUP_SOURCE##*/}"
+FOLDER_BASE_NAME="${backup_source##*/}"
 if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then
   echo -e >&2 "$PNAME : The folder base name we will use for basis for the \
 tar-dump in is:\n$FOLDER_BASE_NAME"
@@ -401,14 +401,14 @@ ctrl_c() {
 }
   if [[ $HAVING_ERRORS = false ]] ; then
     dry_run_folder=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
-    sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$dry_run_folder"
+    sudo tar -x -z $verbose_options -f  "$backup_source" -C "$dry_run_folder"
     if [[ $? -lt 130 ]] ; then
       rm -fr "$dry_run_folder"
     fi
   else
     echo -e >&2 "$PNAME : dry_run_folder=\$(mktemp -d \
 \"/tmp/OneShot.restore.sh.XXX\")"
-    echo -e >&2 "$PNAME : tar -x -z $verbose_options -f  \"$BACKUP_SOURCE\" \
+    echo -e >&2 "$PNAME : tar -x -z $verbose_options -f  \"$backup_source\" \
 -C $dry_run_folder"
     echo -e >&2 "$PNAME : rm -fr $dry_run_folder"
   fi
@@ -428,10 +428,10 @@ ctrl_c() {
 }
 
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-    echo -e >&2 "$PNAME : sudo tar -x -z $verbose_options -f  $BACKUP_SOURCE \
+    echo -e >&2 "$PNAME : sudo tar -x -z $verbose_options -f  $backup_source \
 -C $dest_folder"
   fi
-  sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$dest_folder"
+  sudo tar -x -z $verbose_options -f  "$backup_source" -C "$dest_folder"
   exit_code=$?
    #   | journalThis 7 OneShot
 
