@@ -149,8 +149,8 @@ fi
 
 
 dieIfNotDirectoryExist "${1}"
-SOURCE_FOLDER="$1"
-dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" OneShot
+source_folder="$1"
+dieIfSourceIsWithinFBTree "$source_folder" OneShot
 
 
 # we check if the destination path exists, and within the FB-backup tree.
@@ -217,13 +217,13 @@ ctrl_c() {
   if [[ $HAVING_ERRORS = false ]] ; then
 
     echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
 
     if [[ -n "$EXCLUDE_OPTIONS" ]] ; then
       sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$EXCLUDE_OPTIONS" \
--C "$SOURCE_FOLDER" .
+-C "$source_folder" .
     else
-      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" -C "$SOURCE_FOLDER" .
+      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" -C "$source_folder" .
     fi
 
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
@@ -238,7 +238,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     echo -e >&2 "$PNAME \
 : DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
     echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS -f \
-$TAR_BALL_NAME  -C $SOURCE_FOLDER . "
+$TAR_BALL_NAME  -C $source_folder . "
     echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
 else
@@ -254,13 +254,13 @@ ctrl_c() {
 }
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
       echo -e >&2 "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
-        -f $TAR_BALL_NAME  -C $SOURCE_FOLDER" .
+        -f $TAR_BALL_NAME  -C $source_folder" .
     fi
     if [[ -n "$EXCLUDE_OPTIONS" ]] ; then 
       sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f "$TAR_BALL_NAME" -C\
-"$SOURCE_FOLDER" .
+"$source_folder" .
     else
-      sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" -C "$SOURCE_FOLDER" .
+      sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" -C "$source_folder" .
     fi
     exit_code=$?
 

@@ -241,12 +241,12 @@ fi
 
 dieIfBrokenSymlink "$JOBSFOLDER" "$SYMLINK_NAME" "$backup_scheme"
 
-SOURCE_FOLDER=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
+source_folder=$(realpath "$JOBSFOLDER"/"$SYMLINK_NAME")
 if [[ $DEBUG -eq 0 ]] ; then
-  routDebugMsg " : SOURCE_FOLDER: $SOURCE_FOLDER" "$backup_scheme"
+  routDebugMsg " : source_folder: $source_folder" "$backup_scheme"
 fi
 
-dieIfSourceIsWithinFBTree "$SOURCE_FOLDER" "$backup_scheme"
+dieIfSourceIsWithinFBTree "$source_folder" "$backup_scheme"
 
 if [[ $DEBUG -eq 0 || $DRY_RUN == true ]] ;  then
   routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$backup_scheme"
@@ -257,7 +257,7 @@ backup_container=$FB/Periodic/$backup_scheme/$SYMLINK_NAME
 assertBackupContainer "$backup_container"
 
 if [[ $DEBUG -eq 0 ]] ; then
-  routDebugMsg " : the backups of $SOURCE_FOLDER are stored in:\
+  routDebugMsg " : the backups of $source_folder are stored in:\
 $backup_container" "$backup_scheme"
 fi
 
@@ -382,37 +382,37 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER ."   | journalThis 7 "$backup_scheme"
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder ."   | journalThis 7 "$backup_scheme"
 
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
         if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
--C "$SOURCE_FOLDER" . | journalThis 7 "$backup_scheme"
+-C "$source_folder" . | journalThis 7 "$backup_scheme"
         else
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$SOURCE_FOLDER" . | journalThis 7 "$backup_scheme"
+"$EXCLUDE_OPTIONS" -C "$source_folder" . | journalThis 7 "$backup_scheme"
         fi
       else
         if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
--C "$SOURCE_FOLDER" "."
+-C "$source_folder" "."
         else
           sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$SOURCE_FOLDER" . >/dev/null
+"$EXCLUDE_OPTIONS" -C "$source_folder" . >/dev/null
         fi
       fi
 
     else
       # CONSOLE
        echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
-$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
+$TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
 
       if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
         sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME"  \
--C "$SOURCE_FOLDER" "."
+-C "$source_folder" "."
       else
         sudo tar -z   $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
-"$EXCLUDE_OPTIONS" -C "$SOURCE_FOLDER" "."
+"$EXCLUDE_OPTIONS" -C "$source_folder" "."
       fi
 
     fi
@@ -459,18 +459,18 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $SOURCE_FOLDER . "
     if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  \
-          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER ." "$backup_scheme"
+          -f $TAR_BALL_NAME  -C $source_folder ." "$backup_scheme"
       fi
       sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" \
--C "$SOURCE_FOLDER" .
+-C "$source_folder" .
     else
       # TODO: MAYBE  put in a block, testing for CONSOLE and adding setbuf
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         routDebugMsg " : sudo tar -z -c $VERBOSE_OPTIONS -c  $EXCLUDE_OPTIONS\
-          -f $TAR_BALL_NAME  -C $SOURCE_FOLDER" .
+          -f $TAR_BALL_NAME  -C $source_folder" .
       fi
       sudo tar -z $VERBOSE_OPTIONS -c "$EXCLUDE_OPTIONS" -f \
-"$TAR_BALL_NAME" -C "$SOURCE_FOLDER" .
+"$TAR_BALL_NAME" -C "$source_folder" .
     fi
     exit_code=$?
     if [[ $exit_code -gt 1 ]] ; then
