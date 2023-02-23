@@ -220,16 +220,16 @@ backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
   fi
 fi
 
-RESTORE_OPTIONS=()
+restore_options=()
 
 if [[ $DRY_RUN = true ]] ; then
-  RESTORE_OPTIONS+="--dry-run"
+  restore_options+="--dry-run"
 fi
 if [[ $VERBOSE = true ]] ; then
-  RESTORE_OPTIONS+=" --verbose"
+  restore_options+=" --verbose"
 fi
 if [[ $FORCE = true ]] ; then
-  RESTORE_OPTIONS+=" --force"
+  restore_options+=" --force"
 fi
 
 # Check out if our source file or folder exists.
@@ -384,14 +384,14 @@ fi
 exit_code=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
-$RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $dest_folder\n" \
+$restore_options $BACKUP_SOURCE_REALPATH $dest_folder\n" \
 | journalThis 7 OneShot
 fi
 
 exit_code=0
 trap '' ERR
 # shellcheck disable=SC2086 # No quoting of options!
-$RESTORE_SCRIPT $RESTORE_OPTIONS "$BACKUP_SOURCE_REALPATH" "$dest_folder"
+$RESTORE_SCRIPT $restore_options "$BACKUP_SOURCE_REALPATH" "$dest_folder"
 exit_code=$?
 
 # We do some cleanup in OneShot.restore.sh
