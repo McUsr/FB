@@ -404,32 +404,32 @@ identifyBackupSourceFolder() {
     exit 5
   fi
 
-  local ORIG="$2"
-  local BIT_TO_REMOVE=$FB/$1
-  local REPLACED="${2/$BIT_TO_REMOVE/}"
-  if [[ "$ORIG" = "$REPLACED" ]] ; then
+  local orig="$2"
+  local bit_to_remove=$FB/$1
+  local replaced="${2/$bit_to_remove/}"
+  if [[ "$orig" = "$replaced" ]] ; then
     echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup isn't within \
 the defined location.\nTerminating..."
     exit 2
-  elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
+  elif [[ "$replaced" = "/" ||  -z "$replaced" ]] ; then
     echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup isn't complete \
 with a path to the actual backup.\n($FB/$1 isn't specific enough,\nthe path \
 must include the folder from which to restore.)\nTerminating..."
     exit 2
   fi
-  OLDIFS=$IFS
+  oldifs=$IFS
   export IFS=/
 # shellcheck disable=SC2086 # NO QUOTING == disastrous!
-  set -- $REPLACED
+  set -- $replaced
   # the path starts with a delimiter, so $1 will contain '' for the empty
   #  element at front to the left of the delimiter.
   if [[ -n $1 && "$1" != "\""  ]] ; then
     echo -e >&2 "$PNAME/${FUNCNAME[0]} : The path to the backup starting with \
 the PREFIX doesn't start with '/'.\n Is it a slash amiss after \$FB ($FB)\n \
-in the  path to the backup ($ORIG)?\nTerminating..."
+in the  path to the backup ($orig)?\nTerminating..."
     exit 2
   fi
-  export IFS=$OLDIFS
+  export IFS=$oldifs
   echo "$2"
 }
 
