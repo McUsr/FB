@@ -256,7 +256,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   echo >&2 "symlink_name : $symlink_name "
   # still need this one for figuring if we are restoring to the
   # original folder, which we won't without the --force flag.
-  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$symlink_name" )
+  path_to_source_for_backup=$(pathFromFullSymlinkName "$symlink_name" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container=\
@@ -285,7 +285,7 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   symlink_name="$(identifyBackupSourceFolder "Periodic/$backup_scheme"\
  "$backup_source_realpath" )"
 
-  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$symlink_name" )
+  path_to_source_for_backup=$(pathFromFullSymlinkName "$symlink_name" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container="$(identifyBackupContainerByTimeStampedFolder \
@@ -336,7 +336,7 @@ executing:  mkdir -p $dest_folder"
 
 else
   # There is set  a destination folder on the command line.
-  if [[ "$dest_folder" = "$PATH_TO_SOURCE_FOR_BACKUP" ]] ; then
+  if [[ "$dest_folder" = "$path_to_source_for_backup" ]] ; then
 
     if [[ $FORCE = false ]] ; then
 
