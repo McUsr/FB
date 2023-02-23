@@ -220,7 +220,7 @@ backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
   fi
 fi
 
-RESTORE_OPTIONS=
+RESTORE_OPTIONS=()
 
 if [[ $DRY_RUN = true ]] ; then
   RESTORE_OPTIONS+="--dry-run"

@@ -172,7 +172,7 @@ if [[ $# -ne 1 ]] ; then
       back up.\n\"$PNAME -h\" for help.\nTerminating..."
     exit 2
 fi
-backup_options=
+backup_options=()
 
 if [[ $DRY_RUN = true ]] ; then
   backup_options+="--dry-run"
