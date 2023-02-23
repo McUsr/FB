@@ -264,15 +264,15 @@ fi
 MUST_MAKE_TODAYS_FOLDER=1
 MUST_MAKE_BACKUP=1
 
-TODAYS_BACKUP_FOLDER_NAME=\
+todays_backup_folder_name=\
 "$backup_container"/$(baseNameDateStamped "$symlink_name")
 emptyBackupFolder=false
 
-if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
+if [[ ! -d "$todays_backup_folder_name"  ]] ; then
   if [[  $DEBUG -eq 0  ]] ; then
 
-    routDebugMsg " : qualification:  TODAYS_BACKUP_FOLDER_NAME : \
-$TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$backup_scheme"
+    routDebugMsg " : qualification:  todays_backup_folder_name : \
+$todays_backup_folder_name  didn't exist!" "$backup_scheme"
   fi
   probeDir="$(newestDirectory "$backup_container")"
 
@@ -284,7 +284,7 @@ $TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$backup_scheme"
       probeDir=""
   fi
 else
-  probeDir="$TODAYS_BACKUP_FOLDER_NAME"
+  probeDir="$todays_backup_folder_name"
   if [[  $DEBUG -eq 0 ]] ; then
     routDebugMsg " : qualification: Todays backup folder existed : \
 $probeDir" "$backup_scheme"
@@ -323,7 +323,7 @@ We will take a backup"  "$backup_scheme"
     fi
     # there are files to back up.
     MUST_MAKE_BACKUP=0
-    if [[ "$probeDir" != "$TODAYS_BACKUP_FOLDER_NAME" ]] ; then
+    if [[ "$probeDir" != "$todays_backup_folder_name" ]] ; then
       MUST_MAKE_TODAYS_FOLDER=0
     fi
   else
@@ -338,7 +338,7 @@ fi
 if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
   if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
-    mkdir -p "$TODAYS_BACKUP_FOLDER_NAME"
+    mkdir -p "$todays_backup_folder_name"
   fi
 
   if hasExcludeFile "$backup_scheme" "$symlink_name" ; then
@@ -454,7 +454,7 @@ $TAR_BALL_NAME $EXCLUDE_OPTIONS -C $source_folder . "
     fi
 
     TAR_BALL_NAME=\
-"$TODAYS_BACKUP_FOLDER_NAME"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
+"$todays_backup_folder_name"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
 
     if [[ -z "$EXCLUDE_OPTIONS"  ]] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
@@ -498,10 +498,10 @@ $TAR_BALL_NAME " "$backup_scheme"
         if [[ $MUST_MAKE_TODAYS_FOLDER -eq 0 ]] ; then
           if [[  $DEBUG -eq 0 ]] ; then
               routDebugMsg " : Removing the backup folder made: \
-$TODAYS_BACKUP_FOLDER_NAME " "$backup_scheme"
+$todays_backup_folder_name " "$backup_scheme"
             fi
           fi
-          rmdir -fr "$TODAYS_BACKUP_FOLDER_NAME"
+          rmdir -fr "$todays_backup_folder_name"
           MUST_MAKE_TODAYS_FOLDER=1
         fi
     elif [[ $exit_code -eq 0 ]] ; then
