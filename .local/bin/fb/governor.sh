@@ -173,18 +173,18 @@ for SYMLINK_NAME in $jobs_list ; do
       fi
 
       if [[ ! -f $jobs_folder/$SYMLINK_NAME.pause ]] ; then
-        BACKUP_CONTAINER=$scheme_container/$SYMLINK_NAME
-        # Alt med BACKUP_CONTAINER skal over i fbinst e.l fbctl
-        if [[ ! -d $BACKUP_CONTAINER ]] ; then
-          mkdir -p "$BACKUP_CONTAINER"
+        backup_container=$scheme_container/$SYMLINK_NAME
+        # Alt med backup_container skal over i fbinst e.l fbctl
+        if [[ ! -d $backup_container ]] ; then
+          mkdir -p "$backup_container"
           # we can go silent about this, or we can just send a message.
           if [[ $DEBUG -eq 0 ]] ; then
-            routDebugMsg " : $BACKUP_CONTAINER didn't exist, que to \
+            routDebugMsg " : $backup_container didn't exist, que to \
 make backup" "$backup_scheme"
           fi
         else
           if [[ $DEBUG -eq 0 ]] ; then
-            routDebugMsg " :$BACKUP_CONTAINER exists, NO que to make \
+            routDebugMsg " :$backup_container exists, NO que to make \
 backup." "$backup_scheme"
           fi
         fi

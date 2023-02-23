@@ -254,8 +254,8 @@ if [[ $# -ne 1 ]] ; then echo -e "${0##*/}/${FUNCNAME[0]} : Need an\
 
 # newestDirectory()
 # RETURNS: then newest directory or "" if no directories were found.
-# PARAMETERS: The BACKUP_CONTAINER
-# dies if it the BACKUP_CONTAINER doesn't exist
+# PARAMETERS: The backup_container
+# dies if it the backup_container doesn't exist
 # TODO: TEST!
 newestDirectory() {
   if [[ $# -ne 1 ]] ; then
@@ -295,8 +295,8 @@ ${1}."
 
 # oldestDirectory()
 # RETURNS: then oldest directory or "" if no directories were found.
-# PARAMETERS: The BACKUP_CONTAINER
-# dies if it the BACKUP_CONTAINER doesn't exist
+# PARAMETERS: The backup_container
+# dies if it the backup_container doesn't exist
 
 # TODO: TEST!
 oldestDirectory() {
@@ -337,8 +337,8 @@ ${1}."
 
 # backupDirectoryCount()
 # RETURNS: the number of directories.
-# PARAMETERS: The BACKUP_CONTAINER
-# dies if it the BACKUP_CONTAINER doesn't exist
+# PARAMETERS: The backup_container
+# dies if it the backup_container doesn't exist
 
 # TODO: TEST!
 backupDirectoryCount() {

@@ -258,7 +258,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
-  BACKUP_CONTAINER=\
+  backup_container=\
 "$(identifyBackupContainerByTimeStampedFolder \
 "$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
   EXIT_STATUS=$?
@@ -270,7 +270,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   backup_scheme="OneShot"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     echo >&2 "$PNAME : Time stamped backup container: \
-$BACKUP_CONTAINER"
+$backup_container"
   fi
 elif [[ "$KIND" = "Periodic" ]] ; then
 
@@ -287,11 +287,11 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
-  BACKUP_CONTAINER="$(identifyBackupContainerByTimeStampedFolder \
+  backup_container="$(identifyBackupContainerByTimeStampedFolder \
     "$KIND/$backup_scheme/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
   if [[ $DEBUG -eq 0 ]] ; then
     echo >&2 "$PNAME SYMLINK_NAME : $SYMLINK_NAME"
-    echo >&2 "$PNAME BACKUP_CONTAINER == $BACKUP_CONTAINER"
+    echo >&2 "$PNAME backup_container == $backup_container"
   fi
 
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ;then
@@ -318,7 +318,7 @@ fi
 MADE_FOLDER=false
 if [[ $DST_FOLDER_SET = false ]] ; then
   # We will make a folder under /tmp
-  DEST_FOLDER=/tmp/$SYMLINK_NAME/$BACKUP_CONTAINER
+  DEST_FOLDER=/tmp/$SYMLINK_NAME/$backup_container
   if [[ $DRY_RUN = false ]] ; then
     if [[ ! -d "$DEST_FOLDER" ]] ; then
       MADE_FOLDER=true

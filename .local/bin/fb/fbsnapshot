@@ -205,9 +205,9 @@ if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
   echo >&2 "$PNAME : SYMLINK_NAME: $SYMLINK_NAME."
 fi
 
-BACKUP_CONTAINER="$FB"/"$curscheme"/"$SYMLINK_NAME"
+backup_container="$FB"/"$curscheme"/"$SYMLINK_NAME"
 if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-  echo >&2  "$PNAME : Backups of $SOURCE_FOLDER are stored in: $BACKUP_CONTAINER"
+  echo >&2  "$PNAME : Backups of $SOURCE_FOLDER are stored in: $backup_container"
 fi
 
 # can be called from the OneShot routine.
@@ -215,21 +215,21 @@ fi
 # the things up, so we just silently create it.
 # we are here to solve problems, not create them.
 
-if [[ ! -d "$BACKUP_CONTAINER" ]] ; then
+if [[ ! -d "$backup_container" ]] ; then
   # selv om det er DRY_RUN så beholder vi denne!
-  mkdir -p "$BACKUP_CONTAINER"
+  mkdir -p "$backup_container"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo -e >&2 "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER didn\'t exist.\
-      \nMaking $BACKUP_CONTAINER."
+    echo -e >&2 "$PNAME : backup_container: $backup_container didn\'t exist.\
+      \nMaking $backup_container."
   fi
 else
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    echo >&2 "$PNAME : BACKUP_CONTAINER: $BACKUP_CONTAINER DID  exist."
+    echo >&2 "$PNAME : backup_container: $backup_container DID  exist."
   fi
 fi
 
 # we generate todays folder name. which is todays 'daily' backup folder.
-TODAYS_BACKUP_FOLDER="$BACKUP_CONTAINER"/"$(baseNameDateStamped "$SYMLINK_NAME")"
+TODAYS_BACKUP_FOLDER="$backup_container"/"$(baseNameDateStamped "$SYMLINK_NAME")"
 CREATED_TODAYS_BACKUP_FOLDER=1
 if [[ ! -d "$TODAYS_BACKUP_FOLDER" ]] ; then
   if [[ $DEBUG -eq 0 || $VERBOSE = true  && $DRY_RUN = false ]] ; then

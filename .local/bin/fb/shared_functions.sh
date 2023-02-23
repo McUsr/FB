@@ -490,7 +490,7 @@ validateFormatOfTimeStampedBackupContainingFolder() {
 # on MODE!
 identifyBackupContainerByTimeStampedFolder() {
 
-# TODO: BACKUP_CONTAINER better than:
+# TODO: backup_container better than:
 # TimeStampedBackupContainingFolder
 
   if [[ $# -ne 2 ]] ; then

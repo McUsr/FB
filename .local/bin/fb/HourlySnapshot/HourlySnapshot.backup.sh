@@ -252,20 +252,20 @@ if [[ $DEBUG -eq 0 || $DRY_RUN == true ]] ;  then
   routDebugMsg " : The target folder is NOT inside $FB. ($1)." "$backup_scheme"
 fi
 
-BACKUP_CONTAINER=$FB/Periodic/$backup_scheme/$SYMLINK_NAME
+backup_container=$FB/Periodic/$backup_scheme/$SYMLINK_NAME
 
-assertBackupContainer "$BACKUP_CONTAINER"
+assertBackupContainer "$backup_container"
 
 if [[ $DEBUG -eq 0 ]] ; then
   routDebugMsg " : the backups of $SOURCE_FOLDER are stored in:\
-$BACKUP_CONTAINER" "$backup_scheme"
+$backup_container" "$backup_scheme"
 fi
 
 MUST_MAKE_TODAYS_FOLDER=1
 MUST_MAKE_BACKUP=1
 
 TODAYS_BACKUP_FOLDER_NAME=\
-"$BACKUP_CONTAINER"/$(baseNameDateStamped "$SYMLINK_NAME")
+"$backup_container"/$(baseNameDateStamped "$SYMLINK_NAME")
 emptyBackupFolder=false
 
 if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
@@ -274,13 +274,13 @@ if [[ ! -d "$TODAYS_BACKUP_FOLDER_NAME"  ]] ; then
     routDebugMsg " : qualification:  TODAYS_BACKUP_FOLDER_NAME : \
 $TODAYS_BACKUP_FOLDER_NAME  didn't exist!" "$backup_scheme"
   fi
-  probeDir="$(newestDirectory "$BACKUP_CONTAINER")"
+  probeDir="$(newestDirectory "$backup_container")"
 
   if [[  $DEBUG -eq 0 ]] ; then
     routDebugMsg " : qualification probeDir =>$probeDir<=" "$backup_scheme"
   fi
 
-  if [[ "$probeDir" == "$BACKUP_CONTAINER" ]] ; then
+  if [[ "$probeDir" == "$backup_container" ]] ; then
       probeDir=""
   fi
 else
@@ -530,15 +530,15 @@ if [[ $DRY_RUN == false && $MUST_MAKE_BACKUP -eq 0 \
   # Is the number of backups we have bigger than  $DAYS_TO_KEEP_BACKUPS?
   while true ; do
 
-  folderCount="$(backupDirectoryCount "$BACKUP_CONTAINER")"
+  folderCount="$(backupDirectoryCount "$backup_container")"
 
     if [[ $folderCount -gt $DAYS_TO_KEEP_BACKUPS  ]] ; then
       # we need to remove the oldest one.
-      dirToRemove="$(oldestDirectory "$BACKUP_CONTAINER")"
+      dirToRemove="$(oldestDirectory "$backup_container")"
       if [[ -z "$dirToRemove" ]] ; then
         #  idk if this even is possible.
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-          routDebugMsg  " : The backup  container ${BACKUP_CONTAINER} doesn't \
+          routDebugMsg  " : The backup  container ${backup_container} doesn't \
 have any older folders than itself!  You need to investigate the situation, \
 to remedy it!"  "$backup_scheme"
         fi
