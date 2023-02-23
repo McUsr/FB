@@ -382,9 +382,9 @@ fi
 
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = false ]] ; then
-  VERBOSE_OPTIONS="-v -v"
+  verbose_options="-v -v"
 else
-  VERBOSE_OPTIONS="-v"
+  verbose_options="-v"
 fi
 
 
@@ -399,14 +399,14 @@ ctrl_c() {
 }
   if [[ $HAVING_ERRORS = false ]] ; then
     DRY_RUN_FOLDER=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
-    sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$DRY_RUN_FOLDER"
+    sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$DRY_RUN_FOLDER"
     if [[ $? -lt 130 ]] ; then
       rm -fr "$DRY_RUN_FOLDER"
     fi
   else
     echo -e >&2 "$PNAME : DRY_RUN_FOLDER=\$(mktemp -d \
 \"/tmp/OneShot.restore.sh.XXX\")"
-    echo -e >&2 "$PNAME : tar -x -z $VERBOSE_OPTIONS -f  \"$BACKUP_SOURCE\" \
+    echo -e >&2 "$PNAME : tar -x -z $verbose_options -f  \"$BACKUP_SOURCE\" \
 -C $DRY_RUN_FOLDER"
     echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
@@ -426,10 +426,10 @@ ctrl_c() {
 }
 
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-    echo -e >&2 "$PNAME : sudo tar -x -z $VERBOSE_OPTIONS -f  $BACKUP_SOURCE \
+    echo -e >&2 "$PNAME : sudo tar -x -z $verbose_options -f  $BACKUP_SOURCE \
 -C $dest_folder"
   fi
-  sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$dest_folder"
+  sudo tar -x -z $verbose_options -f  "$BACKUP_SOURCE" -C "$dest_folder"
   exit_code=$?
    #   | journalThis 7 OneShot
 

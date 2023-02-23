@@ -196,9 +196,9 @@ else
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-  VERBOSE_OPTIONS="-v -v"
+  verbose_options="-v -v"
 else
-  VERBOSE_OPTIONS="-v"
+  verbose_options="-v"
 fi
 exit_code=0
 if [[ $DRY_RUN = true  ]] ; then
@@ -216,14 +216,14 @@ ctrl_c() {
 "$DRY_RUN_FOLDER"/"$(baseNameTimeStamped "$symlink_name" )"-backup.tar.gz
   if [[ $HAVING_ERRORS = false ]] ; then
 
-    echo >&2 "$PNAME : sudo tar -z $VERBOSE_OPTIONS -c -f \
+    echo >&2 "$PNAME : sudo tar -z $verbose_options -c -f \
 $TAR_BALL_NAME $exclude_options -C $source_folder . "
 
     if [[ -n "$exclude_options" ]] ; then
-      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" "$exclude_options" \
+      sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" "$exclude_options" \
 -C "$source_folder" .
     else
-      sudo tar -z  -c $VERBOSE_OPTIONS -f "$TAR_BALL_NAME" -C "$source_folder" .
+      sudo tar -z  -c $verbose_options -f "$TAR_BALL_NAME" -C "$source_folder" .
     fi
 
     if [[ -d "$DRY_RUN_FOLDER" ]] ; then
@@ -237,7 +237,7 @@ $TAR_BALL_NAME $exclude_options -C $source_folder . "
   else
     echo -e >&2 "$PNAME \
 : DRY_RUN_FOLDER=\$(mktemp -d \"/tmp/OneShot.restore.sh.XXX\")"
-    echo -e "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $exclude_options -f \
+    echo -e "$PNAME : sudo tar -z -c $verbose_options -c  $exclude_options -f \
 $TAR_BALL_NAME  -C $source_folder . "
     echo -e >&2 "$PNAME : rm -fr $DRY_RUN_FOLDER"
   fi
@@ -253,14 +253,14 @@ ctrl_c() {
   rm -f "$TAR_BALL_NAME"
 }
     if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
-      echo -e >&2 "$PNAME : sudo tar -z -c $VERBOSE_OPTIONS -c  $exclude_options\
+      echo -e >&2 "$PNAME : sudo tar -z -c $verbose_options -c  $exclude_options\
         -f $TAR_BALL_NAME  -C $source_folder" .
     fi
     if [[ -n "$exclude_options" ]] ; then 
-      sudo tar -z $VERBOSE_OPTIONS -c "$exclude_options" -f "$TAR_BALL_NAME" -C\
+      sudo tar -z $verbose_options -c "$exclude_options" -f "$TAR_BALL_NAME" -C\
 "$source_folder" .
     else
-      sudo tar -z $VERBOSE_OPTIONS -c -f "$TAR_BALL_NAME" -C "$source_folder" .
+      sudo tar -z $verbose_options -c -f "$TAR_BALL_NAME" -C "$source_folder" .
     fi
     exit_code=$?
 
