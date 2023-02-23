@@ -192,16 +192,16 @@ backup." "$backup_scheme"
         manager "$backup_scheme"  "$symlink_name" backup
         exit_code=$?
         if [[ $exit_code  -eq 0 ]] ; then
-          BACKUP_SCRIPT="$DELEGATE_SCRIPT"
+          backup_script="$DELEGATE_SCRIPT"
         else
           exit $exit_code
         fi
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then 
           routDebugMsg " : Command line after manager: \
-$BACKUP_SCRIPT $backup_scheme $symlink_name" "$backup_scheme"
+$backup_script $backup_scheme $symlink_name" "$backup_scheme"
         fi
         ERR_IGNORE=0
-        "$BACKUP_SCRIPT" "$backup_scheme" "$symlink_name"
+        "$backup_script" "$backup_scheme" "$symlink_name"
         exit_code=$?
         ERR_IGNORE=1
         if [[ $exit_code -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then

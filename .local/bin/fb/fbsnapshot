@@ -264,20 +264,20 @@ fi
 manager "$curscheme"  "$symlink_name" backup
 exit_code=$?
 if [[ $exit_code  -eq 0 ]] ; then
-  BACKUP_SCRIPT="$DELEGATE_SCRIPT"
+  backup_script="$DELEGATE_SCRIPT"
 else
   exit "$exitcode"
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-  echo -e >&2 "$PNAME : EXECUTING:\n $BACKUP_SCRIPT $BACKUP_OPTIONS  \
+  echo -e >&2 "$PNAME : EXECUTING:\n $backup_script $BACKUP_OPTIONS  \
     $source_folder  $todays_backup_folder"
 fi
 
 
 exit_code=0
 trap '' ERR
-$BACKUP_SCRIPT $BACKUP_OPTIONS  "$source_folder"  "$todays_backup_folder" \
+$backup_script $BACKUP_OPTIONS  "$source_folder"  "$todays_backup_folder" \
 "$symlink_name"
 exit_code=$?
 
