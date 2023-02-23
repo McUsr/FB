@@ -53,7 +53,7 @@ MODE="CONSOLE"
 
 fbBinDir="$(pathToSourcedFiles)"
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
@@ -81,7 +81,7 @@ dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$curscheme"
 
 dieIfNotDirectoryExist "$XDG_BIN_HOME"
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
 else
 # shellcheck source=shared_functions.sh

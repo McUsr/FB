@@ -59,8 +59,8 @@ PNAME=${0##*/}
 MODE="CONSOLE"
 
 fbBinDir="$(pathToSourcedFiles)"
-THROUGH_SHELLCHECK=0
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+through_shellcheck=0
+if [[ $through_shellcheck -ne 0  ]] ; then
 # shellcheck source=./service_functions.sh
   dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
 else
@@ -91,7 +91,7 @@ dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
 
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
 else
 # shellcheck source=shared_functions.sh

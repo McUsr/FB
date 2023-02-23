@@ -114,8 +114,8 @@ else
 fi
 
 fbBinDir="$(pathToSourcedFiles)"
-
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+through_shellcheck=0
+if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../service_functions.sh
 else
 # bootstrapping libraries before figuring system paths.
@@ -133,7 +133,7 @@ dieIfNotDirectoryExist "$XDG_BIN_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME"
 dieIfNotDirectoryExist "$XDG_DATA_HOME/fbjobs"
 
-if [[ $THROUGH_SHELLCHECK -ne 0  ]] ; then
+if [[ $through_shellcheck -ne 0  ]] ; then
   dieIfCantSourceShellLibrary "$fbBinDir"/../shared_functions.sh
 else
 # shellcheck source=shared_functions.sh
