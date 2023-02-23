@@ -73,7 +73,7 @@ just be verbose about the actions that would have gone down.
 #### SCHEME\_BIN\_FOLDER
 Not fully implemented: only used in shared_functions.sh/manager(): Iti
 denotes the folder for delegate scripts for the current backup
-scheme in question.
+scheme in question. Mostly used for local variables.
 
 
 #### SCHEME\_CONTAINER
@@ -138,5 +138,5 @@ by TERSE\_OUTPUT,  which  turns SILENT on, when set.
 
 
 ( fra governor.sh, kan kanskje brukes. )
-  Last updated:23-02-23 02:13
+  Last updated:23-02-23 11:27
 
