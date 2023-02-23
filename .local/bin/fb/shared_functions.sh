@@ -909,7 +909,7 @@ dieIfNoEditorSetToUse() {
 }
 
 # dieIfNotValidFullSymlinkName()
-# PARAMETERS: SYMLINKNAME SCHEME
+# PARAMETERS: SYMLINK_NAME SCHEME
 # RETURNS: 0, if the symlink name is valid.
 dieIfNotValidFullSymlinkName() {
   if [[ $# -ne 2 ]] ; then
@@ -917,13 +917,13 @@ dieIfNotValidFullSymlinkName() {
 and scheme. Terminates" FolderBackup
     exit 5
   fi
-  local full_symlink_name="$1" backup_scheme=$2
+  local symlink_name="$1" backup_scheme=$2
 
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-    routDebugMsg "$/${FUNCNAME[0]} :FULL_symnlink_name : $full_symlink_name" \
+    routDebugMsg "$/${FUNCNAME[0]} :FULL_symnlink_name : $symlink_name" \
       "$backup_scheme"
   fi
-  full_path="$(pathFromFullSymlinkName "$full_symlink_name")"
+  full_path="$(pathFromFullSymlinkName "$symlink_name")"
   if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
     routDebugMsg "/${FUNCNAME[0]} :full_path after :\
       \$(pathFromFullSymlinkName \"\$FULL_SYMLINK_NAME\") : $full_path"\
@@ -931,8 +931,8 @@ and scheme. Terminates" FolderBackup
   fi
   symlink_probe="$(fullPathSymlinkName "$full_path" )"
 
-  if [[ "$full_symlink_name" != "$symlink_probe" ]] ; then
-    routErrorMsg "${FUNCNAME[0]} : $full_symlink_name Not a valid symlink\
+  if [[ "$symlink_name" != "$symlink_probe" ]] ; then
+    routErrorMsg "${FUNCNAME[0]} : $symlink_name Not a valid symlink\
       name!  Terminates"  "$backup_scheme"
     exit 5
    fi

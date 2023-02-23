@@ -251,16 +251,16 @@ if [[ "$KIND" = "OneShot" ]] ; then
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
     echo >&2 "$PNAME : Current backup KIND is One Shot Backup."
   fi
-  SYMLINK_NAME="$(identifyBackupSourceFolder OneShot \"$BACKUP_SOURCE_REALPATH\" )"
-  echo >&2 "symnlink_name : $symnlink_name "
+  symlink_name="$(identifyBackupSourceFolder OneShot \"$BACKUP_SOURCE_REALPATH\" )"
+  echo >&2 "symlink_name : $symlink_name "
   # still need this one for figuring if we are restoring to the
   # original folder, which we won't without the --force flag.
-  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
+  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$symlink_name" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container=\
 "$(identifyBackupContainerByTimeStampedFolder \
-"$KIND/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
+"$KIND/$symlink_name" "$BACKUP_SOURCE_REALPATH")"
   EXIT_STATUS=$?
 # Apparaently, it isn't that easy to exit directly, when you're in a subshell
   if [[ $EXIT_STATUS -ne 0 ]] ; then
@@ -281,16 +281,16 @@ elif [[ "$KIND" = "Periodic" ]] ; then
   backup_scheme=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
 
 
-  SYMLINK_NAME="$(identifyBackupSourceFolder "Periodic/$backup_scheme"\
+  symlink_name="$(identifyBackupSourceFolder "Periodic/$backup_scheme"\
  "$BACKUP_SOURCE_REALPATH" )"
 
-  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$SYMLINK_NAME" )
+  PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$symlink_name" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container="$(identifyBackupContainerByTimeStampedFolder \
-    "$KIND/$backup_scheme/$SYMLINK_NAME" "$BACKUP_SOURCE_REALPATH")"
+    "$KIND/$backup_scheme/$symlink_name" "$BACKUP_SOURCE_REALPATH")"
   if [[ $DEBUG -eq 0 ]] ; then
-    echo >&2 "$PNAME symnlink_name : $symnlink_name"
+    echo >&2 "$PNAME symlink_name : $symlink_name"
     echo >&2 "$PNAME backup_container == $backup_container"
   fi
 
@@ -318,7 +318,7 @@ fi
 MADE_FOLDER=false
 if [[ $DST_FOLDER_SET = false ]] ; then
   # We will make a folder under /tmp
-  DEST_FOLDER=/tmp/$SYMLINK_NAME/$backup_container
+  DEST_FOLDER=/tmp/$symlink_name/$backup_container
   if [[ $DRY_RUN = false ]] ; then
     if [[ ! -d "$DEST_FOLDER" ]] ; then
       MADE_FOLDER=true
@@ -371,7 +371,7 @@ unlinking of it before the restore!"
   fi
 fi
 # At this level, we have "ironed out" KIND.
-manager "$backup_scheme"  "$SYMLINK_NAME" restore
+manager "$backup_scheme"  "$symlink_name" restore
 EXIT_STATUS=$?
 if [ $EXIT_STATUS  -eq 0 ] ; then
   RESTORE_SCRIPT="$DELEGATE_SCRIPT"

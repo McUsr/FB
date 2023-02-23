@@ -154,26 +154,26 @@ scheme_container="$( assertSchemeContainer "$backup_scheme" )"
 # the container with backups of that scheme on the GoogleDrive.
 # makes the container, and parent! shouldn't one or both exist.
 
-for symnlink_name in $jobs_list ; do
-  if isASymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
+for symlink_name in $jobs_list ; do
+  if isASymlink "$jobs_folder"/"$symlink_name" ; then
 
     if [[ $DEBUG -eq 0 ]] ; then
-      routDebugMsg " : $symnlink_name is a  symnlink_name." "$backup_scheme"
+      routDebugMsg " : $symlink_name is a  symlink_name." "$backup_scheme"
     fi
 
-    if isUnbrokenSymlink "$jobs_folder"/"$SYMLINK_NAME" ; then
+    if isUnbrokenSymlink "$jobs_folder"/"$symlink_name" ; then
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-        routDebugMsg ": currently processing the symlink $SYMLINK_NAME\
+        routDebugMsg ": currently processing the symlink $symlink_name\
 (unbroken).\n" "$backup_scheme"
       fi
       # we need the real path
-      target_folder="$(realpath "$jobs_folder"/"$SYMLINK_NAME")"
+      target_folder="$(realpath "$jobs_folder"/"$symlink_name")"
       if [[ $DEBUG -eq 0 ]] ; then
         routDebugMsg " : Realpath is $target_folder." "$backup_scheme"
       fi
 
-      if [[ ! -f $jobs_folder/$SYMLINK_NAME.pause ]] ; then
-        backup_container=$scheme_container/$SYMLINK_NAME
+      if [[ ! -f $jobs_folder/$symlink_name.pause ]] ; then
+        backup_container=$scheme_container/$symlink_name
         # Alt med backup_container skal over i fbinst e.l fbctl
         if [[ ! -d $backup_container ]] ; then
           mkdir -p "$backup_container"
@@ -189,7 +189,7 @@ backup." "$backup_scheme"
           fi
         fi
 
-        manager "$backup_scheme"  "$SYMLINK_NAME" backup
+        manager "$backup_scheme"  "$symlink_name" backup
         exit_code=$?
         if [[ $exit_code  -eq 0 ]] ; then
           BACKUP_SCRIPT="$DELEGATE_SCRIPT"
@@ -198,34 +198,34 @@ backup." "$backup_scheme"
         fi
         if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then 
           routDebugMsg " : Command line after manager: \
-$BACKUP_SCRIPT $backup_scheme $SYMLINK_NAME" "$backup_scheme"
+$BACKUP_SCRIPT $backup_scheme $symlink_name" "$backup_scheme"
         fi
         ERR_IGNORE=0
-        "$BACKUP_SCRIPT" "$backup_scheme" "$SYMLINK_NAME"
+        "$BACKUP_SCRIPT" "$backup_scheme" "$symlink_name"
         EXIT_STATUS=$?
         ERR_IGNORE=1
         if [[ $EXIT_STATUS -eq 0 && $TERSE_OUTPUT -eq 0  ]] ; then
-          success_jobs+=( "$(pathFromFullSymlinkName "$SYMLINK_NAME" )" )
+          success_jobs+=( "$(pathFromFullSymlinkName "$symlink_name" )" )
         fi
         # TODO:  If exit status ok, put symlink into array,
         # for possible collective message.
       else
         # there was a pause file
         if [[ $DEBUG -eq 0  ]] ; then
-          routDebugMsg " : I found a $jobs_folder/$SYMLINK_NAME.pause\
+          routDebugMsg " : I found a $jobs_folder/$symlink_name.pause\
  file and skips this job ... for now." "$backup_scheme"
         fi
       fi
     else
       # broken symlink
       if [[ $DEBUG -eq 0 || $VERBOSE == true ]] ; then
-        routDebugMsg "$PNAME : The symlink $symnlink_name is broken." \
+        routDebugMsg "$PNAME : The symlink $symlink_name is broken." \
 "$backup_scheme"
       fi
       # this goes to the journal land a notification is sent.
-      brokenSymlink "$jobs_folder" "$SYMLINK_NAME" "$backup_scheme:${0##*/}"
+      brokenSymlink "$jobs_folder" "$symlink_name" "$backup_scheme:${0##*/}"
     fi
-  # else NOT A SYMLINK_NAME, we just ignore.
+  # else NOT A symlink_name, we just ignore.
   fi
 done
 
