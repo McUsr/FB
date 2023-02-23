@@ -238,9 +238,9 @@ if [[ ! -r "$1" ]] ; then
 \nTerminating..." >&2
   exit 1
 else
-  BACKUP_SOURCE_REALPATH=$(realpath "$1")
+  backup_source_realpath=$(realpath "$1")
   if [[ $PARSE_DEBUG -eq 0 ]] ; then
-    echo -e "Found \"$1\"\n (\"$BACKUP_SOURCE_REALPATH\")" >&2
+    echo -e "Found \"$1\"\n (\"$backup_source_realpath\")" >&2
   fi
 fi
 
@@ -252,7 +252,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
     echo >&2 "$PNAME : Current backup KIND is One Shot Backup."
   fi
-  symlink_name="$(identifyBackupSourceFolder OneShot \"$BACKUP_SOURCE_REALPATH\" )"
+  symlink_name="$(identifyBackupSourceFolder OneShot \"$backup_source_realpath\" )"
   echo >&2 "symlink_name : $symlink_name "
   # still need this one for figuring if we are restoring to the
   # original folder, which we won't without the --force flag.
@@ -261,7 +261,7 @@ if [[ "$KIND" = "OneShot" ]] ; then
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container=\
 "$(identifyBackupContainerByTimeStampedFolder \
-"$KIND/$symlink_name" "$BACKUP_SOURCE_REALPATH")"
+"$KIND/$symlink_name" "$backup_source_realpath")"
   exit_code=$?
 # Apparaently, it isn't that easy to exit directly, when you're in a subshell
   if [[ $exit_code -ne 0 ]] ; then
@@ -279,17 +279,17 @@ elif [[ "$KIND" = "Periodic" ]] ; then
     echo >&2 "$PNAME BACKUP_KIND ==  Periodic "
   fi
 
-  backup_scheme=$(periodicBackupScheme "$BACKUP_SOURCE_REALPATH" )
+  backup_scheme=$(periodicBackupScheme "$backup_source_realpath" )
 
 
   symlink_name="$(identifyBackupSourceFolder "Periodic/$backup_scheme"\
- "$BACKUP_SOURCE_REALPATH" )"
+ "$backup_source_realpath" )"
 
   PATH_TO_SOURCE_FOR_BACKUP=$(pathFromFullSymlinkName "$symlink_name" )
   # Question is: Do I need anything more than this?
   # Though, I must indeed veryify that there is a timestamped folder after.
   backup_container="$(identifyBackupContainerByTimeStampedFolder \
-    "$KIND/$backup_scheme/$symlink_name" "$BACKUP_SOURCE_REALPATH")"
+    "$KIND/$backup_scheme/$symlink_name" "$backup_source_realpath")"
   if [[ $DEBUG -eq 0 ]] ; then
     echo >&2 "$PNAME symlink_name : $symlink_name"
     echo >&2 "$PNAME backup_container == $backup_container"
@@ -384,21 +384,21 @@ fi
 exit_code=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
-$restore_options $BACKUP_SOURCE_REALPATH $dest_folder\n" \
+$restore_options $backup_source_realpath $dest_folder\n" \
 | journalThis 7 OneShot
 fi
 
 exit_code=0
 trap '' ERR
 # shellcheck disable=SC2086 # No quoting of options!
-$RESTORE_SCRIPT $restore_options "$BACKUP_SOURCE_REALPATH" "$dest_folder"
+$RESTORE_SCRIPT $restore_options "$backup_source_realpath" "$dest_folder"
 exit_code=$?
 
 # We do some cleanup in OneShot.restore.sh
 if [[ $exit_code -eq 0 &&  $DRY_RUN = false && \
   $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
-  echo  -e >&2 "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into \
+  echo  -e >&2 "$PNAME : restore  of $backup_source_realpath into \
 $dest_folder complete!"   | journalThis 5 OneShot
 
 elif [ $exit_code -gt 1 ] ; then
