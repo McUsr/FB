@@ -39,7 +39,7 @@ ARCHIVE_OUTPUT=1 # only controls ouput during  DRY_RUN
 #   off.  The level of VERBOSITY is another option that will kick in, once
 #   ARCHIVE_OUPUT is true (-1).
 
-${TERSE_OUTPUT:=1}
+TERSE_OUTPUT=${TERSE_OUTPUT:=1}
 # If we are called from the command line and not by governor.sh, then 
 # TERSE_OUTPUT wasn't set, so we set it false.
 
