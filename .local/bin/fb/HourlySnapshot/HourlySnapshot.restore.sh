@@ -208,8 +208,8 @@ if [[ -f "$1" ]] ;then
     echo -e >&2 "$PNAME : The backup source is a file!"
   fi
 
-  TAR_PROBE="${1/.tar.gz/}"
-  if [[ "$TAR_PROBE" = "$1" ]] ; then
+  tar_probe="${1/.tar.gz/}"
+  if [[ "$tar_probe" = "$1" ]] ; then
     if [[ $DRY_RUN = false ]] ; then
       echo -e >&2 "$PNAME : The file  specified:\n \"$1\":\n isn't a .tar.gz \
 file. Terminating..."
