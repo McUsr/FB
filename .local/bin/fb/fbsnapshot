@@ -7,7 +7,7 @@ VERSION="\"v0.0.4\""
 curscheme="OneShot"
 
 
-ERR_IGNORE=1
+ERR_IGNORE=0
 err_report() {
   if [[ $ERR_IGNORE -ne 0  ]] ; then
     echo >&2 "$PNAME : Error on line $1"
@@ -67,12 +67,11 @@ else
   source "$fbBinDir"/service_functions.sh
 fi
 
-ERR_IGNORE=0
 
 DRY_RUN=false
 # controls whether we are going to print the backup command to the
 # console/journal, (when DRY_RUN=0) or if were actually going to perform.
-DEBUG=0
+DEBUG=1
 #
 # prints out debug messages to the console/journal if its on when instigated\
 # systemd --user.
@@ -142,7 +141,6 @@ if [[ $? != 0 ]] ; then
   exit 2
 fi
 
-ERR_IGNORE=1
 # Note the quotes around '$TEMP': they are essential!
 eval set -- "$TEMP"
 VERBOSE=false
@@ -266,7 +264,7 @@ exit_code=$?
 if [[ $exit_code  -eq 0 ]] ; then
   backup_script="$DELEGATE_SCRIPT"
 else
-  exit "$exitcode"
+  exit $exit_code
 fi
 
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then

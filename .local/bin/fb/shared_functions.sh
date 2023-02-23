@@ -873,7 +873,7 @@ script: $candidate_script." "$backup_scheme"
     routDebugMsg"/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
 in : $candidate_script." "$backup_scheme"
   fi
-
+  return 0
 }
 
 
