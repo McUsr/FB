@@ -38,6 +38,10 @@ XDG\_CONFIG_HOME: `~/.config`
 FB: The backup tree, mounted from the Google Drive,
 which contains backups of Peridical, and One\Shotkinds 
 
+#### FB\_SCHEMES\_BIN
+
+
+
 ## RUNTIME VARIABLES
 
 #### PNAME:
@@ -134,5 +138,5 @@ by TERSE\_OUTPUT,  which  turns SILENT on, when set.
 
 
 ( fra governor.sh, kan kanskje brukes. )
-  Last updated:23-02-23 00:57
+  Last updated:23-02-23 02:13
 
