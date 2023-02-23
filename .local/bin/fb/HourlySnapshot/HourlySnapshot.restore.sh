@@ -278,13 +278,13 @@ fi
 
 
 # Preparing the folder name we shall append, or not.
-FOLDER_BASE_NAME="${backup_source##*/}"
+folder_base_name="${backup_source##*/}"
 if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then
   echo -e >&2 "$PNAME : The folder base name we will use for basis for the \
-tar-dump in is:\n$FOLDER_BASE_NAME"
+tar-dump in is:\n$folder_base_name"
 fi
-FOLDER_STEM_NAME="$( baseNameFromBackupFile "$FOLDER_BASE_NAME")"
-# FOLDER_STEM_NAME="${FOLDER_BASE_NAME%%.*}"
+FOLDER_STEM_NAME="$( baseNameFromBackupFile "$folder_base_name")"
+# FOLDER_STEM_NAME="${folder_base_name%%.*}"
 
 if [[ $VERBOSE = true  || $DEBUG -eq 0 ]] ;  then
   echo -e >&2 "$PNAME : The folder stem name we will use for storing the \
