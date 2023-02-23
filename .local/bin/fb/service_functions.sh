@@ -192,7 +192,8 @@ dieIfJobsFolderDontExist(){
   if [[ ! -d $jobsfolder ]] ; then
       if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then
         notifyErr "$PNAME/${FUNCNAME[0]}" "The folder \
-$jobsfolder doesn't exist. Critical error. Terminating.." | journalThis 2 backup_scheme
+$jobsfolder doesn't exist. Critical error. Terminating.." \
+| journalThis 2 backup_scheme
       else
         echo >&2 "$PNAME/${FUNCNAME[0]}: The folder $jobsfolder doesn't \
 exist. Hopefully you are executing from the commandline and misspelled \

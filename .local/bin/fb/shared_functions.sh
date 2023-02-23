@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 err_report() {
     echo >&2 "$PNAME : Error on line $1"
@@ -960,7 +960,9 @@ excludeFileHasContents() {
   backup_scheme="$1"
   symlink_name="$2"
 
-  probe="$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file"
+  local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+
+  probe="$scheme_bin_folder/$symlink_name.d/exclude.file"
 
   if [[ -s "$probe" ]] ; then
     if [[ $DEBUG -eq 0 || $VERBOSE == true || $DRY_RUN == true ]] ; then
@@ -1003,35 +1005,37 @@ SYMLINK_NAME! Terminating... " FolderBackup
   backup_scheme=$1
   symlink_name="$2"
 
-  if [[ -d "$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" ]] ; then
+  local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+
+  if [[ -d "$scheme_bin_folder/$symlink_name.d" ]] ; then
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
       routDebugMsg "/${FUNCNAME[0]} : We have a dropin directory:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d" "$backup_scheme"
     fi
 
     if  excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
       export EXCLUDE_FILE=\
-"$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
+"$scheme_bin_folder"/"$symlink_name".d/exclude.file
 
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
         routDebugMsg "/${FUNCNAME[0]} : We have an \"exclude.file\" file:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 0
     else
       if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
         routDebugMsg "/${FUNCNAME[0]} : We DON'T have an \"exclude.file\" file:\
- $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+ $scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
       fi
       return 1
     fi
   else
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ;  then
       routDebugMsg "/${FUNCNAME[0]} : We don't have  a dropin directory: \
-$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d" "$backup_scheme"
+$scheme_bin_folder/$symlink_name.d" "$backup_scheme"
       routDebugMsg "${FUNCNAME[0]} : We don't have an \"exclude.file\" file: \
-$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file" "$backup_scheme"
+$scheme_bin_folder/$symlink_name.d/exclude.file" "$backup_scheme"
     fi
     return 1
   fi
@@ -1055,28 +1059,29 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
   dieIfNotValidFullSymlinkName "$2" "$1"
   symlink_name="$2"
 
+  local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+
 # Only one place a the exclude file.
 # And if it doesn't exist, then we'll make it.
-  if [[ ! -d "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d ]] ; then
-    echo >&2 "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d
+  if [[ ! -d "$scheme_bin_folder"/"$symlink_name".d ]] ; then
 
     if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
       echo -e "$PNAME : The folder\
-        \"$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d\" didn't exist.\
+        \"$scheme_bin_folder/$symlink_name.d\" didn't exist.\
         \nMaking it.\nmkdir -p ~/.local/bin/fb/OneShot/$symlink_name.d"\
         | journalThis 7 "$backup_scheme"
     fi
-    mkdir -p "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d
-    touch "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file
+    mkdir -p "$scheme_bin_folder"/"$symlink_name".d
+    touch "$scheme_bin_folder"/"$symlink_name".d/exclude.file
   fi
 
   dieIfNoEditorSetToUse
 
   if "$THE_EDITOR"\
-    "$XDG_BIN_HOME"/fb/"$backup_scheme"/"$symlink_name".d/exclude.file ;\
+    "$scheme_bin_folder"/"$symlink_name".d/exclude.file ;\
   then
     echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
-      \n $XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file\
+      \n $scheme_bin_folder/$symlink_name.d/exclude.file\
       \nTerminating..." | journalThis 2 OneShot
     exit 1
   fi
@@ -1085,7 +1090,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
   #  before we see this as a success?
   if excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
     echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
-      \n$XDG_BIN_HOME/fb/$backup_scheme/$symlink_name.d/exclude.file\nIs empty!\
+      \n$scheme_bin_folder/$symlink_name.d/exclude.file\nIs empty!\
       \nTerminating..." | journalThis 2 "$backup_scheme"
 
     exit 1
