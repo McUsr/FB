@@ -168,7 +168,7 @@ trap 'servHasInetCtrlC' INT
   SECONDS=0
   if [[ $# -ne 1 ]] ; then
       routErrorMsg "/${FUNCNAME[0]}" "I need a parameter for the \
-BACKUP_SCHEME in use! Terminating... "  FolderBackup
+backup_scheme in use! Terminating... "  FolderBackup
     exit 5
   fi
   local inet_gone=false passed_three=false
@@ -247,10 +247,10 @@ trap 'servHasInetCtrlC' INT
   if [[ $# -ne 1 ]] ; then
     if [[ ! -t 1 ]] ; then
       notify-send "$PNAME/${FUNCNAME[0]}()"  "I need a parameter for the \
-BACKUP_SCHEME in use! Terminating... "
+backup_scheme in use! Terminating... "
     fi
     echo -e "$PNAME/consoleFBFolderIsMounted()  I need a parameter for the\
-      BACKUP_SCHEME in use!\nTerminating... " 1>&2
+      backup_scheme in use!\nTerminating... " 1>&2
     exit 5
   fi
   local  no_mounted_folder=false passed_three=false
@@ -740,7 +740,7 @@ parameters.\nTerminating..."
 
 # assertSchemeContainer()
 # asserts that both the $FB/Periodic and the 
-# $FB/Periodic/$BACKUP_SCHEME folder exists.
+# $FB/Periodic/$backup_scheme folder exists.
 
 assertSchemeContainer() {
 
@@ -778,7 +778,7 @@ export -f journalThis
 # find the correct script/dropin-script to execute if any:
 # Passes the DELEGATE back to the caller by  global  DELEGATE_SCRIPT variable.
 # PARAMETERS (mandatory!)
-# BACKUP_SCHEME, or kind what considers OneShot.
+# backup_scheme, or kind what considers OneShot.
 # SYMLINK_NAME
 # OPERATION backup/restore, so we can use it everywhere.
 
@@ -788,7 +788,7 @@ manager() {
 
   if [[ $# -ne 3 ]] ; then
       routCriticialMsg "/${FUNCNAME[0]} : Wrong number of arguments, I need \
-BACKUP_SCHEME SYMLINK_NAME and OPERATION Terminates..." FolderBackup
+backup_scheme SYMLINK_NAME and OPERATION Terminates..." FolderBackup
       exit 255
   else
     backup_scheme=$1
@@ -821,7 +821,7 @@ $candidate_script. This is a critical error. Terminates..." "$backup_scheme"
 $DELEGATE_SCRIPT" "$backup_scheme"
     fi
   fi
-# Looking for a GENERAL replacement is in the $BACKUP_SCHEME.d folder.
+# Looking for a GENERAL replacement is in the $backup_scheme.d folder.
 
   candidate_script=\
 "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme"."$operation".sh
@@ -847,7 +847,7 @@ script: Current backup script is : $delegate_script" "$backup_scheme"
     routDebugMsg "/${FUNCNAME[0]} : I didn't find  a GENERAL backup dropin \
 script at: $candidate_script." "$backup_scheme"
   fi
-# Looking for a LOCAL replacement is in the $BACKUP_SCHEME.d folder.
+# Looking for a LOCAL replacement is in the $backup_scheme.d folder.
   candidate_script=\
 "$scheme_bin_folder"/"$symlink_name".d/"$backup_scheme"."$operation".sh
 
@@ -1002,7 +1002,7 @@ contents" "$backup_scheme"
 
 
 # hasExcludeFile()
-# PARAMETERS: BACKUP_SCHEME, SYMLINK_NAME
+# PARAMETERS: backup_scheme, SYMLINK_NAME
 # RETURNS true/0 if we have an exclude file
 # GLOBALS : EXCLUDE_FILE : the full path to any exclude file is delivered\
 # through this.
@@ -1010,11 +1010,11 @@ contents" "$backup_scheme"
 # create exclude file, but this time, it isn't fatal, it is just a NO.
 
 hasExcludeFile() {
-# Maybe we can use globals for symlink_name and such as BACKUP_SCHEME\
+# Maybe we can use globals for symlink_name and such as backup_scheme\
 # for optimization.
 
   if [[ $# -ne 2 ]] ; then
-    routErrorMsg "/${FUNCNAME[0]} I need two parameters BACKUP_SCHEME and\
+    routErrorMsg "/${FUNCNAME[0]} I need two parameters backup_scheme and\
 SYMLINK_NAME! Terminating... " FolderBackup 
     exit 5
   fi
