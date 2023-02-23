@@ -350,23 +350,23 @@ starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
 periodicBackupScheme() {
   if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an \
  argument: backup/kind/scheme \nTerminates" >&2 ; exit 5 ; fi
-  local  ORIG="$1"
-  local BIT_TO_REMOVE=$FB/Periodic
-   local REPLACED="${1/$BIT_TO_REMOVE/}"
-  if [[ "$ORIG" = "$REPLACED" ]] ; then
+  local  orig="$1"
+  local bit_to_remove=$FB/Periodic
+   local replaced="${1/$bit_to_remove/}"
+  if [[ "$orig" == "$replaced" ]] ; then
     echo -e >&2 "$PNAME : The path to the backup isn't within  the defined\
       location.\nTerminating..."
     exit 2
-  elif [[ "$REPLACED" = "/" ||  -z "$REPLACED" ]] ; then
+  elif [[ "$replaced" = "/" ||  -z "$replaced" ]] ; then
     echo -e >&2 "$PNAME : The path to the backup isn't complete with a path to\
       the actual backup.\n($FB isn't specific enough,\nthe path must include\
       the folder from which to restore.)\nTerminating..."
     exit 2
   fi
-  OLDIFS=$IFS
+  oldifs=$IFS
   IFS=/
 # shellcheck disable=SC2086 # NO QUOTING == disastrous!
-  set -- $REPLACED
+  set -- $replaced
 # the path starts with a delimiter so $1 will contain '' for the empty element
 # at front to the left of the delimiter.  shellcheck disable=SC2157 # code is
 # irrelevant because we may get '' out of the set command.
@@ -374,10 +374,10 @@ periodicBackupScheme() {
   if [[ -n "$1"  ]] ; then
     echo -e >&2 "$PNAME : The path to the backup starting\
   with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \$FB\
-  ($FB)\n in the path to\ the backup ($ORIG)?\nTerminating..."
+  ($FB)\n in the path to\ the backup ($orig)?\nTerminating..."
      exit 2
   fi
-  export IFS=$OLDIFS
+  export IFS=$oldifs
   echo "$2"
 }
 
