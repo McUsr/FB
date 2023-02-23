@@ -382,7 +382,8 @@ if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
 
     if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
        notifyErr  "$PNAME" ": sudo tar -z $verbose_options -c -f \
-$tar_ball_name $exclude_options -C $source_folder ."   | journalThis 7 "$backup_scheme"
+$tar_ball_name $exclude_options -C $source_folder ." \
+| journalThis 7 "$backup_scheme"
 
       if [[ $ARCHIVE_OUTPUT -eq 0 ]] ; then
         if [[ -z "$exclude_options"  ]] ; then
