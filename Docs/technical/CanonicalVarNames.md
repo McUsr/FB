@@ -1,5 +1,5 @@
-~/wrk/BackupProject/technical/CanonicalVarNames.md
---------------------------------------------------
+Canonical Names for variables in Folder Backup
+-----------------------------------------------
 
 The purpose of this document is to list all the global variables we
 have canonical nanmes for as they are permeating all the
@@ -143,5 +143,5 @@ ERR_IGNORE: controls if the ERR trap shall emit an error
 message.
 
 ( fra governor.sh, kan kanskje brukes. )
-  Last updated:23-02-23 15:41
+  Last updated:23-02-23 20:26
 
