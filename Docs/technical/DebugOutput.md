@@ -1,4 +1,4 @@
-~/wrk/BackupProject/technical/DebugOutput.md
+Thoughts about Debug Output
 --------------------------------------------
 
 Initial thoughts :22-04-18 01:18
@@ -32,5 +32,5 @@ that runs in console mode to the Terminal window, and not
 into any journal. The backed up files in the backup tree,
 is the evidence oof successful backups.
 
-  Last updated:23-02-22 16:48
+  Last updated:23-02-23 20:29
 
