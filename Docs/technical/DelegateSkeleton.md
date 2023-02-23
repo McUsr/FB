@@ -1,5 +1,5 @@
-~/wrk/BackupProject/technical/DelegateSkeleton.md
--------------------------------------------------
+About the Delegates
+-------------------
 
 The actual delegate is passed control to from the governor,
 when it comes to periodic backup jobs, it performs the
@@ -206,4 +206,4 @@ date.
 this only works for hourly and daily schemes. it will look
 like Weekly and Monthly folder for other schemes.
 
-  Last updated:23-02-23 01:59
+  Last updated:23-02-23 20:34
