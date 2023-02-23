@@ -179,7 +179,7 @@ elif [[ ! -d "$2" ]] ;then
   fi
 fi
 
-DEST_FOLDER="$2"
+dest_folder="$2"
 #  Does the backup at least seem to exist?
 if [[ -r "$1" ]] ; then
   if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then
@@ -298,8 +298,8 @@ fi
 WITHIN_TMP=true
 MADE_FOLDER=false
 # Is the destination folder within /tmp?
-PROBE=${DEST_FOLDER/\/tmp/}
-if [[ "$PROBE" = "$DEST_FOLDER" ]] ; then
+PROBE=${dest_folder/\/tmp/}
+if [[ "$PROBE" = "$dest_folder" ]] ; then
   WITHIN_TMP=false
   if [[ $DEBUG -eq 0 ]] ;  then
     echo -e >&2 "$PNAME : The destination folder isn't within /tmp."
@@ -308,21 +308,21 @@ if [[ "$PROBE" = "$DEST_FOLDER" ]] ; then
   # even if it isn't inside the tmp folder.
   if [[ $FORCE = false ]] ; then
     # and we will since $FORCE is false
-    DEST_FOLDER=$DEST_FOLDER/${FOLDER_STEM_NAME}
+    dest_folder=$dest_folder/${FOLDER_STEM_NAME}
 
     if [[ $DRY_RUN = false ]] ; then
-      if [[ ! -d "$DEST_FOLDER" ]] ; then
+      if [[ ! -d "$dest_folder" ]] ; then
         if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then
-          echo >&2 "$PNAME : $DEST_FOLDER didn't exist: mkdir -p $DEST_FOLDER."
+          echo >&2 "$PNAME : $dest_folder didn't exist: mkdir -p $dest_folder."
         fi
-        mkdir -p "$DEST_FOLDER"
+        mkdir -p "$dest_folder"
         MADE_FOLDER=true
       else
         # the folder we should dump into already exists.
-          echo >&2 "$PNAME : $DEST_FOLDER already exist and --force isn't \
+          echo >&2 "$PNAME : $dest_folder already exist and --force isn't \
 used : bailing out"
           if [[ $VERBOSE = true ||  $DEBUG -eq 0 ]] ;  then
-            ls -ld "$DEST_FOLDER"
+            ls -ld "$dest_folder"
           fi
           exit 2
       fi
@@ -330,13 +330,13 @@ used : bailing out"
 # Because we don't mess with making folder under dry-run when FORCE is false?
 # NO: because we-re not really making a restore when dryrun is on,
 # we do restore to a temp folder that we subsequently delete.
-      if [[ ! -d "$DEST_FOLDER" ]] ; then
+      if [[ ! -d "$dest_folder" ]] ; then
         echo >&2 "$PNAME : WOULD have made destination folder: mkdir -p \
-$DEST_FOLDER"
+$dest_folder"
        else
-         echo >&2 "$PNAME : $DEST_FOLDER already exist and --force isn't \
+         echo >&2 "$PNAME : $dest_folder already exist and --force isn't \
 used : bailing out"
-         ls -ld "$DEST_FOLDER"
+         ls -ld "$dest_folder"
          exit 2
       fi
     fi
@@ -345,7 +345,7 @@ used : bailing out"
     if [[ $DRY_RUN = true ]] ; then
       # it can't happen that the folder doesn't exist, because
       # then we would have terminated when we tested for it's existence!
-      echo >&2 "$PNAME : Destination folder exists : $DEST_FOLDER"
+      echo >&2 "$PNAME : Destination folder exists : $dest_folder"
     fi
   fi
 else
@@ -355,28 +355,28 @@ else
   fi
 # The folder is within /tmp, and we just make the folder
 # to put the backup in.
-  DEST_FOLDER="$DEST_FOLDER/${FOLDER_STEM_NAME}"
+  dest_folder="$dest_folder/${FOLDER_STEM_NAME}"
 # This is the full folder name, that will contain the files of the tar backup.
   if [[ $DRY_RUN = false ]] ; then
     MADE_FOLDER=true
-    if [[  -d "$DEST_FOLDER" ]] ; then
+    if [[  -d "$dest_folder" ]] ; then
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
-          ls -ld "$DEST_FOLDER"
-          echo >&2 "$PNAME : $DEST_FOLDER did exist: rm -fr $DEST_FOLDER."
+          ls -ld "$dest_folder"
+          echo >&2 "$PNAME : $dest_folder did exist: rm -fr $dest_folder."
         fi
-        mkdir -p "$DEST_FOLDER"
+        mkdir -p "$dest_folder"
         if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
-          echo >&2 "$PNAME : remade $DEST_FOLDER : mkdir -p $DEST_FOLDER."
+          echo >&2 "$PNAME : remade $dest_folder : mkdir -p $dest_folder."
         fi
     else
-      mkdir -p "$DEST_FOLDER"
+      mkdir -p "$dest_folder"
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ;  then
-        echo >&2 "$PNAME : $DEST_FOLDER didn't exist: mkdir -p $DEST_FOLDER."
-        ls -ld "$DEST_FOLDER"
+        echo >&2 "$PNAME : $dest_folder didn't exist: mkdir -p $dest_folder."
+        ls -ld "$dest_folder"
       fi
     fi
   else
-    echo >&2 "$PNAME : Making destination folder: mkdir -p $DEST_FOLDER."
+    echo >&2 "$PNAME : Making destination folder: mkdir -p $dest_folder."
   fi
 fi
 
@@ -418,18 +418,18 @@ else
 ctrl_c() {
   if [[ $VERBOSE = true || $DEBUG -eq 0  ]] ; then
     echo >&2 "$PNAME : trapped ctrl-c - interrupted tar command!"
-    echo >&2 "$PNAME : We: rm -fr $DEST_FOLDER ."
+    echo >&2 "$PNAME : We: rm -fr $dest_folder ."
   fi
   if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then
-    rm -fr "$DEST_FOLDER"
+    rm -fr "$dest_folder"
   fi
 }
 
   if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
     echo -e >&2 "$PNAME : sudo tar -x -z $VERBOSE_OPTIONS -f  $BACKUP_SOURCE \
--C $DEST_FOLDER"
+-C $dest_folder"
   fi
-  sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$DEST_FOLDER"
+  sudo tar -x -z $VERBOSE_OPTIONS -f  "$BACKUP_SOURCE" -C "$dest_folder"
   exit_code=$?
    #   | journalThis 7 OneShot
 
@@ -441,11 +441,11 @@ ctrl_c() {
 
     if [[ $exit_code -ne 130 ]] ; then
       if [[ $MADE_FOLDER = true || $WITHIN_TMP = true ]] ; then
-        rm -fr "$DEST_FOLDER"
+        rm -fr "$dest_folder"
       fi
     fi
   elif [[ $exit_code -eq 0 ]] ; then
-      echo -e  >&2 "\n($DEST_FOLDER)\n"
+      echo -e  >&2 "\n($dest_folder)\n"
       # This only looks like this here, not when the script is implicitly
       # initiated from a daemon.
   fi

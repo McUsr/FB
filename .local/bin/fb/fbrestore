@@ -156,7 +156,7 @@ while true; do
       -h | --help )  help ; exit 0 ;;
       -n | --dry-run ) DRY_RUN=true; shift ;;
       -v | --verbose ) VERBOSE=true; shift ;;
-      -o | --dest-dir ) dst_folder_set=true; DEST_FOLDER="$2"; shift 2 ;;
+      -o | --dest-dir ) dst_folder_set=true; dest_folder="$2"; shift 2 ;;
       -F | --force ) FORCE=true ; shift ;;
       -V | --version ) echo "$PNAME : $VERSION" ; exit 0 ;;
       -- ) shift; break ;;
@@ -169,26 +169,26 @@ done
 
 if [[ $dst_folder_set = false ]] ; then
   if [[ $DEBUG -eq 0 ]] ; then
-    echo "$PNAME : DEST_FOLDER not set restoring into a /tmp folder."
+    echo "$PNAME : dest_folder not set restoring into a /tmp folder."
   elif [[ $DRY_RUN = true ]] ; then
-    echo "$PNAME : DEST_FOLDER not set, making one under /tmp."
+    echo "$PNAME : dest_folder not set, making one under /tmp."
   fi
 else
-#  echo "testing folder name $DEST_FOLDER"
+#  echo "testing folder name $dest_folder"
   # Vet it against All the options.
   for opt in h o d v D F V ; do
-   if [[ $DEST_FOLDER = "$opt"  || $DEST_FOLDER = "-$opt" ]] ; then
+   if [[ $dest_folder = "$opt"  || $dest_folder = "-$opt" ]] ; then
      echo -e "$PNAME : The destination folder has an invalid name \
-($DEST_FOLDER).\n Did you forget to specify one?\
+($dest_folder).\n Did you forget to specify one?\
 \nExecute \"$PNAME -h\" for help. Terminating..." >&2
      exit 2
    fi
   done
 
   for opt in help dest-dir verbose dry-run force version ; do
-   if [[ $DEST_FOLDER = "$opt"  || $DEST_FOLDER = "--$opt" ]] ; then
+   if [[ $dest_folder = "$opt"  || $dest_folder = "--$opt" ]] ; then
      echo -e "$PNAME : The destination folder has an invalid name\
-\n ($DEST_FOLDER).\n Did you forget to specify one?\nExecute \
+\n ($dest_folder).\n Did you forget to specify one?\nExecute \
 \"$PNAME -h\" for help. Terminating..." >&2
      exit 2
    fi
@@ -199,7 +199,7 @@ PARSE_DEBUG=1
 if [[ $PARSE_DEBUG -eq 0 ]] ; then
   echo "$PNAME DRY_RUN : $DRY_RUN"
   echo "$PNAME VERBOSE : $VERBOSE"
-  echo "$PNAME dst_folder_set : $dst_folder_set  : DST_FOLDER : $DEST_FOLDER"
+  echo "$PNAME dst_folder_set : $dst_folder_set  : DST_FOLDER : $dest_folder"
   echo "$PNAME FORCE : $FORCE"
 fi
 
@@ -212,7 +212,7 @@ if [[ $# -ne 1 ]] ; then
 # and we haven't set a dest, then we will silently let it slide through.
   if [[ $# -eq 2 && $dst_folder_set = false && -d "$2" ]] ; then
     dst_folder_set=true
-    DEST_FOLDER="$2"
+    dest_folder="$2"
   else
     echo -e "$PNAME : Wrong number of   arguments. I need one argument for a \
 backup source.\nExecute \"$PNAME -h\" for help. Terminating..." >&2
@@ -319,24 +319,24 @@ fi
 MADE_FOLDER=false
 if [[ $dst_folder_set = false ]] ; then
   # We will make a folder under /tmp
-  DEST_FOLDER=/tmp/$symlink_name/$backup_container
+  dest_folder=/tmp/$symlink_name/$backup_container
   if [[ $DRY_RUN = false ]] ; then
-    if [[ ! -d "$DEST_FOLDER" ]] ; then
+    if [[ ! -d "$dest_folder" ]] ; then
       MADE_FOLDER=true
-      mkdir -p "$DEST_FOLDER"
+      mkdir -p "$dest_folder"
     fi
   else
-    if [[ -d "$DEST_FOLDER" ]] ; then
+    if [[ -d "$dest_folder" ]] ; then
       echo -e >&2 "$PNAME : Destination folder existed, maybe with contents."
     else
       echo -e >&2 "$PNAME : Ceating time-stamped backup containing  folder,\n\
-executing:  mkdir -p $DEST_FOLDER"
+executing:  mkdir -p $dest_folder"
     fi
   fi
 
 else
   # There is set  a destination folder on the command line.
-  if [[ "$DEST_FOLDER" = "$PATH_TO_SOURCE_FOR_BACKUP" ]] ; then
+  if [[ "$dest_folder" = "$PATH_TO_SOURCE_FOR_BACKUP" ]] ; then
 
     if [[ $FORCE = false ]] ; then
 
@@ -351,22 +351,22 @@ achieve that.\nTerminating..."
     # no protection from doing stupid things as to restore/dump a backup into
     # the $HOME folder
     if [[ $DRY_RUN = false  ]] ; then
-      if [ ! -d "$DEST_FOLDER" ] ; then
+      if [ ! -d "$dest_folder" ] ; then
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-          echo >&2 "$PNAME : mkdir -p $DEST_FOLDER"
+          echo >&2 "$PNAME : mkdir -p $dest_folder"
         fi
         MADE_FOLDER=true
-        mkdir -p "$DEST_FOLDER"
+        mkdir -p "$dest_folder"
       else
         if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-          echo >&2 "$PNAME : Dest folder for restore: $DEST_FOLDER existed. -No \
+          echo >&2 "$PNAME : Dest folder for restore: $dest_folder existed. -No \
 unlinking of it before the restore!"
         fi
       fi
     else
-      if [ ! -d "$DEST_FOLDER" ] ; then
+      if [ ! -d "$dest_folder" ] ; then
         MADE_FOLDER=true
-        echo >&2 "$PNAME : mkdir -p $DEST_FOLDER"
+        echo >&2 "$PNAME : mkdir -p $dest_folder"
       fi
     fi
   fi
@@ -384,14 +384,14 @@ fi
 exit_code=0
 if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
   echo -e >&2 "$PNAME : EXECUTING:\n$RESTORE_SCRIPT \
-$RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $DEST_FOLDER\n" \
+$RESTORE_OPTIONS $BACKUP_SOURCE_REALPATH $dest_folder\n" \
 | journalThis 7 OneShot
 fi
 
 exit_code=0
 trap '' ERR
 # shellcheck disable=SC2086 # No quoting of options!
-$RESTORE_SCRIPT $RESTORE_OPTIONS "$BACKUP_SOURCE_REALPATH" "$DEST_FOLDER"
+$RESTORE_SCRIPT $RESTORE_OPTIONS "$BACKUP_SOURCE_REALPATH" "$dest_folder"
 exit_code=$?
 
 # We do some cleanup in OneShot.restore.sh
@@ -399,7 +399,7 @@ if [[ $exit_code -eq 0 &&  $DRY_RUN = false && \
   $VERBOSE = true || $DEBUG -eq 0 ]] ; then
 
   echo  -e >&2 "$PNAME : restore  of $BACKUP_SOURCE_REALPATH into \
-$DEST_FOLDER complete!"   | journalThis 5 OneShot
+$dest_folder complete!"   | journalThis 5 OneShot
 
 elif [ $exit_code -gt 1 ] ; then
 
@@ -408,14 +408,14 @@ elif [ $exit_code -gt 1 ] ; then
   else
       echo >&2 "$PNAME : A fatal error occurred."
   fi
-  if [[ $MADE_FOLDER = true && -d "$DEST_FOLDER" ]] ; then
+  if [[ $MADE_FOLDER = true && -d "$dest_folder" ]] ; then
 
     if [ $DRY_RUN = false ] ; then
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
         echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
 \n rm -fr $todays_backup_folder"
       fi
-      rm -fr "$DEST_FOLDER"
+      rm -fr "$dest_folder"
     else
       echo -e >&2 "$PNAME : Removing  folder to restore into  due fatal errors:\
 \n rm -fr $todays_backup_folder"
