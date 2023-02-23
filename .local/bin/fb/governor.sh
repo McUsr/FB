@@ -150,7 +150,7 @@ shutting down this service." "$backup_scheme"
 fi
 
 
-SCHEME_CONTAINER="$( assertSchemeContainer "$backup_scheme" )"
+scheme_container="$( assertSchemeContainer "$backup_scheme" )"
 # the container with backups of that scheme on the GoogleDrive.
 # makes the container, and parent! shouldn't one or both exist.
 
@@ -173,7 +173,7 @@ for SYMLINK_NAME in $jobs_list ; do
       fi
 
       if [[ ! -f $jobs_folder/$SYMLINK_NAME.pause ]] ; then
-        BACKUP_CONTAINER=$SCHEME_CONTAINER/$SYMLINK_NAME
+        BACKUP_CONTAINER=$scheme_container/$SYMLINK_NAME
         # Alt med BACKUP_CONTAINER skal over i fbinst e.l fbctl
         if [[ ! -d $BACKUP_CONTAINER ]] ; then
           mkdir -p "$BACKUP_CONTAINER"
