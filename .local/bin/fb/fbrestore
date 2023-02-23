@@ -149,14 +149,14 @@ eval set -- "$TEMP"
 
 VERBOSE=false
 FORCE=false
-DST_FOLDER_SET=false
+dst_folder_set=false
 # Signals if we have specified a destination folder on the command line.
 while true; do
     case "$1" in
       -h | --help )  help ; exit 0 ;;
       -n | --dry-run ) DRY_RUN=true; shift ;;
       -v | --verbose ) VERBOSE=true; shift ;;
-      -o | --dest-dir ) DST_FOLDER_SET=true; DEST_FOLDER="$2"; shift 2 ;;
+      -o | --dest-dir ) dst_folder_set=true; DEST_FOLDER="$2"; shift 2 ;;
       -F | --force ) FORCE=true ; shift ;;
       -V | --version ) echo "$PNAME : $VERSION" ; exit 0 ;;
       -- ) shift; break ;;
@@ -167,7 +167,7 @@ done
 # Needs to check if variables that holds files starts with one or two dashes.
 # separates between longopts and shortopts for simplicity.
 
-if [[ $DST_FOLDER_SET = false ]] ; then
+if [[ $dst_folder_set = false ]] ; then
   if [[ $DEBUG -eq 0 ]] ; then
     echo "$PNAME : DEST_FOLDER not set restoring into a /tmp folder."
   elif [[ $DRY_RUN = true ]] ; then
@@ -199,7 +199,7 @@ PARSE_DEBUG=1
 if [[ $PARSE_DEBUG -eq 0 ]] ; then
   echo "$PNAME DRY_RUN : $DRY_RUN"
   echo "$PNAME VERBOSE : $VERBOSE"
-  echo "$PNAME DST_FOLDER_SET : $DST_FOLDER_SET  : DST_FOLDER : $DEST_FOLDER"
+  echo "$PNAME dst_folder_set : $dst_folder_set  : DST_FOLDER : $DEST_FOLDER"
   echo "$PNAME FORCE : $FORCE"
 fi
 
@@ -210,8 +210,8 @@ if [[ $# -ne 1 ]] ; then
   fi
 # leniency, if we forgot the -o switch, and arg 2 exists as a folder,
 # and we haven't set a dest, then we will silently let it slide through.
-  if [[ $# -eq 2 && $DST_FOLDER_SET = false && -d "$2" ]] ; then
-    DST_FOLDER_SET=true
+  if [[ $# -eq 2 && $dst_folder_set = false && -d "$2" ]] ; then
+    dst_folder_set=true
     DEST_FOLDER="$2"
   else
     echo -e "$PNAME : Wrong number of   arguments. I need one argument for a \
@@ -317,7 +317,7 @@ fi
 # make them!
 
 MADE_FOLDER=false
-if [[ $DST_FOLDER_SET = false ]] ; then
+if [[ $dst_folder_set = false ]] ; then
   # We will make a folder under /tmp
   DEST_FOLDER=/tmp/$symlink_name/$backup_container
   if [[ $DRY_RUN = false ]] ; then
