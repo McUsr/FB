@@ -1,11 +1,18 @@
 Progress
 =======
 
-23-02-22 
+23-02-23 
 
 The first services/background processes `HourlySnapshot` are
 complete, as are the commandline utilities `fbsnapshot` and
-`fbrestore`. A lot remains on the command line utility
+`fbrestore`.
+You can use the HourlySnapshot service, too, but you have to start
+things manually by `systemctl --user enable
+HourlySnapshot.timer --now`, and place symlinks of folders
+to back up into the folder
+`~/.local/share/fbjobs/HourlySnapshot`
+
+A lot remains on the command line utility
 `fbctl`, which like `systemctl` for `systemd` administers
 starts and stopping of jobs, where `systemctl` would start
 and stop processes. And a lot remains with regards to
