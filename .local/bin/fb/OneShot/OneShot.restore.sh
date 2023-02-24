@@ -399,7 +399,7 @@ ctrl_c() {
 }
   if [[ $HAVING_ERRORS = false ]] ; then
     dry_run_folder=$(mktemp -d "/tmp/OneShot.restore.sh.XXX")
-    sudo tar -x -z $verbose_options -f  "$backup_source" -C "$dry_run_folder"
+    sudo stdbuf -o0 -e0 tar -x -z $verbose_options -f  "$backup_source" -C "$dry_run_folder"
     if [[ $? -lt 130 ]] ; then
       rm -fr "$dry_run_folder"
     fi
@@ -429,7 +429,7 @@ ctrl_c() {
     echo -e >&2 "$PNAME : sudo tar -x -z $verbose_options -f  $backup_source \
 -C $dest_folder"
   fi
-  sudo tar -x -z $verbose_options -f  "$backup_source" -C "$dest_folder"
+  sudo stdbuf -o0 -e0 tar -x -z $verbose_options -f  "$backup_source" -C "$dest_folder"
   exit_code=$?
    #   | journalThis 7 OneShot
 

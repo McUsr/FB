@@ -220,10 +220,10 @@ ctrl_c() {
 $tar_ball_name $exclude_options -C $source_folder . "
 
     if [[ -n "$exclude_options" ]] ; then
-      sudo tar -z  -c $verbose_options -f "$tar_ball_name" "$exclude_options" \
+      sudo stdbuf -o0 -e0 tar -z  -c $verbose_options -f "$tar_ball_name" "$exclude_options" \
 -C "$source_folder" .
     else
-      sudo tar -z  -c $verbose_options -f "$tar_ball_name" -C "$source_folder" .
+      sudo stdbuf -o0 -e0 tar -z  -c $verbose_options -f "$tar_ball_name" -C "$source_folder" .
     fi
 
     if [[ -d "$dry_run_folder" ]] ; then
