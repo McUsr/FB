@@ -519,8 +519,13 @@ $todays_backup_folder_name " "$backup_scheme"
   fi
 else
   if [[ $DEBUG -ne 0 && $SILENT -ne 0 && $TERSE_OUTPUT -ne 0 ]] ; then
-    notifyErr "$PNAME" " : No need to  backup $symlink_name: No files \
+    if [[ "$MODE" == "SERVICE" ]] ; then
+      notifyErr "$PNAME" " : No need to  backup $symlink_name: No files \
 changed or added since last backup. "  | journalThis 5 "$backup_scheme"
+    else
+      echo >&2 "$PNAME" " : No need to  backup $symlink_name: No files \
+changed or added since last backup. " 
+    fi
   fi
   exit_code=1
 fi
