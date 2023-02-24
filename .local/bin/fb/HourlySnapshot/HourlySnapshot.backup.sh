@@ -241,6 +241,10 @@ fi
 
 dieIfBrokenSymlink "$jobs_folder" "$symlink_name" "$backup_scheme"
 
+if [[ $DEBUG -eq 0 ]] ; then
+  echo >&2 "realpath $jobs_folder/$symlink_name"
+fi
+
 source_folder=$(realpath "$jobs_folder"/"$symlink_name")
 if [[ $DEBUG -eq 0 ]] ; then
   routDebugMsg " : source_folder: $source_folder" "$backup_scheme"
