@@ -3,3 +3,4 @@
 \.htaccess
 tags
 local.vim
+*.sess
