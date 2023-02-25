@@ -1,4 +1,4 @@
-name: GH Actions
+name: Assign Issue
 on:
     issues:
         types: [opened]
