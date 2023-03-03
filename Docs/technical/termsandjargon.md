@@ -9,7 +9,7 @@ It is what it says, a dictionary over words used, so to
 minimize ambiguity and confusion.
 
 
-* **backup** 
+* **backup**
 	A **backup** is the result of a backup job, a backup has
 	been taken of a source folder, and put in a destination
 	folder.
@@ -34,8 +34,14 @@ date (See: **TODAYS\_BACKUP\_FOLDER**)
 	backup of a folder, the most low-level of scripts through
 	the execution path.
 
+* **BACKUP\_SET** The set of backups that constitutes the
+	backups for one time_period. whether it is for one day,
+	one week, or one month. The number of BACKUP_SETS is what
+	we rotate, in the end. Not days or months, but backup
+	sets.
+
 * **backup-type** The type of backup, all types relies on
-	tar, and all backups are compressed into tarballs.
+	tar, and all backups ar e compressed into tarballs.
 	(.tar.gz). the types are:
 
 	* Full: Which is a full backup of the folder, and in
@@ -90,18 +96,18 @@ TODO:
 	end up with visible backup files, because the naming
 	convention for backup files, is to start with the name of
 	the source-folder.
-	**See:** [Naming conventions](https://github.com/McUsr/FB/blob/main/Docs/technical/namingconventions.md) 
+	**See:** [Naming conventions](https://github.com/McUsr/FB/blob/main/Docs/technical/namingconventions.md)
 
 * **job**  A **job** in the context of FB is the scheme for
 	a backup of a folder, and  any services and
 	`backup-scripts` to execute the backup job, excluding the
-	resulting backup, which is referred to as the backup. 
+	resulting backup, which is referred to as the backup.
 
 	A **job** has a status, it can be **active** or
 	**paused**.
 
 * **JOBS_FOLDER** [*var-name*]
-	
+
 * **KIND** (Backup kind.) Denotes if it is a `OneShot` or a
 	`Periodical` backup kind.
 
@@ -111,7 +117,7 @@ TODO:
 	the command line, in a state of beeing customized, tested,
 	or debugged.
 
-* **snapshot** This word has two different meanings. 
+* **snapshot** This word has two different meanings.
   I use it for a full backup at a given point in time, as to
 	mean a *snapshot of the state of the folder* at that time.
 	In the **tar manual** they talk about *snapshot-files* in
@@ -122,9 +128,9 @@ TODO:
 * **SCHEME** What kind of backup scheme that is in use for
 	the `Periodical` backupis. The **SCHEME** determines what
 	kind of *time-period* is used, and the *type* of the
-	backup.  Valid choices are: 
+	backup.  Valid choices are:
 
-  
+
 	* HourlySnapshot -- Not every hour, every two hours, or what
 you set the interval to, should you wish, but  more than
 one snapshot (full backup), (tarball) per day.
@@ -144,7 +150,7 @@ one snapshot (full backup), (tarball) per day.
 		up coming  weeks.
 
 	* WeeklyIncremental -- one full backup (tarball) on
-		the first monday? Then a incremental backup through the 
+		the first monday? Then a incremental backup through the
 		upcoming weeks.
 
 	* MontlySnapshot --one full backup (tarball) on the first
@@ -171,7 +177,7 @@ one snapshot (full backup), (tarball) per day.
 	* Weekly a `calendar-intervalled` backup.
 
 	* Monthly a `calendar-intervalled` backup.
-	
+
 * **Time-stamp** A **time-stamp** has the time of day
 embedded, in additon to just the **date-stamp**.
 Ex: `yyyy-mm-ddThh:mm`.  (See: **date-stamp**)
@@ -185,5 +191,5 @@ basename of the folder it is to backup, and the  datestamp.
 **TODAYS\_BACKUP\_FOLDER**. (See:**BACKUP_CONTAINER**)
 
 
-Last updated:23-02-10 12:21
+Last updated:23-03-03 22:40
 
