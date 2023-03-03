@@ -9,7 +9,7 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@@McUsr's Folder Backup for ChromeOs Linux Containers in ChromeOS
+      - uses: actions/add-to-project@McUsr's Folder Backup for ChromeOs Linux Containers in ChromeOS
         with:
           project-url: https://github.com/users/McUsr/projects/2
           repo-token: ${{ secrets.GITHUB_TOKEN }}
