@@ -15,6 +15,8 @@ State: By no means finished.
 
 * [Supported Backup Schemes](https://github.com/McUsr/FB/blob/main/Docs/User/BackupSchemes.md)
 	
+* [About Backup Rotation](https://github.com/McUsr/FB/blob/main/Docs/User/BackupRotation.md)
+
 ## Technical notes and concepts
 
 * [Terms and jargon
@@ -45,4 +47,4 @@ State: By no means finished.
 * [About fbctl](https://github.com/McUsr/FB/blob/main/Docs/technical/fbctl.md)
 
 
-  Last updated:23-02-23 20:17
+  Last updated:23-03-03 21:59
