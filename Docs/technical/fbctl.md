@@ -1,6 +1,7 @@
 ### fbctl
 
 
+so, this is the foundation for the statical parser.
 
 `fbctl` is the command that controls the whole setup, the
 idea is that this should be the only command you need to use
