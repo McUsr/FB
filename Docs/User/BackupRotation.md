@@ -6,7 +6,7 @@ This is a development of the specification found in
 reality. Nothing left in `ingress.md` concerning backup
 rotation.
 
-## Backup rotation
+### Backup rotation
 
 The general backup rotation, saves a specified number of
 backups before purging the old ones.
@@ -29,7 +29,7 @@ respect to version of files closest to the present time,
 you need to have several schemes running in parallell for
 that folder: daily, weekly and monthly.
 
-## How backup rotations are performed
+### How backup rotations are performed
 
 Rotations of backups are performed by the scripts that
 performs the backup, after the backup is executed, it is
@@ -39,26 +39,27 @@ needs to be made.
 Taking into account, that we backup sparsely; if no files
 are changed within the folder under automatic backup, there
 will be written in a log message that there was no files to
-be backed up, (as a notice), (TODO:) and then the operation
+be backed up,and then the operation
 aborted.
 
 With this sparse `politic` in order to preserve disk space,
 we won't necessarily have date-stamped files or folders for
-each and every day.
-Therefore, when we say we preserve say, the last 14 days of
-backups, it means the last 14 times we made a daily backup.
-TODO: Think through this, as maybe TIMES is a better word,
-or RESULTS.
-Actually: BACKUP_SETS are best.
+each and every day.  Therefore, when we say we preserve say,
+the last 14 BACKUP_SETS (days,weeks/months) of backups, it
+means the last 14 times we made a (daily,weekly,monthly)
+backup-set. Which is a complete backup for that
+time-period (All the hourly snapshots for a day, or the full
+weekly-incremental backup for a week, and so on).
 
-## Rotation of OneShot backups
+
+### Rotation of OneShot backups
 
 There are no rotation of OneShot backups, only of periodic
 backups.
 
 (See Backup types.)
 
-## Daily Backup schemes
+### Daily Backup schemes
 
 Daily backups no matter the scheme, are the backups made
 within a calendaric day.
@@ -72,7 +73,7 @@ The folder that candidates for deletion is checked to see
 if the name of it is on the correct format, otherwise it is
 skipped.
 
-## Weekly Backup schemes
+### Weekly Backup schemes
 
 Weekly backups no matter the scheme, are the backups made
 within a calendaric week.
@@ -88,7 +89,7 @@ say we rotate after 4 weeks, we mean that we will delete the
 oldest fifth folder after having made a new one, even if the
 4th folder in reality is 7 weeks or more old.
 
-## Monthly Backup schemes
+### Monthly Backup schemes
 
 Monthly backups no matter the scheme, are the backups made
 within a calendaric Month.
@@ -102,13 +103,13 @@ folders, the oldest one will be deleted, and the that the
 now 12th folder, may be the folder 14 months ago, since you
 were absent, hiking, a couple of months.
 
-## Yearly Backup Scheme
+### Yearly Backup Scheme
 
 One full backup as soon as possible in the year,
 there are no rotation.
 
 
-## The end game  or consequences of the rotation method.
+### The end game  or consequences of the rotation method.
 
 When you stop working,on a project, there won't be any new
 backups, and since there have been no new backups, nothing
@@ -118,29 +119,5 @@ the day after you stopped working on the project. Or it
 might seem like you look at the back ups from  yesterday.
 
 
-
-## The time-traveler  alike  scheme
-
-The commands `fbinstall`, or `fbctl` will have a
-`time-traveler` option, this will make for a lot of redundant
-backups in the beginning, but sees to that with the rotation
-schemes I have specified, that you will have backups for
-
-* Each year  (1 full backup, as in DailyFull)
-
-* Last 12 months (1 full backup as in DailyFull)
-
-* Last 4 weeks (1 full backup as in DailyFull )
-
-* Last 14 days with whatever scheme you use:
-
-  * DailySnapshot (full) this is default.
-
-  * DailyDifferential
-
-	* DailyIncremental
-
-
-
 --------------------------------------
-  Last updated:23-03-03 22:08
+  Last updated:23-03-03 23:28
