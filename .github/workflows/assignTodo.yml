@@ -2,8 +2,7 @@ name: Adds all issues that don't include the 'bug' or 'needs-triage' labels to p
 
 on:
   issues:
-    types:
-      - opened
+    types: [opened]
 
 jobs:
   add-to-project:
