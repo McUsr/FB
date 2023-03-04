@@ -333,7 +333,10 @@ We will take a backup"  "$backup_scheme"
   else
     if [[  $DEBUG -eq 0 ]] ; then
       routDebugMsg " : No new or modified files, since last backup" \
-"$backup_scheme"
+"$BACKUP_SCHEME"
+    else
+      routNotification " : No new or modified files, since last backup" \
+"$BACKUP_SCHEME"
     fi
     # But, maybe the reason is, there are no files there?
   fi

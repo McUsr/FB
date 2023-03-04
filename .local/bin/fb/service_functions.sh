@@ -19,12 +19,16 @@ trap 'err_report $LINENO' ERR
 # USAGE: notifyErr "Section" " message " |  journalThis 5 FolderBackup
 notifyErr() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two arguments. Terminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need two arguments. \
+Terminating..."
       exit 5
     fi
   notify-send "${1}" "${2}"
   echo -e "${1} ${2}"
 }
+
+# TODO: the routMessages below, can use a common body, where we send  over
+# the correct parameter for the  errorlevel.
 
 # routCriticialMsg()
 # PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
@@ -33,7 +37,8 @@ notifyErr() {
 
 routCriticialMsg() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. Terminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. \
+Terminating..."
       exit 5
     fi
 
@@ -52,7 +57,8 @@ routCriticialMsg() {
 
 routErrorMsg() {
     if [[ $# -ne 2 ]] ; then
-      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. Terminating..."
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. \
+Terminating..."
       exit 5
     fi
 
@@ -63,6 +69,22 @@ routErrorMsg() {
   fi
 
 }
+
+routNotification() {
+
+    if [[ $# -ne 2 ]] ; then
+      echo -e >&2 "$PNAME/${FUNCNAME[0]} : I really need Two arguments. \
+Terminating..."
+      exit 5
+    fi
+
+  if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
+    notifyErr  "$PNAME" "$PNAME${1} " | journalThis 5 "${2}"
+  else
+    echo -e >&2 "$PNAME${1}\n"
+  fi
+}
+
 # routDebugMsg()
 # PARAMETERS: PROGRAMNAME, DEBUG MESSAGE:
 # Routes debug messages to the journal, or the console,
@@ -122,7 +144,7 @@ allowed to be inside \ $FB. Terminating..."
 
 dieIfNotDirectoryExist() {
   if [[ $# -eq 0 ]] ; then
-    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : Need  one \
 argument, a directory to test if exists. Terminating..."
       exit 5
@@ -135,7 +157,7 @@ argument, a directory to test if exists. Terminating..." \
   fi
 
   if [[ ! -d "${1}" ]] ; then
-    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
       echo -e >&2 "$PNAME/${FUNCNAME[0]} : The Directory ${1} : doesn't \
 exist! Terminating..."
       exit 5
@@ -154,7 +176,7 @@ dieIfNotSchemeBinFolderExist() {
 
   if [[ $# -ne 1 ]] ; then
 
-    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
       echo -e "$PNAME/${FUNCNAME[0]} : Need an  argument: \
 backup-scheme Terminating..." >&2 ;
       exit 5
@@ -165,7 +187,7 @@ backup-scheme  Terminating..." | journalThis 2 FolderBackup
     fi
   fi
   if [[ ! -d "$XDG_BIN_HOME"/fb/"${1}" ]] ; then
-    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then 
+    if [[ "$RUNTIME_MODE" == "CONSOLE" ]] ; then
       echo -e >&2 "$PNAME/${FUNCNAME[0]} :the system  Directory $XDG_BIN_HOME\
 /fb/${1} : doesn't exist! Terminating..."
       exit 5
@@ -187,7 +209,7 @@ dieIfJobsFolderDontExist(){
       \nTerminating..." >&2
     exit 5
   fi
-  local jobsfolder="${1}" backup_scheme="${2}" MODE="${3}"
+  local jobsfolder="${1}" backup_scheme="${2}" RUNTIME_MODE="${3}"
 
   if [[ ! -d $jobsfolder ]] ; then
       if [[ "$RUNTIME_MODE" == "SERVICE" ]] ; then

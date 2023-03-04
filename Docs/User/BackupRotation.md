@@ -103,12 +103,6 @@ folders, the oldest one will be deleted, and the that the
 now 12th folder, may be the folder 14 months ago, since you
 were absent, hiking, a couple of months.
 
-### Yearly Backup Scheme
-
-One full backup as soon as possible in the year,
-there are no rotation.
-
-
 ### The end game  or consequences of the rotation method.
 
 When you stop working,on a project, there won't be any new
@@ -120,4 +114,4 @@ might seem like you look at the back ups from  yesterday.
 
 
 --------------------------------------
-  Last updated:23-03-03 23:28
+  Last updated:23-03-04 05:01
