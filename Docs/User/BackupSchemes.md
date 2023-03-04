@@ -95,7 +95,3 @@ start of the day, if there is something there that has
 changed since last backup and neccessitates a new backup,
 backups will only be made if there is something new to
 backup there.
-
-
-
-  Last updated:23-03-04 05:00

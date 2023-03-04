@@ -111,7 +111,3 @@ have rotated, so when you look at the backups, say after a
 months time, watching the backups will be like seeing them,
 the day after you stopped working on the project. Or it
 might seem like you look at the back ups from  yesterday.
-
-
---------------------------------------
-  Last updated:23-03-04 05:01

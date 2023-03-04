@@ -7,3 +7,5 @@ local.vim
 \.gitignore
 \.env
 \.envrc
+\workdir
+\logs
