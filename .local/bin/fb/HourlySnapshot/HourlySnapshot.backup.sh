@@ -321,23 +321,16 @@ else
   # we need to compare timestamps.
   modfiles=$(find -H "$jobs_folder"/"$symlink_name" -cnewer "$probeDir" 2>&1)
   if [[ -n "$modfiles"  ]] ; then
-    if [[  $DEBUG -eq 0 || "$VERBOSE" == true ]] ; then
-      routDebugMsg " : There are modified or added files since last backup. \
-We will take a backup"  "$backup_scheme"
-    fi
+      routNotification " : There are modified or added files since last backup. \
+        We will take a backup of $(realpath $jobs_folder/$symlink_name)."  "$backup_scheme"
     # there are files to back up.
     MUST_MAKE_BACKUP=0
     if [[ "$probeDir" != "$todays_backup_folder_name" ]] ; then
       MUST_MAKE_TODAYS_FOLDER=0
     fi
   else
-    if [[  $DEBUG -eq 0 ]] ; then
-      routDebugMsg " : No new or modified files, since last backup" \
-"$BACKUP_SCHEME"
-    else
-      routNotification " : No new or modified files, since last backup" \
-"$BACKUP_SCHEME"
-    fi
+      routNotification " : No new or modified files, since last backup of \
+$(realpath $jobs_folder/$symlink_name)."  "$BACKUP_SCHEME"
     # But, maybe the reason is, there are no files there?
   fi
 fi
