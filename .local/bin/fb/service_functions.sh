@@ -386,7 +386,10 @@ ${1}."
     exit 255
   else
 # shellcheck disable=SC2091,2005  # will be used!
-    echo "$(find "${1}" -type d  | wc -l )"
+    NRDIR="$(find "${1}" -type d  | wc -l )"
+    NRDIR=$(( NDRIR - 1 ))
+    echo $NRDIR
+#    echo "$(find "${1}" -type d  | wc -l )"
   fi
 }
 
