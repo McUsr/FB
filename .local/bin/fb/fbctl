@@ -94,16 +94,9 @@ else
 fi
 
 if [[ $# -ne 1 ]] ; then
-
-  if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
-    notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme). Terminating..." \
-      | journalThis 2 FolderBackup
-    exit 255
-  else
     echo -e >&2 "$PNAME : I didn't get a mandatory parameter.\
 .. Enter: \"$PNAME -h\" for help.\nTerminating..."
   exit 2
-  fi
 fi
 
 
@@ -127,3 +120,43 @@ fi
 dieIfNotOkBashVersion
 consoleHasInternet "$curscheme"
 consoleFBfolderIsMounted "$curscheme"
+
+help() {
+cat  << EOF
+
+$PNAME:  Control the Folder Backup backup system.
+
+Syntax:
+
+  $PNAME  [options]  [action] [folder]
+
+  Options:
+
+  -h| --help.    Shows this help.
+  -n| --dry-run  Shows what would have happened
+  -v| --verbose  Shows more detailed output.
+  -V| --version  Shows the version of $PNAME ($VERSION).
+  --now          Execute the command now.
+  
+  Commands:
+
+  start
+  stop
+  pause
+  install
+  enable
+  activate
+  disable
+  cat
+  revert
+  edit
+  status
+  run
+  list-backups
+  job-state
+
+EOF
+}
+# parse options
+
+# get command verbs
