@@ -50,6 +50,24 @@ ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} Terminating..."
   fi
 }
 
+okSchemeName() {
+  # returns 0 if supplied shcemename is ok.
+  # parameters: scheme name to validate.
+  if [[ $# -ne 1 ]] ; then 
+    echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a scheme-name.\nTerminating..." 
+    exit 5
+  fi
+  local found
+  found=1
+  for ((i=0; i< ${#SCHEMEFOLDERS[@]} ; i++ )) ; do 
+    if [[ ${SCHEMEFOLDERS[$i]} == "$1" ]]; then 
+      found=0
+      break
+    fi
+  done
+  return $found
+}
+
 # isASymlink()
 # RETURNS 0 if the parameter is a symlink.
 # PARAMETER: A symlink
