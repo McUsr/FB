@@ -1,0 +1,129 @@
+#!/bin/bash
+# shellcheck disable=SC2034
+VERSION="v0.0.4"
+
+
+# fbctl.sh
+# We are getting the backup-scheme passed as parameter from the
+# <backup-scheme>.service, invoked by <backup-scheme>.timer.
+
+# We check for an empty job folder first of all, and if it is, we shut down the
+# whole service, and exits gracefully. Otherwise, we're calling up the
+# manager(), to figure out the correct script to execute for that
+# scheme/symlink, processes the next one, and so on.
+
+# First we check if there is any jobs to dispatch from the jobs folder.
+
+
+# Moving forward:
+# Using the XDG_DATA_HOME, would give some leeway as to avoiding hard_coding of paths.
+# We are still using this with service. SnapShot
+
+# Config vars you can set to mostly control output.
+DEBUG=1
+VERBOSE=false
+# VERBOSE = TRUE is more of a debug option giving the hints as to what is processed
+# With what.
+export TERSE_OUTPUT=0
+# Maybe we want a per scheme handling of  TERSE_OUTPUT
+success_jobs=()
+
+
+err_report() {
+  echo >&2 "$PNAME : Error on line $1"
+  echo >&2 "$PNAME : Please report this issue at \
+'https://github.com/McUsr/FB/issues'"
+}
+
+trap 'err_report $LINENO' ERR
+
+
+
+# dieIfCantSourceShellLibrary()
+# sources the ShellLibraries
+# so we can perform the rest of the tests.
+# TODO: Think of modus.
+dieIfCantSourceShellLibrary() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e "$PNAME/${FUNCNAME[0]} : Need an\
+    argument, an existing fb shell library file!\nTerminates..." >&2
+    exit 5
+  fi
+  if [[ -r "${1}" ]] ; then
+    source "${1}"
+  #  source "$fpth"/service_functions.sh
+  else
+    echo -e  "$PNAME/${FUNCNAME[0]} : Can't find/source: ${1}\
+      \nTerminates... " >&2
+    exit 255
+  fi
+}
+
+
+pathToSourcedFiles() {
+  # shellcheck disable=SC2001,SC2086  # Escaped by sed
+  pthname="$( echo $0  | sed 's/ /\\ /g' )"
+  # We do escape any spaces, in the file name, 
+  #  knew it could never happen, just in case.
+  # shellcheck disable=SC2086  # Escaped by sed
+  fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
+  echo "$fpth"
+}
+
+# Program vars, read only, 
+
+PNAME=${0##*/}
+
+curscheme="${PNAME%%.*}"
+
+if [[ -t 1 ]] ; then
+  RUNTIME_MODE="CONSOLE"
+else
+  RUNTIME_MODE="SERVICE"
+fi
+
+
+fbBinDir="$(pathToSourcedFiles)"
+through_shellsheck=1
+if [[ $through_shellsheck -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/service_functions.sh
+else
+# bootstrapping libraries before figuring system paths.
+# shellcheck source=service_functions.sh
+  source "$fbBinDir"/service_functions.sh
+fi
+
+if [[ $# -ne 1 ]] ; then
+
+  if [[ $RUNTIME_MODE == "SERVICE" ]] ; then
+    notifyErr "$PNAME" "I didn't get a mandatory parameter (backup-scheme). Terminating..." \
+      | journalThis 2 FolderBackup
+    exit 255
+  else
+    echo -e >&2 "$PNAME : I didn't get a mandatory parameter.\
+.. Enter: \"$PNAME -h\" for help.\nTerminating..."
+  exit 2
+  fi
+fi
+
+
+dieIfMandatoryVariableNotSet FB "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_BIN_HOME "$RUNTIME_MODE" "$curscheme"
+dieIfMandatoryVariableNotSet XDG_DATA_HOME "$RUNTIME_MODE" "$curscheme"
+
+dieIfNotDirectoryExist "$XDG_BIN_HOME"
+dieIfNotDirectoryExist "$XDG_BIN_HOME/fb"
+dieIfNotDirectoryExist "$XDG_DATA_HOME"
+dieIfNotDirectoryExist "$XDG_DATA_HOME/fbjobs"
+
+if [[ $through_shellsheck -ne 0  ]] ; then
+  dieIfCantSourceShellLibrary "$fbBinDir"/shared_functions.sh
+else
+# shellcheck source=shared_functions.sh
+  source "$fbBinDir"/shared_functions.sh
+fi
+
+
+dieIfNotOkBashVersion
+consoleHasInternet "$curscheme"
+consoleFBfolderIsMounted "$curscheme"
