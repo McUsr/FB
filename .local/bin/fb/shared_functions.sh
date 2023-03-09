@@ -50,9 +50,10 @@ ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} Terminating..."
   fi
 }
 
+# okSchemeName()
+# RETURNS 0 if supplied shcemename is ok.
+# PARAMETERS: scheme name to validate.
 okSchemeName() {
-  # returns 0 if supplied shcemename is ok.
-  # parameters: scheme name to validate.
   if [[ $# -ne 1 ]] ; then 
     echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a scheme-name.\nTerminating..." 
     exit 5
