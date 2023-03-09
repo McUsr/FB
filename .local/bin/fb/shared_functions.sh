@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 err_report() {
     echo >&2 "$PNAME : Error on line $1"
@@ -10,10 +10,9 @@ trap 'err_report $LINENO' ERR
 
 export ROOTFOLDERS="OneShot Periodic"
 
-export SCHEMEFOLDERS=( OneShot HourlySnapshot HourlyIncremental \
-    HourlyDifferential DailyFull WeeklyFull  WeeklyIncremental \
-    WeeklyDifferential MonthlyFull MonthlyDifferential \
-    MonthlyIncremental )
+export SCHEMEFOLDERS=( OneShot HourlySnapshot DailyIncremental \
+    DailyDifferential DailyFull  WeeklyIncremental WeeklyDifferential \
+    WeeklyFull MonthlyIncremental MonthlyDifferential MonthlyFull )
 
 
 # ok_version()
@@ -356,7 +355,7 @@ include the folder from which to restore.)\nTerminating..."
   if [[  -n "$1"  ]] ; then
     echo -e >/dev/tty "$PNAME : The path to the backup \
 starting with the KIND doesn't\ start with '/'.\n Is it a slash amiss after \
-\$FB\n($FB)\n in the path to the backup ($ORIG)?\nTerminating..."
+\$FB\n($FB)\n in the path to the backup ($orig)?\nTerminating..."
   exit 2
   fi
   export IFS=$oldifs
@@ -840,7 +839,7 @@ $candidate_script But it isn't executabe. Terminates.." \
       DELEGATE_SCRIPT="$candidate_script"
       if [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
         routDebugMsg "/${FUNCNAME[0]} : I found a GENERAL backup dropin \
-script: Current backup script is : $delegate_script" "$backup_scheme"
+script: Current backup script is : $DELEGATE_SCRIPT" "$backup_scheme"
       fi
     fi
   elif [[  $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
