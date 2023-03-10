@@ -464,6 +464,7 @@ $tar_ball_name $exclude_options -C $source_folder . "
       fi
       sudo tar -z $verbose_options -c -f "$tar_ball_name" \
 -C "$source_folder" .
+      # TODO : some debug info out from here!
     else
       # TODO: MAYBE  put in a block, testing for CONSOLE and adding setbuf
       if [[ $VERBOSE = true || $DEBUG -eq 0 ]] ; then
