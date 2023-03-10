@@ -55,7 +55,7 @@ ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} Terminating..."
 # PARAMETERS: scheme name to validate.
 okSchemeName() {
   if [[ $# -ne 1 ]] ; then 
-    echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a scheme-name.\nTerminating..." 
+    echo -e >&2 "$PNAME ${FUNCNAME[0]} : I need an argument to validate as a scheme-name.\nTerminating..." 
     exit 5
   fi
   local found
