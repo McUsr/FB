@@ -3,7 +3,8 @@
 VERSION="v0.0.4"
 
 
-# fbctl.sh
+# fbctl.shi only runs from the console.
+RUNTIME_MODE="CONSOLE"
 # We are getting the backup-scheme passed as parameter from the
 # <backup-scheme>.service, invoked by <backup-scheme>.timer.
 
@@ -21,7 +22,12 @@ VERSION="v0.0.4"
 
 # Config vars you can set to mostly control output.
 DEBUG=1
-VERBOSE=false
+VERBOSE=false # controls output during normal runs.
+DRY_RUN=false
+AT_ONCE=false
+# controls whether to run thing immediately, or wait until things are
+# picked up by the services.
+
 # VERBOSE = TRUE is more of a debug option giving the hints as to what is processed
 # With what.
 export TERSE_OUTPUT=0
@@ -63,14 +69,14 @@ dieIfCantSourceShellLibrary() {
 pathToSourcedFiles() {
   # shellcheck disable=SC2001,SC2086  # Escaped by sed
   pthname="$( echo $0  | sed 's/ /\\ /g' )"
-  # We do escape any spaces, in the file name, 
+  # We do escape any spaces, in the file name,
   #  knew it could never happen, just in case.
   # shellcheck disable=SC2086  # Escaped by sed
   fpth="$(realpath $pthname)"; fpth="${fpth%/*}"
   echo "$fpth"
 }
 
-# Program vars, read only, 
+# Program vars, read only,
 
 PNAME=${0##*/}
 
@@ -93,7 +99,7 @@ else
   source "$fbBinDir"/service_functions.sh
 fi
 
-if [[ $# -ne 1 ]] ; then
+if [[ $# -eq 0 ]] ; then
     echo -e >&2 "$PNAME : I didn't get a mandatory parameter.\
 .. Enter: \"$PNAME -h\" for help.\nTerminating..."
   exit 2
@@ -137,17 +143,17 @@ Syntax:
   -v| --verbose  Shows more detailed output.
   -V| --version  Shows the version of $PNAME ($VERSION).
   --now          Execute the command now.
-  
+
   Commands:
 
-  start
-  stop
-  pause
-  install
-  enable
-  activate
-  disable
-  cat
+  start       [BackupScheme] [folder]
+  stop        [BackupScheme] [folder]
+  pause       [BackupScheme] [folder]
+  install     [BackupScheme] [folder]
+  enable      [BackupScheme] [folder]
+  activate    [BackupScheme] [folder]
+  disable     [BackupScheme] [folder]
+  cat         [BackupScheme] [folder]
   revert
   edit
   status
@@ -155,8 +161,102 @@ Syntax:
   list-backups
   job-state
 
+  Backup Schemes:
+
+  HourlySnapshot
+  DailyIncremental
+  DailyDifferential
+  DailyFull
+  WeeklyIncremental
+  WeeklyDifferential
+  WeeklyFull
+  MonthlyIncremental
+  MonthlyDifferential
+  MonthlyFull
+
 EOF
 }
 # parse options
 
+# shellcheck disable=SC2034
+  GETOPT_COMPATIBLE=true
+# time to parse some command line arguments!
+# https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
+  TEMP=$(getopt -o hnvV --longoptions help,verbose,dry-run,version \
+                -n "$PNAME" -- "$@")
+  # shellcheck disable=SC2181 # It's too long to put in  an if test, I feel!
+  if [[ $? != 0 ]] ; then echo "$PNAME : Terminating..." >&2 ; exit 2 ; fi
+
+  # Note the quotes around '$TEMP': they are essential!
+  eval set -- "$TEMP"
+
+  while true; do
+      case "$1" in
+        -h | --help )  help ; exit 0 ;;
+        -n | --dry-run ) DRY_RUN=true; shift ;;
+        -v | --verbose ) VERBOSE=true; shift ;;
+        -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
+        --now ) AT_ONCE=true; shift ;;
+        -- ) shift; break ;;
+      esac
+  done
 # get command verbs
+HAVING_ERRORS=false
+
+if [[ $# -eq 0 ]] ; then
+  echo -e "$PNAME : Wrong number of  few arguments. I need one argument for \
+at least a command that takes no parameters.\nExecute \"$PNAME -h\" \
+for help. Terminating..." >&2
+  exit 2
+fi
+export CTL_COMMANDS=( start stop pause install enable activate disable cat revert \
+  edit status run list-backups job-state )
+
+# okCommandName()
+# RETURNS 0 if supplied shcemename is ok.
+# PARAMETERS: scheme name to validate.
+okCommandName() {
+  if [[ $# -ne 1 ]] ; then
+    echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a scheme-name.\nTerminating..."
+    exit 5
+  fi
+  local found
+  found=1
+  for ((i=0; i< ${#CTL_COMMANDS[@]} ; i++ )) ; do
+    if [[ ${CTL_COMMANDS[$i]} == "$1" ]]; then
+      found=0
+      break
+    fi
+  done
+  return $found
+}
+
+#  Needs to figure the correct number of arguments for the command name
+if okCommandName "$1" ; then
+  case "$1" in
+    start | stop | pause | install | enable | activate | disable | cat \
+      | revert | edit  | status | run ) args_needed=3 ;;
+    list-backups |  job-state ) args_needed=2 ;;
+    *) echo EBAD_ARG ;;
+  esac
+else
+  echo -e >&2 "$PNAME : Bad command name. \"$PNAME -h\" for help.\
+\nTerminating..."
+  exit 2
+fi
+
+if [[ $# -lt $args_needed ]] ; then
+  echo -e >&2 "$PNAME $1 : too few  arguments. \"$PNAME -h\" for help.\n\
+Terminating..."
+  exit 2
+elif [[ $args_needed -eq  3 ]] ; then
+ 
+  if ! okSchemeName $2 ; then
+    echo -e >&2 "$PNAME : $1 :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
+for help.\nTerminating..."
+  exit 2
+  fi
+fi
+
+
+
