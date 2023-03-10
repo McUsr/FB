@@ -46,5 +46,9 @@ State: By no means finished.
 
 * [About fbctl](https://github.com/McUsr/FB/blob/main/Docs/technical/fbctl.md)
 
+* [About Job-States ](https://github.com/McUsr/FB/blob/main/Docs/technical/jobStates.md)
 
-  Last updated:23-03-10 22:10
+* [About paused jobs ](https://github.com/McUsr/FB/blob/main/Docs/technical/pausedJobs.md)
+
+
+  Last updated:23-03-10 22:29
