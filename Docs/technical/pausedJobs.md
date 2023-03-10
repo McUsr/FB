@@ -6,6 +6,10 @@ a job, and install it again, you can just pause it, for
 whatever reason you wish, the two obvious ones beeing that
 you are about to either install, or edit your dropin script.
 
+The intent behind the concept is that pause be short, while
+you are amending things to your liking. More like for maybe
+a day or two at max. Otherwise, we remove the job.
+
 If there is a file with the same name as a symlink in the
 BackupScheme's jobs folder, then that is the token for that
 backup job  to be paused for  that moment being.
@@ -44,5 +48,5 @@ state.
 
 
 
-  Last updated:23-03-10 21:21
+  Last updated:23-03-10 22:08
 
