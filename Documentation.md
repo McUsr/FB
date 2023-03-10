@@ -1,4 +1,4 @@
-Documentation for Folder Backup  v0.0.3
+Documentation for Folder Backup  v0.0.4
 ---------------------------------------
 
 State: By no means finished.
@@ -47,4 +47,4 @@ State: By no means finished.
 * [About fbctl](https://github.com/McUsr/FB/blob/main/Docs/technical/fbctl.md)
 
 
-  Last updated:23-03-03 21:59
+  Last updated:23-03-10 22:10
