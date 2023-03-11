@@ -24,7 +24,7 @@ RUNTIME_MODE="CONSOLE"
 DEBUG=1
 VERBOSE=false # controls output during normal runs.
 DRY_RUN=false
-AT_ONCE=false
+AT_ONCE=1
 # controls whether to run thing immediately, or wait until things are
 # picked up by the services.
 
@@ -244,19 +244,307 @@ else
 \nTerminating..."
   exit 2
 fi
+cur_command="$1"
 
 if [[ $# -lt $args_needed ]] ; then
-  echo -e >&2 "$PNAME $1 : too few  arguments. \"$PNAME -h\" for help.\n\
+  echo -e >&2 "$PNAME $cur_command : too few  arguments. \"$PNAME -h\" for help.\n\
 Terminating..."
   exit 2
 elif [[ $args_needed -eq  3 ]] ; then
- 
+
   if ! okSchemeName $2 ; then
-    echo -e >&2 "$PNAME : $1 :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
+    echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
 for help.\nTerminating..."
-  exit 2
+    exit 2
+  else
+    backup_scheme="$2"
   fi
+   source_location="$3"
 fi
+
+
+source ~/wrk/FB/.local/bin/fb/loc_param.sh
+
+# activateJob()
+# removes the paused state of a job.
+
+activateJob() {
+
+  if ! nrargs 1 $#  "I need one argument!" ; then
+    exit 2
+  fi
+
+  if ! isASymlink "$1" ; then
+    err 1 "The parameter isn't a symlink!"
+    exit 2
+  fi
+
+  paused_file="$1".paused
+  if [[ -r "$paused_file" ]] ; then
+    rm -fr "$paused_file"
+    # TODO: Activating a job worth a notification?
+
+  fi
+}
+
+# startJob()
+# removes the paused state of a job.
+
+startJob() {
+
+  if ! nrargs 1 $#  "I need one argument!" ; then
+    exit 2
+  fi
+
+  if ! isASymlink "$1" ; then
+    err 1 "The parameter isn't a symlink!"
+    exit 2
+  fi
+
+  stopped_file="$1".stopped
+  if [[ -r "$stopped_file" ]] ; then
+    rm -fr "$stopped_file"
+    # TODO: Starting a job worth a notification?
+  fi
+
+  installed_file="$1".installed
+  if [[ -r "$installed_file" ]] ; then
+    rm -fr "$installed_file"
+    # TODO: Starting a job worth a notification?
+  fi
+}
+
+# stopJob()
+# stops the execution job of a job by setting its
+# state to stopped.
+stopJob() {
+
+  if ! nrargs 1 $#  "I need one argument!" ; then
+    exit 2
+  fi
+
+  if ! isASymlink "$1" ; then
+    err 1 "The parameter isn't a symlink!"
+    exit 2
+  fi
+
+  stopped_file="$1".stopped
+  if [[ ! -r "$stopped_file" ]] ; then
+    touch "$stopped_file"
+    # TODO: stopping  a job worth a notification?
+  fi
+}
+# workingSymLinksCount()
+# Not symlinks that necessarily works, but symlinks that are
+# intended to work? Maybe check for valid symlink name as well?
+
+workingSymLinksCount() {
+
+  if ! nrargs 1 $#  "I need one argument!" ; then
+    exit 2
+  fi
+  job_fol="$1"
+  suffixes=(installed stopped paused)
+  declare -g ctr
+  ctr=0
+  for f in "$job_fol"/* ; do
+    for s in "${suffixes[@]}" ; do
+      [[ $f == *".$s" ]] || [[ -f "$f.$s" ]] && continue 2
+    done
+    [[ -h "$f" ]] && (( ctr += 1 ))
+  done
+  echo $ctr
+}
+
+# justSymlinkName()
+# RETURNS: just the symlink name, from a backup scheme's job folder's full path,
+# to a symlink.
+# PARAMETERS: The full path to a symlink.
+justSymlinkName() {
+  if ! nrargs 1 $#  "I need just 1 argument!" ; then
+    exit 2
+  fi
+  local stuff oldfs stuff argc
+  oldfs=$IFS
+  export IFS=/
+  set -- $stuff
+  argc=$#
+  pieces=( $* )
+  export IFS=$oldfs
+  echo ${pieces[$argc]}
+}
+
+# assertBackupContainer()
+# Asserts that the backup container exists.
+# This piece is to be refactored as a call back
+# into governor.sh where it was taken from.
+# RETURNS: Nothing
+# PARAMETERS: $backup_scheme $scheme_container  $symlink_name
+
+assertBackupContainer() {
+  if ! nrargs 3 $#  "I need three arguments!" ; then
+    exit 2
+  fi
+  local backup_scheme scheme_container symlink_name
+  backup_scheme="${1}"
+  scheme_container="${2}"
+  symlink_name="${3}"
+
+  backup_container=$scheme_container/$symlink_name
+  # Alt med backup_container skal over i fbinst e.l fbctl
+  if [[ ! -d $backup_container ]] ; then
+    mkdir -p "$backup_container"
+    # we can go silent about this, or we can just send a message.
+    if [[ $DEBUG -eq 0 ]] ; then
+      routDebugMsg " : $backup_container didn't exist, que to \
+make backup" "$backup_scheme"
+    fi
+  else
+    if [[ $DEBUG -eq 0 ]] ; then
+      routDebugMsg " :$backup_container exists, NO que to make \
+backup." "$backup_scheme"
+    fi
+  fi
+}
+# start_existing_job()
+# We figure if we have a
+start_existing_job() {
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  symCount=$(workingSymLinksCount "$jobs_folder")
+  # We need the count of working symlinks for deducting
+  # if we need to restart the service or not, which we
+  # need if the count is zero.
+
+
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
+    "$jobs_folder" )"
+  # so we can go from stopped to paused. TODO: update docs.
+  # here we take care of both stopped, installed and paused.
+  activateJob "$valid_symlink"
+  startJob "$valid_symlink"
+
+  # err 1 "Valid symlink: $valid_symlink"
+
+
+
+
+  if [[ $AT_ONCE -eq 0 ]] ; then
+
+    # TODO: Assert backup container exists
+    scheme_container="$( assertSchemeContainer "$backup_scheme" )"
+
+    # runner, a dumbed down version of governor,
+    # using the same stuff as fbrestore to figure
+    # which scheme we should use to to make the
+    # manager look for stuff.
+
+    just_symlink_name="$(justSymlinkName "$valid_symlink")"
+    # Need to find the symlink-name we're doing a lot twice.
+
+    assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
+    # We assert the Backucontainer is there, in case it is the first time.
+
+    manager "$backup_scheme"  "$just_symlink_name" backup
+    exit_code=$?
+    if [ $exit_code  -eq 0 ] ; then
+      backup_script="$DELEGATE_SCRIPT"
+    else
+      exit $exit_code
+    fi
+
+    exit_code=0
+    trap '' ERR
+    # shellcheck disable=SC2086 # No quoting of options!
+    "$backup_script" "$backup_scheme" "$symlink_name"
+    exit_code=$?
+
+    if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
+      if [[ $exit_code -eq 0 ]] ; then 
+        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name SUCCESSFULLY!" \
+        |& tee |& systemd-cat -t $backup_scheme -p 7
+     else
+        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name FAILED!" \
+        |& tee |& systemd-cat -t $backup_scheme -p 7
+      fi
+    else
+      if [[ $exit_code -eq 0 ]] ; then 
+        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name SUCCESSFULLY" \
+    |& tee | systemd-cat -t $backup_scheme -p 5
+     else
+        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name FAILED!" \
+        |& tee |& systemd-cat -t $backup_scheme -p 3
+      fi
+    fi
+
+  fi
+
+#  TODO: figure out if we need to restart the service.
+  if [[ $symCount -eq 0 ]] ; then
+    systemctl --user list-timers  --state=active \
+      | grep "$backup_scheme" >/dev/null
+    if [[ $? -ne 0 ]] ; then
+      # Needs activation, the timer does.
+      systemctl --user enable "$backup_scheme".timer  --now
+      if [[ $? -ne 0 ]] ; then 
+        err 1 "Couldn't activate $backup_scheme.timer"
+        exit 255
+      fi
+    fi
+  fi
+}
+
+stop_existing_job() {
+  echo >&2 "Stopping existing job" 
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
+    "$jobs_folder" )"
+  # so we can go from stopped to paused. TODO: update docs.
+  # here we take care of both stopped, installed and paused.
+  stopJob "$valid_symlink"
+  # --now has no bearing here.
+}
+
+# And now, it is time to actually parse the commands fully out.
+case "$cur_command" in
+    start) start_existing_job "$backup_scheme" "$source_location" ;;
+    stop) stop_existing_job ;;
+    pause) args_needed=3 ;;
+    install) args_needed=3 ;;
+    enable) args_needed=3 ;;
+    activate) args_needed=3 ;;
+    disable) args_needed=3 ;;
+    cat) args_needed=3 ;;
+    revert) args_needed=3 ;;
+    edit) args_needed=3 ;;
+    status) args_needed=3 ;;
+    run) args_needed=3 ;;
+    list-backups) args_needed=3 ;;
+    job-state) args_needed=3 ;;
+  *) echo EBAD_ARG ;;
+esac
 
 
 
