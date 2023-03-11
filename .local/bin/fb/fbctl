@@ -475,7 +475,7 @@ start_existing_job() {
     exit_code=$?
 
     if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-      if [[ $exit_code -eq 0 ]] ; then 
+      if [[ $exit_code -eq 0 ]] ; then
         echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name SUCCESSFULLY!" \
         |& tee |& systemd-cat -t $backup_scheme -p 7
@@ -485,7 +485,7 @@ $backup_scheme $symlink_name FAILED!" \
         |& tee |& systemd-cat -t $backup_scheme -p 7
       fi
     else
-      if [[ $exit_code -eq 0 ]] ; then 
+      if [[ $exit_code -eq 0 ]] ; then
         echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name SUCCESSFULLY" \
     |& tee | systemd-cat -t $backup_scheme -p 5
@@ -505,7 +505,7 @@ $backup_scheme $symlink_name FAILED!" \
     if [[ $? -ne 0 ]] ; then
       # Needs activation, the timer does.
       systemctl --user enable "$backup_scheme".timer  --now
-      if [[ $? -ne 0 ]] ; then 
+      if [[ $? -ne 0 ]] ; then
         err 1 "Couldn't activate $backup_scheme.timer"
         exit 255
       fi
@@ -514,7 +514,7 @@ $backup_scheme $symlink_name FAILED!" \
 }
 
 stop_existing_job() {
-  echo >&2 "Stopping existing job" 
+  echo >&2 "Stopping existing job"
   set -e
   if ! nrargs 2 $#  "I need two arguments!" ; then
     exit 2
