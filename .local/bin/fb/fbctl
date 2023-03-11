@@ -152,7 +152,12 @@ Syntax:
     stopped state, or installed state.
 
   stop        [BackupScheme] [folder]
+
+    Stops an existing job, by creating a SYMLINK.stopped file in the scheme's
+    jobs folder.
+
   pause       [BackupScheme] [folder]
+
   install     [BackupScheme] [folder]
   enable      [BackupScheme] [folder]
   activate    [BackupScheme] [folder]
