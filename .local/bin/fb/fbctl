@@ -221,8 +221,8 @@ at least a command that takes no parameters.\nExecute \"$PNAME -h\" \
 for help. Terminating..." >&2
   exit 2
 fi
-export CTL_COMMANDS=( start stop pause install enable activate disable cat revert \
-  edit status run list-backups job-state )
+export CTL_COMMANDS=( start stop pause install enable activate disable cat \
+revert edit status run list-backups job-state )
 
 
 # okCommandName()
@@ -230,7 +230,8 @@ export CTL_COMMANDS=( start stop pause install enable activate disable cat rever
 # PARAMETERS: scheme name to validate.
 okCommandName() {
   if [[ $# -ne 1 ]] ; then
-    echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a scheme-name.\nTerminating..."
+    echo -e >&2 "${FUNCNAME[@]} : I need an argument to validate as a \
+scheme-name.\nTerminating..."
     exit 5
   fi
   local found
@@ -447,6 +448,57 @@ backup." "$backup_scheme"
 }
 
 
+# execute_job_directly()
+# Executes an installed or started job directly through the governor
+# before it is run as a service.
+
+execute_job_directly() {
+  set -e
+  if ! nrargs 3 $#  "I need three arguments!" ; then
+    exit 2
+  fi
+
+  backup_scheme="${1}"
+  just_symlink_name="${2}"
+  sub_command="${3}"
+
+  manager "$backup_scheme"  "$just_symlink_name" backup
+  exit_code=$?
+  if [ $exit_code  -eq 0 ] ; then
+    backup_script="$DELEGATE_SCRIPT"
+  else
+    exit $exit_code
+  fi
+
+  exit_code=0
+  trap '' ERR
+  # shellcheck disable=SC2086 # No quoting of options!
+  "$backup_script" "$backup_scheme" "$symlink_name"
+  exit_code=$?
+
+  if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
+    if [[ $exit_code -eq 0 ]] ; then
+      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name SUCCESSFULLY!" \
+      |& tee |& systemd-cat -t $backup_scheme -p 7
+   else
+      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name FAILED!" \
+      |& tee |& systemd-cat -t $backup_scheme -p 7
+    fi
+  else
+    if [[ $exit_code -eq 0 ]] ; then
+      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name SUCCESSFULLY" \
+  |& tee | systemd-cat -t $backup_scheme -p 5
+   else
+      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+$backup_scheme $symlink_name FAILED!" \
+      |& tee |& systemd-cat -t $backup_scheme -p 3
+    fi
+  fi
+
+}
 # start_existing_job()
 # We figure if we have a
 start_existing_job() {
@@ -455,13 +507,12 @@ start_existing_job() {
     exit 2
   fi
 
-
   # err 1 "Faking a start  of $1 $2 "
   backup_scheme="$1"
   location_parameter="$2"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-  symCount=$(workingSymLinksCount "$jobs_folder")
+  jobCount=$(workingSymLinksCount "$jobs_folder")
   # We need the count of working symlinks for deducting
   # if we need to restart the service or not, which we
   # need if the count is zero.
@@ -491,46 +542,11 @@ start_existing_job() {
     assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
     # We assert the Backucontainer is there, in case it is the first time.
 
-    manager "$backup_scheme"  "$just_symlink_name" backup
-    exit_code=$?
-    if [ $exit_code  -eq 0 ] ; then
-      backup_script="$DELEGATE_SCRIPT"
-    else
-      exit $exit_code
-    fi
-
-    exit_code=0
-    trap '' ERR
-    # shellcheck disable=SC2086 # No quoting of options!
-    "$backup_script" "$backup_scheme" "$symlink_name"
-    exit_code=$?
-
-    if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-      if [[ $exit_code -eq 0 ]] ; then
-        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
-$backup_scheme $symlink_name SUCCESSFULLY!" \
-        |& tee |& systemd-cat -t $backup_scheme -p 7
-     else
-        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
-$backup_scheme $symlink_name FAILED!" \
-        |& tee |& systemd-cat -t $backup_scheme -p 7
-      fi
-    else
-      if [[ $exit_code -eq 0 ]] ; then
-        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
-$backup_scheme $symlink_name SUCCESSFULLY" \
-    |& tee | systemd-cat -t $backup_scheme -p 5
-     else
-        echo -e >&2 "$PNAME  start --now : EXECUTING:\n$backup_script \
-$backup_scheme $symlink_name FAILED!" \
-        |& tee |& systemd-cat -t $backup_scheme -p 3
-      fi
-    fi
-
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" start
   fi
 
 #  TODO: figure out if we need to restart the service.
-  if [[ $symCount -eq 0 ]] ; then
+  if [[ $jobCount -eq 0 ]] ; then
     systemctl --user list-timers  --state=active \
       | grep "$backup_scheme".timer >/dev/null
     if [[ $? -ne 0 ]] ; then
@@ -563,9 +579,9 @@ stop_existing_job() {
   # here we take care of both stopped, installed and paused.
   stopJob "$valid_symlink"
   # --now has no bearing here.
-  symCount=$(workingSymLinksCount "$jobs_folder")
+  jobCount=$(workingSymLinksCount "$jobs_folder")
 
-  if [[ $symCount -eq 0 ]] ; then
+  if [[ $jobCount -eq 0 ]] ; then
     systemctl --user list-timers  --state=active \
       | grep "$backup_scheme".timer >/dev/null
     if [[ $? -ne 0 ]] ; then
@@ -604,12 +620,69 @@ pause_existing_job() {
 }
 
 
+# install_new_job()
+# installs a new job under a scheme, we need to create the symlink, so
+# the way we get our paths is kind of different here, in comparision to the
+# existing jobs.
+
+install_new_job() {
+
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  # Does the location exist?
+  if [[ ! -r $location_parameter ]] ; then 
+    err 1 "The location $location_parameter doesn't exist!"
+    exit 2
+  fi
+  full_path="$(realpath "$location_parameter")"
+  just_symlink_name="$(fullPathSymlinkName "$full_path")"
+  # we set up things so it works.
+  # we haven't checked that we have the service files!
+
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  # if the symlink already exists we remove it and regenerate.
+
+  if [[ $AT_ONCE -eq 0 ]] ; then
+    # do we have a service up and running  for this service?
+    jobCount=$(workingSymLinksCount "$jobs_folder")
+
+    scheme_container="$( assertSchemeContainer "$backup_scheme" )"
+    assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
+    ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" start
+
+    if [[ $jobCount -eq 0 ]] ; then
+      systemctl --user list-timers  --state=active \
+        | grep "$backup_scheme".timer >/dev/null
+      if [[ $? -ne 0 ]] ; then
+        # Needs activation, the timer does.
+        systemctl --user enable "$backup_scheme".timer  --now
+        if [[ $? -ne 0 ]] ; then
+          err 1 "Couldn't activate $backup_scheme.timer"
+          exit 255
+        fi
+      fi
+    fi
+  else
+    touch "$jobs_folder"/"$just_symlink_name".installed
+    ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+  fi
+
+}
+
 # And now, it is time to actually parse the commands fully out.
 case "$cur_command" in
     start) start_existing_job "$backup_scheme" "$source_location" ;;
     stop) stop_existing_job "$backup_scheme" "$source_location" ;;
     pause) pause_existing_job "$backup_scheme" "$source_location" ;;
-    install) args_needed=3 ;;
+    install) install_new_job  "$backup_scheme" "$source_location" ;;
     enable) args_needed=3 ;;
     activate) args_needed=3 ;;
     disable) args_needed=3 ;;
