@@ -193,8 +193,7 @@ EOF
   GETOPT_COMPATIBLE=true
 # time to parse some command line arguments!
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
-  TEMP=$(getopt -o hnvV --longoptions help,verbose,dry-run,version \
-                -n "$PNAME" -- "$@")
+  TEMP=$(getopt -o hnNvV --longoptions help,verbose,dry-run,version,now -n "$PNAME" -- "$@")
   # shellcheck disable=SC2181 # It's too long to put in  an if test, I feel!
   if [[ $? != 0 ]] ; then echo "$PNAME : Terminating..." >&2 ; exit 2 ; fi
 
