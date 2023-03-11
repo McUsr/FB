@@ -138,15 +138,19 @@ Syntax:
 
   Options:
 
-  -h| --help.    Shows this help.
-  -n| --dry-run  Shows what would have happened
-  -v| --verbose  Shows more detailed output.
-  -V| --version  Shows the version of $PNAME ($VERSION).
-  --now          Execute the command now.
+  -h | --help.    Shows this help.
+  -n | --dry-run  Shows what would have happened
+  -v | --verbose  Shows more detailed output.
+  -V | --version  Shows the version of $PNAME ($VERSION).
+  -N | --now          Execute the command now.
 
   Commands:
 
   start       [BackupScheme] [folder]
+
+    Starts an existing existing job, presumuably in either a paused state,
+    stopped state, or installed state.
+
   stop        [BackupScheme] [folder]
   pause       [BackupScheme] [folder]
   install     [BackupScheme] [folder]
@@ -176,6 +180,8 @@ Syntax:
 
 EOF
 }
+
+# TODO: installation. which is the default, without the --now option.
 # parse options
 
 # shellcheck disable=SC2034
