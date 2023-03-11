@@ -186,6 +186,7 @@ Syntax:
 EOF
 }
 
+
 # TODO: installation. which is the default, without the --now option.
 # parse options
 
@@ -213,6 +214,7 @@ EOF
 # get command verbs
 HAVING_ERRORS=false
 
+
 if [[ $# -eq 0 ]] ; then
   echo -e "$PNAME : Wrong number of  few arguments. I need one argument for \
 at least a command that takes no parameters.\nExecute \"$PNAME -h\" \
@@ -221,6 +223,7 @@ for help. Terminating..." >&2
 fi
 export CTL_COMMANDS=( start stop pause install enable activate disable cat revert \
   edit status run list-backups job-state )
+
 
 # okCommandName()
 # RETURNS 0 if supplied shcemename is ok.
@@ -240,6 +243,7 @@ okCommandName() {
   done
   return $found
 }
+
 
 #  Needs to figure the correct number of arguments for the command name
 if okCommandName "$1" ; then
@@ -275,6 +279,7 @@ fi
 
 source ~/wrk/FB/.local/bin/fb/loc_param.sh
 
+
 # activateJob()
 # removes the paused state of a job.
 
@@ -296,6 +301,7 @@ activateJob() {
 
   fi
 }
+
 
 # startJob()
 # removes the paused state of a job.
@@ -324,6 +330,7 @@ startJob() {
   fi
 }
 
+
 # stopJob()
 # stops the execution job of a job by setting its
 # state to stopped.
@@ -343,6 +350,28 @@ stopJob() {
     touch "$stopped_file"
   fi
 }
+
+
+# pauseJob()
+# pauses the execution job of a job by setting its
+# state to paused.
+pauseJob() {
+
+  if ! nrargs 1 $#  "I need one argument!" ; then
+    exit 2
+  fi
+
+  if ! isASymlink "$1" ; then
+    err 1 "The parameter isn't a symlink!"
+    exit 2
+  fi
+
+  paused_file="$1".paused
+  if [[ ! -r "$paused_file" ]] ; then
+    touch "$paused_file"
+  fi
+}
+
 # workingSymLinksCount()
 # Not symlinks that necessarily works, but symlinks that are
 # intended to work? Maybe check for valid symlink name as well?
@@ -383,6 +412,7 @@ justSymlinkName() {
   echo ${pieces[$argc]}
 }
 
+
 # assertBackupContainer()
 # Asserts that the backup container exists.
 # This piece is to be refactored as a call back
@@ -415,6 +445,8 @@ backup." "$backup_scheme"
     fi
   fi
 }
+
+
 # start_existing_job()
 # We figure if we have a
 start_existing_job() {
@@ -434,7 +466,6 @@ start_existing_job() {
   # if we need to restart the service or not, which we
   # need if the count is zero.
 
-
   valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
     "$jobs_folder" )"
   # so we can go from stopped to paused. TODO: update docs.
@@ -443,9 +474,6 @@ start_existing_job() {
   startJob "$valid_symlink"
 
   # err 1 "Valid symlink: $valid_symlink"
-
-
-
 
   if [[ $AT_ONCE -eq 0 ]] ; then
 
@@ -504,7 +532,7 @@ $backup_scheme $symlink_name FAILED!" \
 #  TODO: figure out if we need to restart the service.
   if [[ $symCount -eq 0 ]] ; then
     systemctl --user list-timers  --state=active \
-      | grep "$backup_scheme" >/dev/null
+      | grep "$backup_scheme".timer >/dev/null
     if [[ $? -ne 0 ]] ; then
       # Needs activation, the timer does.
       systemctl --user enable "$backup_scheme".timer  --now
@@ -515,6 +543,7 @@ $backup_scheme $symlink_name FAILED!" \
     fi
   fi
 }
+
 
 stop_existing_job() {
   echo >&2 "Stopping existing job"
@@ -538,7 +567,7 @@ stop_existing_job() {
 
   if [[ $symCount -eq 0 ]] ; then
     systemctl --user list-timers  --state=active \
-      | grep "$backup_scheme" >/dev/null
+      | grep "$backup_scheme".timer >/dev/null
     if [[ $? -ne 0 ]] ; then
       # Needs activation, the timer does.
       systemctl --user disable "$backup_scheme".timer  --now
@@ -550,11 +579,36 @@ stop_existing_job() {
   fi
 }
 
+
+# stop_existing_job()
+# It is not an error to pause an already paused job.
+# We don't shut down the timer. We let it run while the job is paused.
+pause_existing_job() {
+  echo >&2 "Pausing existing job"
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
+    "$jobs_folder" )"
+  # so we can go from stopped to paused. TODO: update docs.
+  # here we take care of both stopped, installed and paused.
+  pauseJob "$valid_symlink"
+  # --now has no bearing here.
+}
+
+
 # And now, it is time to actually parse the commands fully out.
 case "$cur_command" in
     start) start_existing_job "$backup_scheme" "$source_location" ;;
     stop) stop_existing_job "$backup_scheme" "$source_location" ;;
-    pause) args_needed=3 ;;
+    pause) pause_existing_job "$backup_scheme" "$source_location" ;;
     install) args_needed=3 ;;
     enable) args_needed=3 ;;
     activate) args_needed=3 ;;
