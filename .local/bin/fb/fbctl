@@ -541,7 +541,7 @@ stop_existing_job() {
 # And now, it is time to actually parse the commands fully out.
 case "$cur_command" in
     start) start_existing_job "$backup_scheme" "$source_location" ;;
-    stop) stop_existing_job ;;
+    stop) stop_existing_job "$backup_scheme" "$source_location" ;;
     pause) args_needed=3 ;;
     install) args_needed=3 ;;
     enable) args_needed=3 ;;
