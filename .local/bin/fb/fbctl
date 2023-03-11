@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/basNh
 # shellcheck disable=SC2034
 VERSION="v0.0.4"
 
@@ -341,7 +341,6 @@ stopJob() {
   stopped_file="$1".stopped
   if [[ ! -r "$stopped_file" ]] ; then
     touch "$stopped_file"
-    # TODO: stopping  a job worth a notification?
   fi
 }
 # workingSymLinksCount()
@@ -535,6 +534,20 @@ stop_existing_job() {
   # here we take care of both stopped, installed and paused.
   stopJob "$valid_symlink"
   # --now has no bearing here.
+  symCount=$(workingSymLinksCount "$jobs_folder")
+
+  if [[ $symCount -eq 0 ]] ; then
+    systemctl --user list-timers  --state=active \
+      | grep "$backup_scheme" >/dev/null
+    if [[ $? -ne 0 ]] ; then
+      # Needs activation, the timer does.
+      systemctl --user disable "$backup_scheme".timer  --now
+      if [[ $? -ne 0 ]] ; then
+        err 1 "Couldn't disable $backup_scheme.timer"
+        exit 255
+      fi
+    fi
+  fi
 }
 
 # And now, it is time to actually parse the commands fully out.
