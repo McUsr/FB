@@ -142,33 +142,77 @@ Syntax:
   -n | --dry-run  Shows what would have happened
   -v | --verbose  Shows more detailed output.
   -V | --version  Shows the version of $PNAME ($VERSION).
-  -N | --now          Execute the command now.
+  -N | --now      Execute the command now.
+  -A | --all      All, in some contexts.
 
-  Commands:
+  Job Control Commands:
 
-  start       [BackupScheme] [folder]
+  install       BACKUPSCHEME FOLDER
 
-    Starts an existing existing job, presumuably in either a paused state,
-    stopped state, or installed state.
+    Installs a new job under the chosen Backup scheme.
 
-  stop        [BackupScheme] [folder]
+  start         BACKUPSCHEME FOLDER
+
+    Starts an existing existing job, presumuably in either a paused,
+    stopped, or installed state.
+
+  stop          BACKUPSCHEME FOLDER
 
     Stops an existing job, by creating a SYMLINK.stopped file in the scheme's
-    jobs folder.
+    jobs folder, if the job stopped was the only running, the service is shut
+    down.
 
-  pause       [BackupScheme] [folder]
+  pause         BACKUPSCHEME FOLDER
 
-  install     [BackupScheme] [folder]
-  enable      [BackupScheme] [folder]
-  activate    [BackupScheme] [folder]
-  disable     [BackupScheme] [folder]
-  cat         [BackupScheme] [folder]
-  revert
-  edit
-  status
-  run
-  list-backups
-  job-state
+    Pauses a job temporarily for some maintenance reason,  the service is kept
+    alive whilst waiting for the job to be enabled, started or activated.
+
+  edit         BACKUPSCHEME FOLDER
+
+    Edits a local dropin, unless the  --all switch is given, which edits
+    the general dropin script for that folder.
+
+  edit-restore BACKUPSCHEME FOLDER
+
+    Edits a local dropin restore sccript, unless the  --all switch is given,
+    which edits the general dropin restore script for that folder.
+
+  job-state    BACKUPSCHEME FOLDER
+
+  list-jobs    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
+
+
+  Service Control Commands:
+
+  check         BACKUPSCHEME
+
+    Checks that the unit and timer is installed, and the current status.
+
+  enable        BACKUPSCHEME
+
+    Enables a service. presumably in either a disabled, or stopped state.
+    Does a `systemctl --user daemon-reload` as well as starting in the process.
+
+  disable    BACKUPSCHEME
+
+    Disables a service, for editing or whatever, it stops the service in the
+    process.
+
+  configure  BACKUPSCHEME[.timer]
+
+    Configures a service, or its timer. Stops and disables the service before
+    editing.
+
+  status    BACKUPSCHEME
+
+    Shows various interesting properties of the service.
+
+  Backup Control Commands
+
+  list-backups BACKUPSCHEME | FOLDER
+
+  restore-backup (tui, requires fzf)
+
 
   Backup Schemes:
 
