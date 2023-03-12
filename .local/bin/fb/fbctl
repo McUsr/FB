@@ -1,4 +1,4 @@
-#!/bin/basNh
+#!/bin/bash
 # shellcheck disable=SC2034
 VERSION="v0.0.4"
 
@@ -144,6 +144,7 @@ Syntax:
   -V | --version  Shows the version of $PNAME ($VERSION).
   -N | --now      Execute the command now.
   -A | --all      All, in some contexts.
+  --state=        set the state to active/paused/stopped/installed.
 
   Job Control Commands:
 
@@ -176,6 +177,11 @@ Syntax:
 
     Edits a local dropin restore sccript, unless the  --all switch is given,
     which edits the general dropin restore script for that folder.
+
+  edit-exclude BACKUPSCHEME FOLDER
+
+    Edits a local dropin exclude  file, that contains globs that are to be 
+    excluded from backup.
 
   job-state    BACKUPSCHEME FOLDER
 
