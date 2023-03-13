@@ -36,20 +36,20 @@ symlinkInJobsFolder() {
   loc_param="${2}"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-  echo BackupScheme : "$backup_scheme"
-  echo JobsFolder : "$jobs_folder"
+  echo >&2 BackupScheme : "$backup_scheme"
+  echo >&2 JobsFolder : "$jobs_folder"
 
   if [[ ! -r "$loc_param" ]] ; then
-    echo "$loc_param" : not found.
+    echo >&2 "$loc_param" : not found.
    candidate="$jobs_folder"/"$loc_param"
-   echo "and the candidate is: $candidate"
+   echo >&2 "and the candidate is: $candidate"
 
     if [[ ! -r "$candidate" ]] ; then
         echo -e >&2 "$PNAME : $candidate doesn't exist, unresolvable conflict.\n\
   Please specify another parameter.\nTerminating"
         exit 2
     else
-      echo "found $candidate"
+      echo >&2 "found $candidate"
       if ! isASymlink "$candidate" ; then
         echo -e >&2 "$PNAME : $candidate isn't a symlink, unresolvable conflict.\n\
   Please specify another parameter.\nTerminating"
@@ -88,4 +88,4 @@ symlinkInJobsFolder() {
     fi
   fi
 }
-symlinkInJobsFolder $*
+# symlinkInJobsFolder $*
