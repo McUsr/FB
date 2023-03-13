@@ -337,8 +337,8 @@ scheme-name.\nTerminating..."
 if okCommandName "$1" ; then
   # args_needed includes the command name.
   case "$1" in
-    install | start | stop | pause | run | edit | edit-restore | edit-exclude \
-     job-state | cat | revert ) args_needed=3 ;;
+    install | start | stop | pause | run | edit | edit-restore | edit-exclude | \
+      job-state | cat | revert ) args_needed=3 ;;
     check | enable | disable | configure | status | list-backups )  \
       args_needed=2 ;;
     list-jobs ) args_needed=1 ;;
@@ -401,6 +401,20 @@ fi
 
 source ~/wrk/FB/.local/bin/fb/loc_param.sh
 
+err() {
+  echo -e >&2 "$PNAME/${FUNCNAME[$1]} : $2\nTerminating"
+}
+
+nrargs() {
+  if [[ $# -ne 3 ]] ; then
+    err 1 "I really need 3 arguments!"
+    return 1
+  elif [[ $1 -ne $2 ]] ; then 
+    err 2  "$3"
+    return 1
+  fi
+  return 0
+}
 
 # activateJob()
 # removes the paused state of a job.
@@ -638,10 +652,11 @@ start_existing_job() {
   # if we need to restart the service or not, which we
   # need if the count is zero.
 
-  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
-    "$jobs_folder" )"
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
+  # valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" "$jobs_folder" )"
   # so we can go from stopped to paused. TODO: update docs.
   # here we take care of both stopped, installed and paused.
+#  echo "Le valid sym-link: $valid_symlink"
   activateJob "$valid_symlink"
   startJob "$valid_symlink"
 
@@ -694,8 +709,8 @@ stop_existing_job() {
   location_parameter="$2"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
-    "$jobs_folder" )"
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter")" 
+#  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter"  "$jobs_folder" )"
   # so we can go from stopped to paused. TODO: update docs.
   # here we take care of both stopped, installed and paused.
   stopJob "$valid_symlink"
@@ -732,8 +747,8 @@ pause_existing_job() {
   location_parameter="$2"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \
-    "$jobs_folder" )"
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
+  # valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" \ "$jobs_folder" )"
   # so we can go from stopped to paused. TODO: update docs.
   # here we take care of both stopped, installed and paused.
   pauseJob "$valid_symlink"
@@ -777,7 +792,10 @@ install_new_job() {
     scheme_container="$( assertSchemeContainer "$backup_scheme" )"
     assertBackupContainer "$backup_scheme" "$scheme_container"  \
       "$just_symlink_name"
-    ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+    if [[ ! -r "$jobs_folder"/"$just_symlink_name" ]] ; then 
+      ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+      touch "$jobs_folder"/"$just_symlink_name".installed
+    fi 
     execute_job_directly "$backup_scheme"  "$just_symlink_name" start
 
     if [[ $jobCount -eq 0 ]] ; then
@@ -793,8 +811,10 @@ install_new_job() {
       fi
     fi
   else
-    touch "$jobs_folder"/"$just_symlink_name".installed
-    ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+    if [[ ! -r "$jobs_folder"/"$just_symlink_name" ]] ; then 
+      ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
+      touch "$jobs_folder"/"$just_symlink_name".installed
+    fi
   fi
 
 }
