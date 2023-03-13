@@ -356,7 +356,7 @@ if [[ $# -lt $args_needed ]] ; then
 Terminating..."
   exit 2
 elif [[ $args_needed -eq  3 ]] ; then
-
+# so far all commands that takes 3 arguments needs an ok scheme.
   if ! okSchemeName $2 ; then
     echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
 for help.\nTerminating..."
@@ -744,7 +744,8 @@ install_new_job() {
     jobCount=$(workingSymLinksCount "$jobs_folder")
 
     scheme_container="$( assertSchemeContainer "$backup_scheme" )"
-    assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
+    assertBackupContainer "$backup_scheme" "$scheme_container"  \
+      "$just_symlink_name"
     ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
     execute_job_directly "$backup_scheme"  "$just_symlink_name" start
 
@@ -767,22 +768,78 @@ install_new_job() {
 
 }
 
+run_existing_job() {
+  echo Stub..
+}
+
+# edit_existing_job() 
+# I belive I have stuff to use in shared/service functions.
+
+edit_existing_job() {
+  echo Stub..
+}
+
+edit_restore_job() {
+  echo Stub..
+}
+
+edit_exclude_for_job() {
+  echo Stub..
+}
+
+job_state() {
+  echo Stub..
+}
+
+cat_existing_job() {
+  echo Stub..
+}
+
+revert_existing_job() {
+  echo Stub..
+}
+
+check_service() {
+  echo Stub..
+}
+
+enable_service() {
+  echo Stub..
+}
+
+disable_service() {
+  echo Stub..
+}
+
+configure_service() {
+  echo Stub..
+}
+
+status_for_service () {
+  echo Stub..
+}
+
 # And now, it is time to actually parse the commands fully out.
 case "$cur_command" in
+    install) install_new_job  "$backup_scheme" "$source_location" ;;
     start) start_existing_job "$backup_scheme" "$source_location" ;;
     stop) stop_existing_job "$backup_scheme" "$source_location" ;;
     pause) pause_existing_job "$backup_scheme" "$source_location" ;;
-    install) install_new_job  "$backup_scheme" "$source_location" ;;
-    enable) args_needed=3 ;;
-    activate) args_needed=3 ;;
-    disable) args_needed=3 ;;
-    cat) args_needed=3 ;;
-    revert) args_needed=3 ;;
-    edit) args_needed=3 ;;
-    status) args_needed=3 ;;
-    run) args_needed=3 ;;
-    list-backups) args_needed=3 ;;
-    job-state) args_needed=3 ;;
+    run) run_existing_job "$backup_scheme" "$source_location" ;;
+    edit) edit_existing_job "$backup_scheme" "$source_location" ;;
+    edit-restore) edit_restore_job "$backup_scheme" "$source_location" ;;
+    edit-exclude) edit_exclude_for_job "$backup_scheme" "$source_location" ;;
+    job-state) job_state "$backup_scheme" "$source_location" ;;
+    cat) cat_existing_job "$backup_scheme" "$source_location" ;;
+    revert) revert_existing_job "$backup_scheme" "$source_location" ;;
+    check) check_service "$backup_scheme" ;;
+    enable) enable_service "$backup_scheme" ;;
+    disable) disable_service "$backup_scheme" ;;
+    configure) configure_service "$backup_scheme" ;;
+    # we need to do something here, .timer stuff
+    status) status_for_service "$backup_scheme" ;;
+    list-backups) list_backups "$backup_scheme" "$source_location" ;;
+    restore-backup) restore_backup ;;
   *) echo EBAD_ARG ;;
 esac
 
