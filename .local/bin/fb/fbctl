@@ -226,7 +226,7 @@ Syntax:
 
   enable        BACKUPSCHEME
 
-    Enables a service. presumably in either a disabled, or stopped state.
+    Enables a service.  lpresumably in either a disabled, or stopped state.
     Does a `systemctl --user daemon-reload` as well as starting in the process.
 
   disable    BACKUPSCHEME
@@ -365,8 +365,39 @@ for help.\nTerminating..."
     backup_scheme="$2"
   fi
    source_location="$3"
-fi
+elif [[ $args_needed -eq  2 ]] ; then
 
+  if [[ "$cur_command" != "configure" ]] ; then
+    if ! okSchemeName $2 ; then
+      echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
+  for help.\nTerminating..."
+      exit 2
+    else
+      backup_scheme="$2"
+    fi
+  else
+    # cur_command == "configure"
+    if okSchemeName ${2%.*} ; then 
+      suffix="${2##*.}"
+      if [[ -n "$suffix" ]] ; then 
+        if [[ "$suffix" != "timer" && "$suffix" != "service" ]] ; then 
+          echo -e >&2 "$PNAME : $cur_command :  The service "$2" doesn't exist! \"$PNAME -h\" \
+for help.\nTerminating..."
+          exit 2
+        else
+          backup_scheme="$2"
+        fi
+      else
+        backup_scheme="$2"
+      fi
+    else
+      echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
+  for help.\nTerminating..."
+      exit 2
+    fi
+  fi
+fi
+# what to do when args_needed = 2?
 
 source ~/wrk/FB/.local/bin/fb/loc_param.sh
 
@@ -836,7 +867,7 @@ case "$cur_command" in
     enable) enable_service "$backup_scheme" ;;
     disable) disable_service "$backup_scheme" ;;
     configure) configure_service "$backup_scheme" ;;
-    # we need to do something here, .timer stuff
+    # we have done something here when assigning arguments .timer stuff.
     status) status_for_service "$backup_scheme" ;;
     list-backups) list_backups "$backup_scheme" "$source_location" ;;
     restore-backup) restore_backup ;;
