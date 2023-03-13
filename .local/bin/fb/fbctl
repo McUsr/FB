@@ -191,7 +191,18 @@ Syntax:
 
   job-state    BACKUPSCHEME FOLDER
 
-  list-jobs    FOLDER
+    Shows the status of the specified single job, and all involved files with
+    full path!
+
+  cat         BACKUPSCHEME FOLDER
+
+    Shows all involved files, including "dropins" and "exclude-files file" for
+    that backup. (It catenates all the files from tha paths given by `job-state`.
+
+  revert       BACKUPSCHEME FOLDER
+
+    Reverts any customizations to an "original" plain state, removing any
+    exclude files an other customizations.  list-jobs    FOLDER
 
     Lists all jobs for a folder under all backup schemes.
 
@@ -296,8 +307,9 @@ at least a command that takes no parameters.\nExecute \"$PNAME -h\" \
 for help. Terminating..." >&2
   exit 2
 fi
-export CTL_COMMANDS=( start stop pause install enable activate disable cat \
-revert edit status run list-backups job-state )
+export CTL_COMMANDS=( install start stop pause run edit edit-restore \
+  edit-exclude job-state list-jobs check enable disable configure  \
+status list-backups restore-backup )
 
 
 # okCommandName()
