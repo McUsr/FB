@@ -335,10 +335,13 @@ scheme-name.\nTerminating..."
 
 #  Needs to figure the correct number of arguments for the command name
 if okCommandName "$1" ; then
+  # args_needed includes the command name.
   case "$1" in
-    start | stop | pause | install | enable | activate | disable | cat \
-      | revert | edit  | status | run ) args_needed=3 ;;
-    list-backups |  job-state ) args_needed=2 ;;
+    install | start | stop | pause | run | edit | edit-restore | edit-exclude \
+     job-state | cat | revert ) args_needed=3 ;;
+    check | enable | disable | configure | status | list-backups )  \
+      args_needed=2 ;;
+    list-jobs ) args_needed=1 ;;
     *) echo EBAD_ARG ;;
   esac
 else
