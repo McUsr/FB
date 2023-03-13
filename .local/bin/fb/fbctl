@@ -308,7 +308,7 @@ for help. Terminating..." >&2
   exit 2
 fi
 export CTL_COMMANDS=( install start stop pause run edit edit-restore \
-  edit-exclude job-state list-jobs check enable disable configure  \
+  edit-exclude job-state cat revert list-jobs check enable disable configure  \
 status list-backups restore-backup )
 
 
