@@ -144,7 +144,7 @@ Syntax:
   -V | --version  Shows the version of $PNAME ($VERSION).
   -N | --now      Execute the command now.
   -A | --all      All, in some contexts.
-  --state=        set the state to active/paused/stopped/installed.
+  -S | --state=   Set the state to active/paused/stopped/installed.
 
   Job Control Commands:
 
@@ -168,6 +168,12 @@ Syntax:
     Pauses a job temporarily for some maintenance reason,  the service is kept
     alive whilst waiting for the job to be enabled, started or activated.
 
+
+  run          BACKUPSCHEME FOLDER
+
+    Lets you run a backup-job directly, for testing reasons with the optional
+    `--dry-run` option, or otherwise.
+
   edit         BACKUPSCHEME FOLDER
 
     Edits a local dropin, unless the  --all switch is given, which edits
@@ -185,8 +191,21 @@ Syntax:
 
   job-state    BACKUPSCHEME FOLDER
 
+  list-jobs    FOLDER
+
+    Lists all jobs for a folder under all backup schemes.
+
+  list-jobs    BACKUPSCHEME
+
+    Lists all jobs for one backup scheme.
+
   list-jobs    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
 
+    Lists all jobs with  the status supplied for all schemes.
+
+  list-jobs     --all
+
+    Lists all jobs with a current status for all schemes.
 
   Service Control Commands:
 
@@ -217,7 +236,9 @@ Syntax:
 
   list-backups BACKUPSCHEME | FOLDER
 
-  restore-backup (tui, requires fzf)
+  restore-backup
+
+    Make it easier maybe by select to restore a backup, but only to temp folder. 
 
 
   Backup Schemes:
@@ -240,11 +261,13 @@ EOF
 # TODO: installation. which is the default, without the --now option.
 # parse options
 
+ALL=false
+STATE=( )
 # shellcheck disable=SC2034
   GETOPT_COMPATIBLE=true
 # time to parse some command line arguments!
 # https://stackoverflow.com/questions/402377/using-getopts-to-process-long-and-short-command-line-options
-  TEMP=$(getopt -o hnNvV --longoptions help,verbose,dry-run,version,now -n "$PNAME" -- "$@")
+  TEMP=$(getopt -o hvnVNAS: --longoptions help,verbose,dry-run,version,now,all,state: -n "$PNAME" -- "$@")
   # shellcheck disable=SC2181 # It's too long to put in  an if test, I feel!
   if [[ $? != 0 ]] ; then echo "$PNAME : Terminating..." >&2 ; exit 2 ; fi
 
@@ -257,7 +280,9 @@ EOF
         -n | --dry-run ) DRY_RUN=true; shift ;;
         -v | --verbose ) VERBOSE=true; shift ;;
         -V | --version ) echo "$PNAME" : $VERSION ; exit 0 ;;
-        --now ) AT_ONCE=true; shift ;;
+        -N | --now ) AT_ONCE=true; shift ;;
+        -A | --all ) ALL=true ; shift ;;
+        -S | --state ) STATE+=("$2") ;  shift 2 ;;
         -- ) shift; break ;;
       esac
   done
