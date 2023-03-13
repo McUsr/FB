@@ -1,76 +1,197 @@
-### fbctl
+fbctl
+-----
+
+Controls periodical backups in the background of a folder in
+a Penguin/Debian Container in ChromeOs, to the owner's Google disk.
+
+### The commands fbctl does can be sorted out in two categories:
+
+*Job control commands* that  controls single backup jobs,
+and *Service commands* that controls all jobs under a single
+backup scheme. Taxonomically speaking, a backup job belongs
+under a backup scheme, and it is identified with a symlink
+that is named by its full path. (See termasandjargon.md)
+
+### Job Control Commands:
+
+Are divided into:
+
+* Commands concerning running backup jobs:
+
+* Commands that configures backup jobs.
 
 
-so, this is the foundation for the statical parser.
+##  Commands concerning running backup jobs:
 
-`fbctl` is the command that controls the whole setup, the
-idea is that this should be the only command you need to use
-in order to manipulate, create, or edit jobs inn the system,
-trying to save you as much as possible from getting your
-fingers dirty when you need to configure the system.
-`fbctl` uses command completion, so there is no need to
-remember all those name of Backupschemes in order to get it
-right. Whereas `fbinstall` is for quickly getting boiler
-plate backup jobs up and running, `fbctl` is for those cases
-where you need to tinker some, like with the backup rotation
-interval, or want to use something different than tar, like
-`gzip`,`rsync` or `rclone`. then you need to edit your
-backupscript, and your restore-script, created from the
-original ones, and before you start that job, you would want
-to pause the backup job, if you ever started it. 
+#### install       BACKUPSCHEME FOLDER
 
-Before you are done, you would wan't to try to run the
-script, and see that it does what you want, before you use
-`fbctl` to start up the job again.
+Installs a new job under the chosen Backup scheme.
 
-`fbctl` is greatly inspered by `systemd`, which is the
-underlying services manager running the jobs.
-
-#### Tasks `fbctl` can do / Syntax:
-
-* `fbctl list-backups <scheme>|--all`
-
-  Lists all backup-jobs for a scheme, or all backup-jobs for all
-	schemes that are active/running.
-
-* `fbctl job-state <active/running/paused>|--all`
-
-  Lists which schemes have running backup-jobs, (and active
-	daemons). or "paused backup-jobs" (daemon still running),
-	Or, everything, active and paused jobs. 
-
-* `fbctl stop <scheme> <folder>`
-
-   Stops the backup job right away, by removing the symlink
-	 from the scheme folder, and if that symlink was the last
-	 one, it then stops the daemon for the backup scheme.
-
-* `fbctl install <scheme> <folder>`
-
-	 Does what `FBinstall` does, but with one more word to
-	 remember. If you  want the job to run immediately then be sure
-	 to use the `--now` option, so it doesn't rest in "pause"
-	 mode" before you `start/restart` it.
-
-* `fbctl cat <scheme> <folder>`
-
-	 Shows all involved files, including "dropins" and
-	 "exclude-files file" for that backup.
-
-* `fbctl revert <scheme> <folder>`
-
-	 Reverts any customizations to an "original" plain state,
-	 removing any exclude files an other customizations.
+Does what `fbinstall (alias)` does, but with one more word to
+remember. If you  want the job to run immediately then be sure
+to use the `--now` option, so it doesn't rest in "install"
+mode" before you `start/restart` it.
 
 
-	<!--- renaming the "dropin.sh" folder
+#### start         BACKUPSCHEME FOLDER
+
+Starts an existing existing job, presumuably in either a paused,
+stopped, or installed state.
+
+
+#### stop          BACKUPSCHEME FOLDER
+
+Stops an existing job, by creating a SYMLINK.stopped file in
+the scheme's jobs folder, if the job stopped was the only
+running, the service is shut down.
+
+It is effectively like the job wasn't even installed, except
+that it will run immediately when started, and doesn't need
+to be installed up front.
+
+
+#### pause         BACKUPSCHEME FOLDER
+
+Pauses a job temporarily for some maintenance reason,  the
+service is kept alive whilst waiting for the job to be
+enabled, started or activated.
+
+Makes the job pause, by installing a "lock file", by the
+name `<symlink>.pause` that makes the governor skip any
+backups of the folder, until the "lock file" is removed.
+
+#### run          BACKUPSCHEME FOLDER
+
+Lets you run a backup-job directly, for testing reasons
+with the optional `--dry-run` option, or otherwise. 
+
+The `run` command won't consider the current state of a
+backup-job and won't change the state of the current backup
+job.
+
+
+##  Commands that configures backup jobs.
+
+##### Common for all edit commands:
+
+The edit commands will install the a "lock" file, so the job
+is skipped while you edit. It isn't removed automatically
+when you are done, so you can get the time to try out your
+edits with the `fbctl run ... --dry-run` option.
+
+Use `fbctl start ...` to remove the `<symlink>.pause` file,
+when you are done editing. Presumably after a --dry-run,
+seems to work the way you'd like.
+
+
+#### edit         BACKUPSCHEME FOLDER
+
+Edits a local dropin, unless the  --all switch is given,
+which edits the general dropin script for that folder.
+
+
+#### edit-restore BACKUPSCHEME FOLDER
+
+Edits a local dropin restore script, unless the  --all
+switch is given, which edits the general dropin restore
+script for that folder.
+
+
+#### edit-exclude BACKUPSCHEME FOLDER
+
+Edits a local dropin exclude  file, that contains globs that
+are to be excluded from backup.
+
+
+#### job-state    BACKUPSCHEME FOLDER
+
+Shows the status of the specified single job, and all
+involved files with full path!
+
+####  cat         BACKUPSCHEME FOLDER
+
+Shows all involved files, including "dropins" and
+"exclude-files file" for that backup. (It catenates all the
+files from tha paths given by `job-state`.
+
+#### revert       BACKUPSCHEME FOLDER
+
+Reverts any customizations to an "original" plain state,
+removing any exclude files an other customizations.
+
+
+<!--- renaming the "dropin.sh" folder
 	to `"dropin.sh".old`.. --->
+
+#### list-jobs    FOLDER
+
+Lists all jobs for a folder under all backup schemes.
+
+
+#### list-jobs    BACKUPSCHEME
+
+Lists all jobs for one backup scheme.
+
+
+#### list-jobs    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
+
+Lists all jobs with  the status supplied for all schemes.
+
+
+#### list-jobs     --all
+
+Lists all jobs with a current status for all schemes.
+<!--- I think I could just as well give away a backup scheme
+to see all the jobs for a backup scheme, with the status.
+Maybe it is more natural for the job-state command. --->
+	
+<!-- TODO: forskjellige statuser på backup jobs, og hva
+	 de innebaere. Beskrive. ---> 
+
+
+### Service Control Commands:
+
+#### check         BACKUPSCHEME
+
+Checks that the unit and timer is installed, and the current status.
+
+#### enable        BACKUPSCHEME
+
+Enables a service. presumably in either a disabled, or stopped state.
+Does a `systemctl --user daemon-reload` as well as starting in the process.
+
+#### disable    BACKUPSCHEME
+
+Disables a service, for editing or whatever, it stops the service in the
+process.
+
+#### configure  BACKUPSCHEME[.timer]
+
+Configures a service, or its timer. Stops and disables the service before
+editing.
+
+it does a damon-reload before restarting again.
+
+#### status    BACKUPSCHEME
+
+Shows various interesting properties of the service.
+
+#### list-backups BACKUPSCHEME | FOLDER
+
+#### restore-backup 
+
+<!--- TODO
+(tui, requires fzf)
+--->
+
+<!-- Remnants that might be useful
 
 * `fbctl edit <scheme> <folder>` Creates a "dropin.sh"
 	folder under the scheme, and copies the original backup
 	script into it, before opening it with `$EDITOR` or
 	`$VISUAL`.
 	
+--->
 	<!--- TODO: maybe have some kind of lock mechanism, so that any
 	backups are skipped while the edit is in progress..
 	And, then there is the conundrum with the restore script,
@@ -79,6 +200,7 @@ underlying services manager running the jobs.
 	<folder>` when you have created the restore script.
 	--->
 
+<!-- Remnants that might be useful
 * `fbctl edit-exclude <scheme> <folder>`
 
    Pauses the backup-job in question, before creating an
@@ -90,17 +212,6 @@ underlying services manager running the jobs.
 	before you `start/restart` the job again.
 
 
-* `fbctl pause <scheme> <folder>`
-
-   Makes the job pause, by installing a "lock file", that
-	 makes the governor skip any backups of the folder, until
-	 the "lock file" is removed. -May happen automatically
-	 during `fbinstall`, `fbctl install` or `fbctl edit`,
-	 after beeing queried whether the system is good to go.
-
-
-	 <!--- TODO: forskjellige statuser på backup jobs, og hva
-	 de innebaere. Beskrive. ---> 
 
 
 * `fbctl status <scheme> <folder>`
@@ -112,12 +223,12 @@ underlying services manager running the jobs.
 
 	* Last log messages.
 
+
 * `fbctl restart <scheme> <folder>`
   Restarts a paused job, if the job has alread been started,
 	then no foul, no harm.
+	
 
 * `fbctl run <scheme> <folder> [--dry-run]`
-
-  Lets you run a backup-job directly, for testing reasons
-	with the optional `--dry-run` option, or otherwise.
+--->
 
