@@ -32,6 +32,10 @@ remember. If you  want the job to run immediately then be sure
 to use the `--now` option, so it doesn't rest in "install"
 mode" before you `start/restart` it.
 
+entering a state of installed only works if the job/symlink
+in questio  wasn't already installed. If the symlink isn't
+actually created, the install stated isn't "entered".
+
 
 #### start         BACKUPSCHEME FOLDER
 
@@ -65,9 +69,21 @@ backups of the folder, until the "lock file" is removed.
 Lets you run a backup-job directly, for testing reasons
 with the optional `--dry-run` option, or otherwise. 
 
+As per today the --dry-run is realistic with concern to
+considering the need to backup, this behaviour needs to go,
+so that the `--dry-run`, which is an experiment will work
+every time.
+
 The `run` command won't consider the current state of a
 backup-job and won't change the state of the current backup
 job.
+
+it might be an idea to remove install, stop and pause files
+termporarily, start the job now, and reestablish the state.
+
+-- AS overruling the governor, might be a tad more to deal
+with?
+
 
 
 ##  Commands that configures backup jobs.
@@ -87,7 +103,9 @@ seems to work the way you'd like.
 #### edit         BACKUPSCHEME FOLDER
 
 Edits a local dropin, unless the  --all switch is given,
-which edits the general dropin script for that folder.
+which edits the general dropin script for that folder.  The
+plan b, was to use a GENERAL value for the backup scheme
+parameter.
 
 
 #### edit-restore BACKUPSCHEME FOLDER
