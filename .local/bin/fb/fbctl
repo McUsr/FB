@@ -675,7 +675,7 @@ backup." "$backup_scheme"
 # before it is run as a service.
 
 execute_job_directly() {
-  set -e
+#  set -e
   if ! nrargs 3 $#  "I need three arguments!" ; then
     exit 2
   fi
@@ -727,6 +727,7 @@ $backup_scheme $symlink_name FAILED!" \
   fi
 
 }
+
 # start_existing_job()
 # We figure if we have a
 start_existing_job() {
@@ -931,10 +932,8 @@ run_existing_job() {
   # err 1 "Faking a start  of $1 $2 "
   backup_scheme="$1"
   location_parameter="$2"
-  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
   valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
-  # valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" "$jobs_folder" )"
 
   # TODO: Assert backup container exists
   scheme_container="$( assertSchemeContainer "$backup_scheme" )"

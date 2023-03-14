@@ -99,9 +99,9 @@ routDebugMsg() {
   if [[ $RUNTIME_MODE == "SERVICE"  ]] ; then
     notifyErr  "$PNAME" "$PNAME${1} " | journalThis 7 "${2}"
   else
-    echo -e >&2 "$PNAME${1}\n"
+    echo -e >&2 "$PNAME ${1}\n"
   fi
-
+  return 0
 }
 
 

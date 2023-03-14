@@ -73,6 +73,7 @@ okSchemeName() {
 # RETURNS 0 if the parameter is a symlink.
 # PARAMETER: A symlink
 # ( I need the full path to the file, to be able to check it. {realpath} )
+# TODO: rework, with nrargs and test.
 isASymlink() {
 if [[ $# -ne 1 ]] ; then echo -e "$PNAME/${FUNCNAME[0]} : Need an\
   argument\nTerminates" >&2 ; exit 5 ; fi
@@ -888,7 +889,7 @@ script: $candidate_script." "$backup_scheme"
       fi
     fi
   elif [[ $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
-    routDebugMsg"/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
+    routDebugMsg "/${FUNCNAME[0]} : I didn't find  a LOCAL backup dropin script \
 in : $candidate_script." "$backup_scheme"
   fi
   return 0
