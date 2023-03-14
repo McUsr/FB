@@ -130,7 +130,7 @@ involved files with full path!
 
 Shows all involved files, including "dropins" and
 "exclude-files file" for that backup. (It catenates all the
-files from tha paths given by `job-state`.
+files from that path given by `job-state`.)
 
 #### revert       BACKUPSCHEME FOLDER
 
