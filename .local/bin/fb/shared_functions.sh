@@ -1134,5 +1134,6 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
 
     exit 1
   fi
+  return 0
 }
 
