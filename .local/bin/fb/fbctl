@@ -538,18 +538,13 @@ justSymlinkName() {
   if ! nrargs 1 $#  "I need just 1 argument!" ; then
     exit 2
   fi
-  echo >&2 "Having entered justSymlinkName, full symlinkName == $1 "
   local stuff oldfs stuff argc
   stuff="$1"
   oldfs=$IFS
   export IFS=/
   set -- $stuff
   pieces=( $* )
-  echo >&2 "first argc == $# "
   argc=$(( ${#pieces[@]} - 1 ))
-  echo >&2 "argc == $argc "
-  echo >&2 "Having entered justSymlinkName,  the pieces == ${pieces[@]} "
-  echo >&2 "The first argument == ${pieces[1]}"
   export IFS=$oldfs
   echo ${pieces[$argc]}
 }
@@ -678,15 +673,11 @@ start_existing_job() {
     # which scheme we should use to to make the
     # manager look for stuff.
 
-    echo >&2 "The name of the  valid symlink: $valid_symlink"
     just_symlink_name="$(justSymlinkName "$valid_symlink")"
     # Need to find the symlink-name we're doing a lot twice.
 
     assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
     # We assert the Backucontainer is there, in case it is the first time.
-
-    echo >&2 "The name of the  valid symlink: $valid_symlink"
-    echo >&2 "The name of the  just the symlink: $just_symlink_name"
 
     execute_job_directly "$backup_scheme"  "$just_symlink_name" start
   fi
