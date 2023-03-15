@@ -440,7 +440,7 @@ nrargs() {
 # Does the file exist? if not, we might use the  jobs folder as a second chance
 symlinkInJobsFolder() {
 
-LDBG=1
+LDBG=0
   if ! nrargs 2 $#  "I need two arguments!" ; then
     exit 2
   fi
@@ -582,6 +582,8 @@ pauseJob() {
   if ! nrargs 1 $#  "I need one argument!" ; then
     exit 2
   fi
+
+  echo "pauseJob \$1 =  pauseJob $1"
 
   if ! isASymlink "$1" ; then
     err 1 "The parameter isn't a symlink!"
@@ -1058,13 +1060,16 @@ edit_exclude_for_job() {
   # if we need to restart the service or not, which we
   # need if the count is zero.
 
+  echo "Here!" >&2
   valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
-  # valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" "$jobs_folder" )"
   # so we can go from stopped to paused. TODO: update docs.
   # here we take care of both stopped, installed and paused.
 
   pauseJob "$valid_symlink"
-  createExcludeFile "$backup_scheme" "$valid_symlink"
+  echo "before createExcludeFile"
+  just_symlink_name="$(justSymlinkName "$valid_symlink")"
+  createExcludeFile "$backup_scheme" "$just_symlink_name"
+  # createExcludeFile "$backup_scheme" "$valid_symlink"
   echo "$PNAME/${FUNCNAME[0]} : successfully created an exclude file.\n\
 run 'fbctl run BACKUPSCHEME FOLDER --dry-run' to test it.\n
 also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when satisfied."

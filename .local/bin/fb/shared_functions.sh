@@ -1116,7 +1116,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
 
   dieIfNoEditorSetToUse
 
-  if "$THE_EDITOR"\
+  if ! "$THE_EDITOR"\
     "$scheme_bin_folder"/"$symlink_name".d/exclude.file ;\
   then
     echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
@@ -1127,7 +1127,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
 
   # Maybe we should check if there were any contents in the file we created
   #  before we see this as a success?
-  if excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
+  if ! excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
     echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
       \n$scheme_bin_folder/$symlink_name.d/exclude.file\nIs empty!\
       \nTerminating..." | journalThis 2 "$backup_scheme"
