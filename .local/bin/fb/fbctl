@@ -1068,9 +1068,7 @@ edit_exclude_for_job() {
 
   pauseJob "$valid_symlink"
   just_symlink_name="$(justSymlinkName "$valid_symlink")"
-  createExcludeFile "$backup_scheme" "$just_symlink_name"
-  # createExcludeFile "$backup_scheme" "$valid_symlink"
-  if hasExcludeFile "$backup_scheme" "$just_symlink_name" ; then 
+  if createExcludeFile "$backup_scheme" "$just_symlink_name" ; then 
     echo "$PNAME/${FUNCNAME[0]} : successfully created an exclude file.\n\
 run 'fbctl run BACKUPSCHEME FOLDER --dry-run' to test it.\n
 also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when satisfied."
