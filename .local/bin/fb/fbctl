@@ -337,10 +337,10 @@ scheme-name.\nTerminating..."
 if okCommandName "$1" ; then
   # args_needed includes the command name.
   case "$1" in
-    install | start | stop | pause | run | edit | edit-restore | edit-exclude | \
-      job-state | cat | revert ) args_needed=3 ;;
-    check | enable | disable | configure | status | list-backups )  \
-      args_needed=2 ;;
+    install | start | stop | pause | run  | edit-exclude | \
+    edit | edit-restore | job-state | cat | revert ) args_needed=3 ;;
+     check | enable | disable | configure | status | \
+      list-backups )  args_needed=2 ;;
     list-jobs ) args_needed=1 ;;
     *) echo EBAD_ARG ;;
   esac
@@ -352,14 +352,14 @@ fi
 cur_command="$1"
 
 if [[ $# -lt $args_needed ]] ; then
-  echo -e >&2 "$PNAME $cur_command : too few  arguments. \"$PNAME -h\" for help.\n\
-Terminating..."
+  echo -e >&2 "$PNAME $cur_command : too few  arguments. \"$PNAME -h\" for \
+help.\nTerminating..."
   exit 2
 elif [[ $args_needed -eq  3 ]] ; then
 # so far all commands that takes 3 arguments needs an ok scheme.
   if ! okSchemeName $2 ; then
-    echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
-for help.\nTerminating..."
+    echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't \
+exist! \"$PNAME -h\" for help.\nTerminating..."
     exit 2
   else
     backup_scheme="$2"
@@ -369,20 +369,20 @@ elif [[ $args_needed -eq  2 ]] ; then
 
   if [[ "$cur_command" != "configure" ]] ; then
     if ! okSchemeName $2 ; then
-      echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't exist! \"$PNAME -h\" \
-  for help.\nTerminating..."
+      echo -e >&2 "$PNAME : $cur_command :  The scheme "$2" doesn't \
+exist! \"$PNAME -h\" for help.\nTerminating..."
       exit 2
     else
       backup_scheme="$2"
     fi
   else
     # cur_command == "configure"
-    if okSchemeName ${2%.*} ; then 
+    if okSchemeName ${2%.*} ; then
       suffix="${2##*.}"
-      if [[ -n "$suffix" ]] ; then 
-        if [[ "$suffix" != "timer" && "$suffix" != "service" ]] ; then 
-          echo -e >&2 "$PNAME : $cur_command :  The service "$2" doesn't exist! \"$PNAME -h\" \
-for help.\nTerminating..."
+      if [[ -n "$suffix" ]] ; then
+        if [[ "$suffix" != "timer" && "$suffix" != "service" ]] ; then
+          echo -e >&2 "$PNAME : $cur_command :  The service "$2" doesn't \
+exist! \"$PNAME -h\" for help.\nTerminating..."
           exit 2
         else
           backup_scheme="$2"
@@ -675,7 +675,7 @@ backup." "$backup_scheme"
 # before it is run as a service.
 
 execute_job_directly() {
-#  set -e
+  set -e
   if ! nrargs 3 $#  "I need three arguments!" ; then
     exit 2
   fi
@@ -952,25 +952,91 @@ run_existing_job() {
   execute_job_directly "$backup_scheme"  "$just_symlink_name" run
 
 }
-# TODO: There is no way to edit the GENERAL script, so, 
-# GENERAL could be the standin for the backup_scheme,
-# to edit the GENERAL, which naming standard I have forgot.
-# but, for instance HourlySnapshot.d sounds like a good idea.
-# The facit is in the manager().
 
 
-# edit_existing_job() 
-# I belive I have stuff to use in shared/service functions.
+# edit_existing_job()
+# PARAMETERS:  backup_scheme location_parameter jobtype
+# If the location parameter is GENERAL then we edit the GENERAL dropin.
+# If a general dropin exists, then that is copied into the $symlink.d folder
+# for further editing.
 
 edit_existing_job() {
-  echo Stub..
-}
+  set -e
+  if ! nrargs 3 $#  "I need three arguments!" ; then
+    exit 5
+  fi
 
-edit_restore_job() {
-  echo Stub..
+  # visual first, editor after.
+  dieIfNotValidFbFolderName "$1"
+  backup_scheme=$1
+  dieIfNotValidFullSymlinkName "$2" "$1"
+  # TODO: CHG. name, only one kind of symlink name.
+
+  if [[ "$3" != "backup" && "$3" != "restore" ]] ; then 
+    echo "$PNAME/${FUNCNAME[@]} : jobtype wasn't backup or restore\n\
+Terminating..."
+    exit 5
+  fi
+
+  jobtype="$3"
+
+  if [[ "$2" != "GENERAL" ]] ; then
+    location_parameter="$2"
+    valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
+    pauseJob "$valid_symlink"
+    # message about things, that we need to be start the job, that we can try it out
+    # with run .. --dry-run
+  else
+    symlink_name="$1"
+    # TODO: SHUT DOWN THE SERVICE!
+    # that we can try it out with run .. --dry-run 
+    # message about things, that we need to ENABLE the service, to be restarted, 
+  fi
+
+  
+  local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+  
+# Only one place a the exclude file.
+# And if it doesn't exist, then we'll make it.
+  if [[ ! -d "$scheme_bin_folder"/"$symlink_name".d ]] ; then
+
+    if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
+      echo -e "$PNAME : The folder\
+        \"$scheme_bin_folder/$symlink_name.d\" didn't exist.\
+        \nMaking it.\nmkdir -p ~/.local/bin/fb/$backup_scheme/$symlink_name.d"\
+        | journalThis 7 "$backup_scheme"
+    fi
+    mkdir -p "$scheme_bin_folder"/"$symlink_name".d
+
+    if [[ "$symlink_name" != "$backup_scheme" ]] ; then 
+    # if exists a general dropin, copy this to the folder.
+
+      if [[ -r "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh ]] ; then 
+        cp  -p "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh "$scheme_bin_folder"/"$symlink_name".d
+      fi
+
+    else
+      cp  -p "$scheme_bin_folder"/"$backup_scheme".$jobtype.sh "$scheme_bin_folder"/"$backup_scheme".d
+
+    fi
+
+  fi
+
+  dieIfNoEditorSetToUse
+
+  if "$THE_EDITOR"\
+    "$scheme_bin_folder"/"$symlink_name".d/"$backup_scheme"."$jobtype".sh ;\
+  then
+    echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
+      \n $scheme_bin_folder/$symlink_name.d/"$backup_scheme"."$jobtype".sh\
+      \nTerminating..." | journalThis 2 OneShot
+    exit 1
+  fi
+  return 0
 }
 
 # edit_exclude_for_job() 
+# PARAMETERS:  backup_scheme location_parameter 
 # the thing is, for this to work, I need the the symlink to the folder
 # There should be a message about, needing to start the job when satisfied.
 # And I need to pause the job.
@@ -1005,8 +1071,84 @@ also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when sati
 
 }
 
+# job_state()
+# PARAMETERS:  backup_scheme location_parameter
+# Shows the status of the specified single job, and all involved files with
+# full path!
 job_state() {
-  echo Stub..
+
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+  # Kind of a report:
+  # scheme / folder
+  # is it just installed?
+  # is it stopped
+  # is it paused
+  # is it running
+  # is there a general dropin script?
+  # is there a local dropin script?
+  # is thhere an exclude file?
+
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  jobCount=$(workingSymLinksCount "$jobs_folder")
+  # We need the count of working symlinks for deducting
+  # if we need to restart the service or not, which we
+  # need if the count is zero.
+
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
+
+  # we have the stuff in the startJob() and activateJob() sub-commands for finding state-files?
+  # in the edit subCommands we have the rest of what we need.
+  active_job=true
+  paused_file="$valid_symlink".paused
+  if [[ -r "$paused_file" ]] ; then
+    echo paused-file = $paused_file
+    active_job=false
+    # TODO: Activating a job worth a notification?
+  fi
+
+  stopped_file="$valid_symlink".stopped
+  if [[ -r "$stopped_file" ]] ; then
+    echo stopped-file = $stopped_file
+    active_job=false
+    # TODO: Starting a job worth a notification?
+  fi
+
+  installed_file="$valid_symlink".installed
+  if [[ -r "$installed_file" ]] ; then
+    echo installed-file = $installed_file
+    active_job=false
+    # TODO: Starting a job worth a notification?
+  fi
+
+  if [[ $active_job == true ]] ; then 
+    echo the job: $valid_symlink is active
+  fi
+  just_symlink_name="$(justSymlinkName "$valid_symlink")"
+  manager "$backup_scheme"  "$just_symlink_name" backup
+  echo the backup script is "$DELEGATE_SCRIPT"
+  if excludeFileHasContents "$backup_scheme" "$just_symlink_name" ; then 
+    local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+    probe="$scheme_bin_folder/$symlink_name.d/exclude.file"
+    echo Exclude file: $probe
+  fi
+  exit 2
+
+  # we add in that we have or don't have any restore counter parts.
+
+  # Do  we have a general dropin script?
+
+  # Do we have a local dropin script?
+
+  # Do we have an exclude file.
 }
 
 cat_existing_job() {
@@ -1045,8 +1187,8 @@ case "$cur_command" in
     pause) pause_existing_job "$backup_scheme" "$source_location" ;;
     run) run_existing_job "$backup_scheme" "$source_location" ;;
     edit-exclude) edit_exclude_for_job "$backup_scheme" "$source_location" ;;
-    edit-restore) edit_restore_job "$backup_scheme" "$source_location" ;;
-    edit) edit_existing_job "$backup_scheme" "$source_location" ;;
+    edit-restore) edit_existing_job "$backup_scheme" "$source_location" "restore" ;;
+    edit) edit_existing_job "$backup_scheme" "$source_location" "backup" ;;
     job-state) job_state "$backup_scheme" "$source_location" ;;
     cat) cat_existing_job "$backup_scheme" "$source_location" ;;
     revert) revert_existing_job "$backup_scheme" "$source_location" ;;
