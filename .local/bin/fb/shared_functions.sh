@@ -1122,7 +1122,7 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
     echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
       \n $scheme_bin_folder/$symlink_name.d/exclude.file\
       \nTerminating..." | journalThis 2 OneShot
-    exit 1
+    return 1
   fi
 
   # Maybe we should check if there were any contents in the file we created
@@ -1131,8 +1131,8 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
     echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
       \n$scheme_bin_folder/$symlink_name.d/exclude.file is empty!\
       \nTerminating..." | journalThis 2 "$backup_scheme"
-  # TODO: maybe remove empty file, and maybe use colors?
-    exit 1
+    rm -f "$scheme_bin_folder"/"$symlink_name".d/exclude.file
+    return 1
   fi
   return 0
 }
