@@ -1129,9 +1129,9 @@ arguments\nTerminates" >&2 ; exit 5 ; fi
   #  before we see this as a success?
   if ! excludeFileHasContents "$backup_scheme" "$symlink_name" ; then
     echo -e "$PNAME/${FUNCNAME[0]} : The exclude file\
-      \n$scheme_bin_folder/$symlink_name.d/exclude.file\nIs empty!\
+      \n$scheme_bin_folder/$symlink_name.d/exclude.file is empty!\
       \nTerminating..." | journalThis 2 "$backup_scheme"
-
+  # TODO: maybe remove empty file, and maybe use colors?
     exit 1
   fi
   return 0
