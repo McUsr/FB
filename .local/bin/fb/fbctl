@@ -128,7 +128,7 @@ consoleHasInternet "$curscheme"
 consoleFBfolderIsMounted "$curscheme"
 
 help() {
-cat  << EOF
+cat  << EOF | less 
 
 $PNAME:  Control the Folder Backup backup system.
 
