@@ -698,7 +698,7 @@ execute_job_directly() {
 
   exit_code=0
   trap '' ERR
-  if [[ "$sub_command" == "run" && $DRY_RUN == true ]] ; then   
+  if [[ "$sub_command" =~ "run" && $DRY_RUN == true ]] ; then
     # shellcheck disable=SC2086 # No quoting of options!
     "$backup_script" "$backup_scheme" "$symlink_name" --dry-run
     exit_code=$?
@@ -710,23 +710,23 @@ execute_job_directly() {
 
   if [[ $VERBOSE = true || $DEBUG -eq 0 || $DRY_RUN = true ]] ; then
     if [[ $exit_code -eq 0 ]] ; then
-      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+      echo -e >&2 "$PNAME  "$sub_command" : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name SUCCESSFULLY!" \
-      |& tee |& systemd-cat -t $backup_scheme -p 7
-   else
-      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+    |& tee |& systemd-cat -t $backup_scheme -p 7
+    else
+      echo -e >&2 "$PNAME  "$sub_command" : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name FAILED!" \
-      |& tee |& systemd-cat -t $backup_scheme -p 7
+    |& tee |& systemd-cat -t $backup_scheme -p 7
     fi
   else
     if [[ $exit_code -eq 0 ]] ; then
-      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+    echo -e >&2 "$PNAME  "$sub_command" : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name SUCCESSFULLY" \
-  |& tee | systemd-cat -t $backup_scheme -p 5
-   else
-      echo -e >&2 "$PNAME  $sub_command --now : EXECUTING:\n$backup_script \
+|& tee | systemd-cat -t $backup_scheme -p 5
+    else
+      echo -e >&2 "$PNAME  "$sub_command" : EXECUTING:\n$backup_script \
 $backup_scheme $symlink_name FAILED!" \
-      |& tee |& systemd-cat -t $backup_scheme -p 3
+    |& tee |& systemd-cat -t $backup_scheme -p 3
     fi
   fi
 
@@ -776,7 +776,7 @@ start_existing_job() {
     assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
     # We assert the Backucontainer is there, in case it is the first time.
 
-    execute_job_directly "$backup_scheme"  "$just_symlink_name" start
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" "start --now"
   fi
 
 #  TODO: figure out if we need to restart the service.
@@ -894,7 +894,7 @@ install_new_job() {
       ln -s "$full_path" "$jobs_folder"/"$just_symlink_name"
       touch "$jobs_folder"/"$just_symlink_name".installed
     fi 
-    execute_job_directly "$backup_scheme"  "$just_symlink_name" start
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" "start --now"
 
     if [[ $jobCount -eq 0 ]] ; then
       systemctl --user list-timers  --state=active \
@@ -953,7 +953,11 @@ run_existing_job() {
   assertBackupContainer "$backup_scheme" "$scheme_container"  "$just_symlink_name"
   # We assert the Backucontainer is there, in case it is the first time.
 
-  execute_job_directly "$backup_scheme"  "$just_symlink_name" run
+  if [[ $DRY_RUN == true ]] then
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" "run --dry-run"
+  else
+    execute_job_directly "$backup_scheme"  "$just_symlink_name" "run"
+  fi
 
 }
 

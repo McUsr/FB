@@ -302,37 +302,43 @@ if [[ $DEBUG -eq 0  ]] ; then
   routDebugMsg " : probeDir AFTER qualification  = : $probeDir" "$backup_scheme"
 fi
 
-if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
-  # echo "newest dir doesn't exist." Means we have no folders to compare with.
-  # so this is the first backup!
-  if [[  $DEBUG -eq 0 ]] ; then
-    routDebugMsg " : no files in probedir, it's empty and we need  to take a \
-backup." "$backup_scheme"
-  fi
-  MUST_MAKE_TODAYS_FOLDER=0
-  MUST_MAKE_BACKUP=0
-else
-
-  if [[  $DEBUG -eq 0 ]] ; then
-    routDebugMsg " : we might have  modified files probedir = $probeDir" \
-      "$backup_scheme"
-  fi
-
-  # we need to compare timestamps.
-  modfiles=$(find -H "$jobs_folder"/"$symlink_name" -cnewer "$probeDir" 2>&1)
-  if [[ -n "$modfiles"  ]] ; then
-      routNotification " : There are modified or added files since last backup. \
-        We will take a backup of $(realpath $jobs_folder/$symlink_name)."  "$backup_scheme"
-    # there are files to back up.
-    MUST_MAKE_BACKUP=0
-    if [[ "$probeDir" != "$todays_backup_folder_name" ]] ; then
-      MUST_MAKE_TODAYS_FOLDER=0
+if [[ $DRY_RUN == false ]] ; then
+  if [[ -z "$probeDir" || $emptyBackupFolder == true  ]] ; then
+    # echo "newest dir doesn't exist." Means we have no folders to compare with.
+    # so this is the first backup!
+    if [[  $DEBUG -eq 0 ]] ; then
+      routDebugMsg " : no files in probedir, it's empty and we need  to take a \
+  backup." "$backup_scheme"
     fi
+    MUST_MAKE_TODAYS_FOLDER=0
+    MUST_MAKE_BACKUP=0
   else
-      routNotification " : No new or modified files, since last backup of \
+
+    if [[  $DEBUG -eq 0 ]] ; then
+      routDebugMsg " : we might have  modified files probedir = $probeDir" \
+        "$backup_scheme"
+    fi
+
+    # we need to compare timestamps.
+      modfiles=$(find -H "$jobs_folder"/"$symlink_name" -cnewer "$probeDir" 2>&1)
+
+      if [[ -n "$modfiles"  ]] ; then
+          routNotification " : There are modified or added files since last \
+backup. We will take a backup of $(realpath $jobs_folder/$symlink_name)." \
+  "$backup_scheme"
+        # there are files to back up.
+        MUST_MAKE_BACKUP=0
+        if [[ "$probeDir" != "$todays_backup_folder_name" ]] ; then
+          MUST_MAKE_TODAYS_FOLDER=0
+        fi
+      else
+          routNotification " : No new or modified files, since last backup of \
 $(realpath $jobs_folder/$symlink_name)."  "$BACKUP_SCHEME"
-    # But, maybe the reason is, there are no files there?
+        # But, maybe the reason is, there are no files there?
+      fi
   fi
+else
+  MUST_MAKE_BACKUP=0
 fi
 
 if [[ $MUST_MAKE_BACKUP -eq 0 ]] ; then
