@@ -440,7 +440,7 @@ nrargs() {
 # Does the file exist? if not, we might use the  jobs folder as a second chance
 symlinkInJobsFolder() {
 
-LDBG=0
+LDBG=1
   if ! nrargs 2 $#  "I need two arguments!" ; then
     exit 2
   fi
@@ -449,8 +449,10 @@ LDBG=0
   loc_param="${2}"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
-  echo >&2 BackupScheme : "$backup_scheme"
-  echo >&2 JobsFolder : "$jobs_folder"
+  if [[ $LDBG -eq 0 ]] ; then
+    echo >&2 BackupScheme : "$backup_scheme"
+    echo >&2 JobsFolder : "$jobs_folder"
+  fi
 
   if [[ ! -r "$loc_param" ]] ; then
     echo >&2 "$loc_param" : not found.
@@ -1060,13 +1062,11 @@ edit_exclude_for_job() {
   # if we need to restart the service or not, which we
   # need if the count is zero.
 
-  echo "Here!" >&2
   valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
   # so we can go from stopped to paused. TODO: update docs.
   # here we take care of both stopped, installed and paused.
 
   pauseJob "$valid_symlink"
-  echo "before createExcludeFile"
   just_symlink_name="$(justSymlinkName "$valid_symlink")"
   createExcludeFile "$backup_scheme" "$just_symlink_name"
   # createExcludeFile "$backup_scheme" "$valid_symlink"
