@@ -585,7 +585,10 @@ pauseJob() {
     exit 2
   fi
 
-  echo "pauseJob \$1 =  pauseJob $1"
+LCL_DBG=1
+  if [[  $LCL_DBG -eq 0 ]] ; then 
+    echo "pauseJob \$1 =  $1"
+  fi
 
   if ! isASymlink "$1" ; then
     err 1 "The parameter isn't a symlink!"
@@ -973,7 +976,6 @@ edit_existing_job() {
   if ! nrargs 3 $#  "I need three arguments!" ; then
     exit 5
   fi
-  echo "dbgXtra: entering edit_existing_job()"
 
   # visual first, editor after.
   dieIfNotValidFbFolderName "$1"
@@ -992,12 +994,10 @@ Terminating..."
   if [[ "$2" != "GENERAL" ]] ; then
     location_parameter="$2"
     valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
-    echo "dbgXtra : valid_symlink = $valid_symlink"
     pauseJob "$valid_symlink"
     # message about things, that we need to be start the job, that we can try it out
     # with run .. --dry-run
     just_symlink_name="$(justSymlinkName "$valid_symlink")"
-    echo "dbgXtra : just_symlink_name = $just_symlink_name"
   else
     just_symlink_name="$1"
     # TODO: SHUT DOWN THE SERVICE!
@@ -1011,51 +1011,60 @@ Terminating..."
 # Only one place a the exclude file.
 # And if it doesn't exist, then we'll make it.
   if [[ ! -d "$scheme_bin_folder"/"$just_symlink_name".d ]] ; then
-    echo "dbgXtra : the dropin folder didn't exist!"
     if [[ $DEBUG -eq 0 || $VERBOSE = true ]] ; then
-      echo -e "$PNAME : The folder\
-        \"$scheme_bin_folder/$just_symlink_name.d\" didn't exist.\
-        \nMaking it.\nmkdir -p ~/.local/bin/fb/$backup_scheme/$just_symlink_name.d"\
+      echo -e "$PNAME : The folder \
+\"$scheme_bin_folder/$just_symlink_name.d\" didn't exist.\
+\nMaking it.\nmkdir -p ~/.local/bin/fb/$backup_scheme/$just_symlink_name.d"\
         | journalThis 7 "$backup_scheme"
     fi
     mkdir -p "$scheme_bin_folder"/"$just_symlink_name".d
-    echo "dbgXtra : We did create $scheme_bin_folder/$just_symlink_name.d"
 
   fi
   # separates the two things, since the directory might be created in
   # conjunction with an exclude file.
 
-  if [[ "$just_symlink_name" != "$backup_scheme" ]] ; then 
+  if [[ "$just_symlink_name" != "$backup_scheme" ]] ; then
   # if exists a general dropin, copy this to the folder.
-    echo "dbgXtra  : just_symlink_name != backup_scheme "
-    if [[ -r "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh ]] ; then 
-      # We have created a GENERAL dropin script up front and will use this as boiler-plate.
-      cp  -p "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh "$scheme_bin_folder"/"$just_symlink_name".d
+    if [[ -r \
+      "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh ]];\
+    then
+      # We have created a GENERAL dropin script up front and will use this
+      # as boiler-plate.
+      cp  -p \
+        "$scheme_bin_folder"/"$backup_scheme".d/"$backup_scheme".$jobtype.sh \
+        "$scheme_bin_folder"/"$just_symlink_name".d
     else
       # we use the ORIGINAL SCRIPT as boiler-plate.
-      cp  -p "$scheme_bin_folder"/"$backup_scheme".$jobtype.sh "$scheme_bin_folder"/"$just_symlink_name".d
+      cp  -p "$scheme_bin_folder"/"$backup_scheme".$jobtype.sh \
+        "$scheme_bin_folder"/"$just_symlink_name".d
     fi
 
   else
-    cp  -p "$scheme_bin_folder"/"$backup_scheme".$jobtype.sh "$scheme_bin_folder"/"$backup_scheme".d
+    cp  -p "$scheme_bin_folder"/"$backup_scheme".$jobtype.sh \
+      "$scheme_bin_folder"/"$backup_scheme".d
   fi
 
 
   dieIfNoEditorSetToUse
 
-  if ! "$THE_EDITOR"\
-    "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme"."$jobtype".sh ;\
+  echo "$PNAME/${FUNCNAME[0]} : Ready to edit the dropin script!.\n\
+run 'fbctl run BACKUPSCHEME FOLDER --dry-run' to test it.\n
+also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when \
+satisfied.\nHit any key to continue..." >&2
+  read -n 1
+  if ! "$THE_EDITOR" \
+    "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme"."$jobtype".sh;
   then
     echo -e "$PNAME/${FUNCNAME[0]} : Something went wrong during editing.\
-      \n $scheme_bin_folder/$just_symlink_name.d/"$backup_scheme"."$jobtype".sh\
+      \n$scheme_bin_folder/$just_symlink_name.d/"$backup_scheme"."$jobtype".sh\
       \nTerminating..." | journalThis 2 OneShot
     exit 1
   fi
   return 0
 }
 
-# edit_exclude_for_job() 
-# PARAMETERS:  backup_scheme location_parameter 
+# edit_exclude_for_job()
+# PARAMETERS:  backup_scheme location_parameter
 # the thing is, for this to work, I need the the symlink to the folder
 # There should be a message about, needing to start the job when satisfied.
 # And I need to pause the job.
@@ -1086,7 +1095,8 @@ edit_exclude_for_job() {
   if createExcludeFile "$backup_scheme" "$just_symlink_name" ; then 
     echo "$PNAME/${FUNCNAME[0]} : successfully created an exclude file.\n\
 run 'fbctl run BACKUPSCHEME FOLDER --dry-run' to test it.\n
-also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when satisfied."
+also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when \
+satisfied." >&2
   else
     activateJob "$valid_symlink"
   fi
