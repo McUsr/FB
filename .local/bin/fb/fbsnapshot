@@ -253,6 +253,8 @@ fi
 # there is no dryrun in fbctl?
 if [[ $CREATE_EXCLUDE_FILE = true ]] ; then
   createExcludeFile "$curscheme" "$symlink_name"
+  exit_code=$?
+  if [[ $exit_code -ne 0 ]] ; then exit $exit_code ; fi
 fi
 
 # Exclude file out of the way, time to figure out if there are any "dropin"-
