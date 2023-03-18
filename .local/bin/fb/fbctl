@@ -189,7 +189,7 @@ Syntax:
     Edits a local dropin exclude  file, that contains globs that are to be 
     excluded from backup.
 
-  job-state    BACKUPSCHEME FOLDER
+  show        BACKUPSCHEME FOLDER
 
     Shows the status of the specified single job, and all involved files with
     full path!
@@ -197,7 +197,9 @@ Syntax:
   cat         BACKUPSCHEME FOLDER
 
     Shows all involved files, including "dropins" and "exclude-files file" for
-    that backup. (It catenates all the files from tha paths given by `job-state`.
+    that backup. (It catenates all the files from tha paths given by
+    `job-state`). Each file is preceded by a comment which includes the file
+    name.
 
   revert       BACKUPSCHEME FOLDER
 
@@ -1047,7 +1049,7 @@ Terminating..."
 
   dieIfNoEditorSetToUse
 
-  echo "$PNAME/${FUNCNAME[0]} : Ready to edit the dropin script!.\n\
+  echo -e "$PNAME/${FUNCNAME[0]} : Ready to edit the dropin script!.\n\
 run 'fbctl run BACKUPSCHEME FOLDER --dry-run' to test it.\n
 also remember to execute 'fbctl start BACKUPSCHEME FOLDER' to activate when \
 satisfied.\nHit any key to continue..." >&2
@@ -1183,7 +1185,78 @@ job_state() {
 }
 
 cat_existing_job() {
-  echo Stub..
+  set -e
+  if ! nrargs 2 $#  "I need two arguments!" ; then
+    exit 2
+  fi
+
+  # Kind of a report:
+  # scheme / folder
+  # is it just installed?
+  # is it stopped
+  # is it paused
+  # is it running
+  # is there a general dropin script?
+  # is there a local dropin script?
+  # is thhere an exclude file?
+
+
+  # err 1 "Faking a start  of $1 $2 "
+  backup_scheme="$1"
+  location_parameter="$2"
+  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
+
+  jobCount=$(workingSymLinksCount "$jobs_folder")
+  # We need the count of working symlinks for deducting
+  # if we need to restart the service or not, which we
+  # need if the count is zero.
+
+  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
+
+  # we have the stuff in the startJob() and activateJob() sub-commands for finding state-files?
+  # in the edit subCommands we have the rest of what we need.
+  active_job=true
+  paused_file="$valid_symlink".paused
+  if [[ -r "$paused_file" ]] ; then
+    echo paused-file = $paused_file
+    active_job=false
+    # TODO: Activating a job worth a notification?
+  fi
+
+  stopped_file="$valid_symlink".stopped
+  if [[ -r "$stopped_file" ]] ; then
+    echo stopped-file = $stopped_file
+    active_job=false
+    # TODO: Starting a job worth a notification?
+  fi
+
+  installed_file="$valid_symlink".installed
+  if [[ -r "$installed_file" ]] ; then
+    echo installed-file = $installed_file
+    active_job=false
+    # TODO: Starting a job worth a notification?
+  fi
+
+  if [[ $active_job == true ]] ; then 
+    echo the job: $valid_symlink is active
+  fi
+  just_symlink_name="$(justSymlinkName "$valid_symlink")"
+  manager "$backup_scheme"  "$just_symlink_name" backup
+  echo the backup script is "$DELEGATE_SCRIPT"
+  if excludeFileHasContents "$backup_scheme" "$just_symlink_name" ; then 
+    local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
+    probe="$scheme_bin_folder/$symlink_name.d/exclude.file"
+    echo Exclude file: $probe
+  fi
+  exit 2
+
+  # we add in that we have or don't have any restore counter parts.
+
+  # Do  we have a general dropin script?
+
+  # Do we have a local dropin script?
+
+  # Do we have an exclude file.
 }
 
 revert_existing_job() {
