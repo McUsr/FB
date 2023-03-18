@@ -145,10 +145,11 @@ consoleHasInternet "$curscheme"
 consoleFBfolderIsMounted "$curscheme"
 
 help() {
+#  set -x
 local bold rset
 bold="$(clr +)"
 rset="$(clr)"
-cat  << EOF | less 
+cat  << EOF | less
 
 ${bold}$PNAME:${rset}  Control the Folder Backup backup system.
 
@@ -192,7 +193,7 @@ Syntax:
   ${bold}run${rset}          BACKUP-SCHEME FOLDER
 
     Lets you run a backup-job directly, for testing reasons with the optional
-    `--dry-run` option, or otherwise.
+    "--dry-run" option, or otherwise.
 
   ${bold}edit${rset}         BACKUP-SCHEME FOLDER
 
@@ -218,7 +219,7 @@ Syntax:
 
     Shows all involved files, including "dropins" and "exclude-files file" for
     that backup. (It catenates all the files from tha paths given by
-    `job-state`). Each file is preceded by a comment which includes the file
+    "show"). Each file is preceded by a comment which includes the file
     name.
 
   ${bold}revert${rset}       BACKUP-SCHEME FOLDER
@@ -330,7 +331,7 @@ for help. Terminating..." >&2
   exit 2
 fi
 export CTL_COMMANDS=( install start stop pause run edit edit-restore \
-  edit-exclude job-state cat revert list-jobs check enable disable configure  \
+  edit-exclude show cat revert list-jobs check enable disable configure  \
 status list-backups restore-backup )
 
 
@@ -360,7 +361,7 @@ if okCommandName "$1" ; then
   # args_needed includes the command name.
   case "$1" in
     install | start | stop | pause | run  | edit-exclude | \
-    edit | edit-restore | job-state | cat | revert ) args_needed=3 ;;
+    edit | edit-restore | show | cat | revert ) args_needed=3 ;;
      check | enable | disable | configure | status | \
       list-backups )  args_needed=2 ;;
     list-jobs ) args_needed=1 ;;
@@ -1124,11 +1125,11 @@ satisfied." >&2
   fi
 }
 
-# job_state()
+# show_existing_job()
 # PARAMETERS:  backup_scheme location_parameter
 # Shows the status of the specified single job, and all involved files with
 # full path!
-job_state() {
+show_existing_job() {
 
   set -e
   if ! nrargs 2 $#  "I need two arguments!" ; then
@@ -1313,7 +1314,7 @@ case "$cur_command" in
     edit-exclude) edit_exclude_for_job "$backup_scheme" "$source_location" ;;
     edit-restore) edit_existing_job "$backup_scheme" "$source_location" "restore" ;;
     edit) edit_existing_job "$backup_scheme" "$source_location" "backup" ;;
-    job-state) job_state "$backup_scheme" "$source_location" ;;
+    show) show_existing_job "$backup_scheme" "$source_location" ;;
     cat) cat_existing_job "$backup_scheme" "$source_location" ;;
     revert) revert_existing_job "$backup_scheme" "$source_location" ;;
     check) check_service "$backup_scheme" ;;
