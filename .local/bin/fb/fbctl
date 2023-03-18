@@ -145,133 +145,136 @@ consoleHasInternet "$curscheme"
 consoleFBfolderIsMounted "$curscheme"
 
 help() {
+local bold rset
+bold="$(clr +)"
+rset="$(clr)"
 cat  << EOF | less 
 
-$PNAME:  Control the Folder Backup backup system.
+${bold}$PNAME:${rset}  Control the Folder Backup backup system.
 
 Syntax:
 
-  $PNAME  [options]  [action] [folder]
+  ${bold}$PNAME  [options]  [action]  [backup-scheme] [folder]${rset}
 
   Options:
 
-  $(clr +)-h$(clr) | $(clr +)--help.$(clr)    Shows this help.
-  $(clr +)-n$(clr) | $(clr +)--dry-run$(clr)  Shows what would have happened
-  $(clr +)-v$(clr) | $(clr +)--verbose$(clr)  Shows more detailed output.
-  $(clr +)-V$(clr) | $(clr +)--version$(clr)  Shows the version of $PNAME ($VERSION).
-  $(clr +)-N$(clr) | $(clr +)--now$(clr)      Execute the command now.
-  $(clr +)-A$(clr) | $(clr +)--all$(clr)      All, in some contexts.
-  $(clr +)-S$(clr) | $(clr +)--state=$(clr)   Set the state to active/paused/stopped/installed.
+  ${bold}-h${rset} | ${bold}--help.${rset}    Shows this help.
+  ${bold}-n${rset} | ${bold}--dry-run${rset}  Shows what would have happened
+  ${bold}-v${rset} | ${bold}--verbose${rset}  Shows more detailed output.
+  ${bold}-V${rset} | ${bold}--version${rset}  Shows the version of $PNAME ($VERSION).
+  ${bold}-N${rset} | ${bold}--now${rset}      Execute the command now.
+  ${bold}-A${rset} | ${bold}--all${rset}      All, in some contexts.
+  ${bold}-S${rset} | ${bold}--state=${rset}   Set the state to active/paused/stopped/installed.
 
   Job Control Commands:
 
-  $(clr +)install$(clr)       BACKUPSCHEME FOLDER
+  ${bold}install${rset}       BACKUP-SCHEME FOLDER
 
     Installs a new job under the chosen Backup scheme.
 
-  $(clr +)start$(clr)         BACKUPSCHEME FOLDER
+  ${bold}start${rset}         BACKUP-SCHEME FOLDER
 
     Starts an existing existing job, presumuably in either a paused,
     stopped, or installed state.
 
-  $(clr +)stop$(clr)          BACKUPSCHEME FOLDER
+  ${bold}stop${rset}          BACKUP-SCHEME FOLDER
 
     Stops an existing job, by creating a SYMLINK.stopped file in the scheme's
     jobs folder, if the job stopped was the only running, the service is shut
     down.
 
-  $(clr +)pause$(clr)         BACKUPSCHEME FOLDER
+  ${bold}pause${rset}         BACKUP-SCHEME FOLDER
 
     Pauses a job temporarily for some maintenance reason,  the service is kept
     alive whilst waiting for the job to be enabled, started or activated.
 
 
-  $(clr +)run$(clr)          BACKUPSCHEME FOLDER
+  ${bold}run${rset}          BACKUP-SCHEME FOLDER
 
     Lets you run a backup-job directly, for testing reasons with the optional
     `--dry-run` option, or otherwise.
 
-  $(clr +)edit$(clr)         BACKUPSCHEME FOLDER
+  ${bold}edit${rset}         BACKUP-SCHEME FOLDER
 
     Edits a local dropin, unless the  --all switch is given, which edits
     the general dropin script for that folder.
 
-  $(clr +)edit-restore$(clr) BACKUPSCHEME FOLDER
+  ${bold}edit-restore${rset} BACKUP-SCHEME FOLDER
 
     Edits a local dropin restore sccript, unless the  --all switch is given,
     which edits the general dropin restore script for that folder.
 
-  $(clr +)edit-exclude$(clr) BACKUPSCHEME FOLDER
+  ${bold}edit-exclude${rset} BACKUP-SCHEME FOLDER
 
     Edits a local dropin exclude  file, that contains globs that are to be 
     excluded from backup.
 
-  $(clr +)show$(clr)        BACKUPSCHEME FOLDER
+  ${bold}show${rset}        BACKUP-SCHEME FOLDER
 
     Shows the status of the specified single job, and all involved files with
     full path!
 
-  $(clr +)cat$(clr)         BACKUPSCHEME FOLDER
+  ${bold}cat${rset}         BACKUP-SCHEME FOLDER
 
     Shows all involved files, including "dropins" and "exclude-files file" for
     that backup. (It catenates all the files from tha paths given by
     `job-state`). Each file is preceded by a comment which includes the file
     name.
 
-  $(clr +)revert$(clr)       BACKUPSCHEME FOLDER
+  ${bold}revert${rset}       BACKUP-SCHEME FOLDER
 
     Reverts any customizations to an "original" plain state, removing any
     exclude files an other customizations.  list-jobs    FOLDER
 
     Lists all jobs for a folder under all backup schemes.
 
-  $(clr +)list-jobs$(clr)    BACKUPSCHEME
+  ${bold}list-jobs${rset}    BACKUP-SCHEME
 
     Lists all jobs for one backup scheme.
 
-  $(clr +)list-jobs$(clr)    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
+  ${bold}list-jobs${rset}    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
 
     Lists all jobs with  the status supplied for all schemes.
 
-  $(clr +)list-jobs$(clr)     --all
+  ${bold}list-jobs${rset}     --all
 
     Lists all jobs with a current status for all schemes.
 
   Service Control Commands:
 
-  $(clr +)check$(clr)         BACKUPSCHEME
+  ${bold}check${rset}         BACKUP-SCHEME
 
     Checks that the unit and timer is installed, and the current status.
 
-  $(clr +)enable$(clr)        BACKUPSCHEME
+  ${bold}enable${rset}        BACKUP-SCHEME
 
     Enables a service.  lpresumably in either a disabled, or stopped state.
     Does a `systemctl --user daemon-reload` as well as starting in the process.
 
-  $(clr +)disable$(clr)    BACKUPSCHEME
+  ${bold}disable${rset}    BACKUP-SCHEME
 
     Disables a service, for editing or whatever, it stops the service in the
     process.
 
-  $(clr +)configure$(clr)  BACKUPSCHEME[.timer]
+  ${bold}configure${rset}  BACKUP-SCHEME[.timer]
 
     Configures a service, or its timer. Stops and disables the service before
     editing.
 
-  $(clr +)status$(clr)    BACKUPSCHEME
+  ${bold}status${rset}    BACKUP-SCHEME
 
     Shows various interesting properties of the service.
 
   Backup Control Commands
 
-  $(clr +)list-backups$(clr) BACKUPSCHEME | FOLDER
+  ${bold}list-backups${rset} BACKUP-SCHEME | FOLDER
 
-  $(clr +)restore-backup$(clr)
+  ${bold}restore-backup${rset}
 
     Make it easier maybe by select to restore a backup, but only to temp folder. 
 
 
-  $(clr +)Backup Schemes:$(clr)
+  ${bold}Backup Schemes:${rset}
 
   HourlySnapshot
   DailyIncremental
