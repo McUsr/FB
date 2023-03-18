@@ -44,6 +44,23 @@ err_report() {
 trap 'err_report $LINENO' ERR
 
 
+# Colors:  [r]ed [g]reen [b]lue [c]yan [m]agenta [y]ellow blac[k] [w]hite
+#          Capital letter for bright color, @ for terminal's default color.
+#          First color symbol is foreground, second is background.
+#          $(clr g):Green text, $(clr Gb):Bright Green on blue.
+#          To change background without affecting foreground, use a . for
+#          foreground color e.g. $(clr .g) leaves fg alone and sets bg green.
+# Formats: + Apply Bold,  _ Apply Underline
+#          = Remove Bold, - Remove Underline (same key as apply, but unshifted)
+#          Place format symbols before color symbols when combining them.
+
+[ ${BASH_VERSINFO[0]} -ge 4 ]&&clr(){ local i=$1 l=krgybmcw@ b g c s
+while c=${i::1};[ "$c" ]&&((g<11));do i=${i:1};b=30;case $c in +)s+=";1";;
+=)s+=";22";;_)s+=";4";;-)s+=";24";;.)((g+=10));;[${l^^}])b=90;;&
+[${l^^}]|[$l])s+=";$(x=${l%"${c,}"*};x=${#x};((x<8&&(x+=b+g)||(x=39+g)));
+printf %d $x)";((g+=10));esac;done;printf %b "\e[${s#;}m";}||
+clr(){ :;} # docs: https://github.com/rustyflavor/clr.sh
+
 
 # dieIfCantSourceShellLibrary()
 # sources the ShellLibraries
@@ -138,123 +155,123 @@ Syntax:
 
   Options:
 
-  -h | --help.    Shows this help.
-  -n | --dry-run  Shows what would have happened
-  -v | --verbose  Shows more detailed output.
-  -V | --version  Shows the version of $PNAME ($VERSION).
-  -N | --now      Execute the command now.
-  -A | --all      All, in some contexts.
-  -S | --state=   Set the state to active/paused/stopped/installed.
+  $(clr +)-h$(clr) | $(clr +)--help.$(clr)    Shows this help.
+  $(clr +)-n$(clr) | $(clr +)--dry-run$(clr)  Shows what would have happened
+  $(clr +)-v$(clr) | $(clr +)--verbose$(clr)  Shows more detailed output.
+  $(clr +)-V$(clr) | $(clr +)--version$(clr)  Shows the version of $PNAME ($VERSION).
+  $(clr +)-N$(clr) | $(clr +)--now$(clr)      Execute the command now.
+  $(clr +)-A$(clr) | $(clr +)--all$(clr)      All, in some contexts.
+  $(clr +)-S$(clr) | $(clr +)--state=$(clr)   Set the state to active/paused/stopped/installed.
 
   Job Control Commands:
 
-  install       BACKUPSCHEME FOLDER
+  $(clr +)install$(clr)       BACKUPSCHEME FOLDER
 
     Installs a new job under the chosen Backup scheme.
 
-  start         BACKUPSCHEME FOLDER
+  $(clr +)start$(clr)         BACKUPSCHEME FOLDER
 
     Starts an existing existing job, presumuably in either a paused,
     stopped, or installed state.
 
-  stop          BACKUPSCHEME FOLDER
+  $(clr +)stop$(clr)          BACKUPSCHEME FOLDER
 
     Stops an existing job, by creating a SYMLINK.stopped file in the scheme's
     jobs folder, if the job stopped was the only running, the service is shut
     down.
 
-  pause         BACKUPSCHEME FOLDER
+  $(clr +)pause$(clr)         BACKUPSCHEME FOLDER
 
     Pauses a job temporarily for some maintenance reason,  the service is kept
     alive whilst waiting for the job to be enabled, started or activated.
 
 
-  run          BACKUPSCHEME FOLDER
+  $(clr +)run$(clr)          BACKUPSCHEME FOLDER
 
     Lets you run a backup-job directly, for testing reasons with the optional
     `--dry-run` option, or otherwise.
 
-  edit         BACKUPSCHEME FOLDER
+  $(clr +)edit$(clr)         BACKUPSCHEME FOLDER
 
     Edits a local dropin, unless the  --all switch is given, which edits
     the general dropin script for that folder.
 
-  edit-restore BACKUPSCHEME FOLDER
+  $(clr +)edit-restore$(clr) BACKUPSCHEME FOLDER
 
     Edits a local dropin restore sccript, unless the  --all switch is given,
     which edits the general dropin restore script for that folder.
 
-  edit-exclude BACKUPSCHEME FOLDER
+  $(clr +)edit-exclude$(clr) BACKUPSCHEME FOLDER
 
     Edits a local dropin exclude  file, that contains globs that are to be 
     excluded from backup.
 
-  show        BACKUPSCHEME FOLDER
+  $(clr +)show$(clr)        BACKUPSCHEME FOLDER
 
     Shows the status of the specified single job, and all involved files with
     full path!
 
-  cat         BACKUPSCHEME FOLDER
+  $(clr +)cat$(clr)         BACKUPSCHEME FOLDER
 
     Shows all involved files, including "dropins" and "exclude-files file" for
     that backup. (It catenates all the files from tha paths given by
     `job-state`). Each file is preceded by a comment which includes the file
     name.
 
-  revert       BACKUPSCHEME FOLDER
+  $(clr +)revert$(clr)       BACKUPSCHEME FOLDER
 
     Reverts any customizations to an "original" plain state, removing any
     exclude files an other customizations.  list-jobs    FOLDER
 
     Lists all jobs for a folder under all backup schemes.
 
-  list-jobs    BACKUPSCHEME
+  $(clr +)list-jobs$(clr)    BACKUPSCHEME
 
     Lists all jobs for one backup scheme.
 
-  list-jobs    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
+  $(clr +)list-jobs$(clr)    --state=[ACTIVE/PAUSED/INSTALLED/STOPPED]
 
     Lists all jobs with  the status supplied for all schemes.
 
-  list-jobs     --all
+  $(clr +)list-jobs$(clr)     --all
 
     Lists all jobs with a current status for all schemes.
 
   Service Control Commands:
 
-  check         BACKUPSCHEME
+  $(clr +)check$(clr)         BACKUPSCHEME
 
     Checks that the unit and timer is installed, and the current status.
 
-  enable        BACKUPSCHEME
+  $(clr +)enable$(clr)        BACKUPSCHEME
 
     Enables a service.  lpresumably in either a disabled, or stopped state.
     Does a `systemctl --user daemon-reload` as well as starting in the process.
 
-  disable    BACKUPSCHEME
+  $(clr +)disable$(clr)    BACKUPSCHEME
 
     Disables a service, for editing or whatever, it stops the service in the
     process.
 
-  configure  BACKUPSCHEME[.timer]
+  $(clr +)configure$(clr)  BACKUPSCHEME[.timer]
 
     Configures a service, or its timer. Stops and disables the service before
     editing.
 
-  status    BACKUPSCHEME
+  $(clr +)status$(clr)    BACKUPSCHEME
 
     Shows various interesting properties of the service.
 
   Backup Control Commands
 
-  list-backups BACKUPSCHEME | FOLDER
+  $(clr +)list-backups$(clr) BACKUPSCHEME | FOLDER
 
-  restore-backup
+  $(clr +)restore-backup$(clr)
 
     Make it easier maybe by select to restore a backup, but only to temp folder. 
 
 
-  Backup Schemes:
+  $(clr +)Backup Schemes:$(clr)
 
   HourlySnapshot
   DailyIncremental
