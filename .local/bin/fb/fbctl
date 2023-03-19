@@ -147,7 +147,7 @@ consoleFBfolderIsMounted "$curscheme"
 help() {
 #  set -x
 local bold rset
-bold="$(clr +)"
+bold="$(clr +K)"
 rset="$(clr)"
 cat  << EOF | less
 
@@ -197,17 +197,18 @@ Syntax:
 
   ${bold}edit${rset}         BACKUP-SCHEME FOLDER
 
-    Edits a local dropin, unless the  --all switch is given, which edits
-    the general dropin script for that folder.
+    Edits a local dropin, unless ${bold}GENERAL${rset} is passed for folder,
+    which then will let you edit the general dropin script for that folder.
 
   ${bold}edit-restore${rset} BACKUP-SCHEME FOLDER
 
-    Edits a local dropin restore sccript, unless the  --all switch is given,
-    which edits the general dropin restore script for that folder.
+    Edits a local dropin restore sccript, unless ${bold}GENERAL${rset} is
+    passed for folder, which  then will let you edit the general dropin restore
+    script for that folder.
 
   ${bold}edit-exclude${rset} BACKUP-SCHEME FOLDER
 
-    Edits a local dropin exclude  file, that contains globs that are to be 
+    Edits a local dropin exclude  file, that contains globs that are to be
     excluded from backup.
 
   ${bold}show${rset}        BACKUP-SCHEME FOLDER
@@ -225,7 +226,10 @@ Syntax:
   ${bold}revert${rset}       BACKUP-SCHEME FOLDER
 
     Reverts any customizations to an "original" plain state, removing any
-    exclude files an other customizations.  list-jobs    FOLDER
+    local customizations, like an exclude file and local "dropin" scripts.
+    The GENERAL dropin can be reverted by specifying GENERAL as the folder.
+
+  ${bold}list-jobs${rset}    FOLDER
 
     Lists all jobs for a folder under all backup schemes.
 
