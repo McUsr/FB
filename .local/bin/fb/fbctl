@@ -1142,157 +1142,106 @@ satisfied." >&2
 # full path!
 show_existing_job() {
 
+fg_g="$(clr g)"
+rset="$(clr)"
+fg_r="$(clr r)"
+
+  job_status_msg() {
+
+   echo "${fg_g}The${rset} $1 ${fg_g}backup job of${rset} $2 ${fg_g}is currently ${fg_r}$3${rset}." >&2
+  }
+
   set -e
-  if ! nrargs 2 $#  "I need two arguments!" ; then
+  if ! nrargs 3 $#  "I need three arguments!" ; then
     exit 2
   fi
-
-  # Kind of a report:
-  # scheme / folder
-  # is it just installed?
-  # is it stopped
-  # is it paused
-  # is it running
-  # is there a general dropin script?
-  # is there a local dropin script?
-  # is thhere an exclude file?
-
-
-  # err 1 "Faking a start  of $1 $2 "
   backup_scheme="$1"
   location_parameter="$2"
   jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
 
   jobCount=$(workingSymLinksCount "$jobs_folder")
-  # We need the count of working symlinks for deducting
-  # if we need to restart the service or not, which we
-  # need if the count is zero.
 
   valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
 
-  # we have the stuff in the startJob() and activateJob() sub-commands for finding state-files?
-  # in the edit subCommands we have the rest of what we need.
+  just_symlink_name="$(justSymlinkName "$valid_symlink")"
+  echo -e "$(clr +)Overview of the backup job $backup_scheme of \
+$location_parameter:$(clr)"
+
   active_job=true
   paused_file="$valid_symlink".paused
   if [[ -r "$paused_file" ]] ; then
-    echo paused-file = $paused_file
+    job_status_msg $backup_scheme "$location_parameter" "paused"
     active_job=false
-    # TODO: Activating a job worth a notification?
   fi
 
   stopped_file="$valid_symlink".stopped
   if [[ -r "$stopped_file" ]] ; then
-    echo stopped-file = $stopped_file
+    job_status_msg $backup_scheme "$location_parameter" "stopped"
     active_job=false
-    # TODO: Starting a job worth a notification?
   fi
 
   installed_file="$valid_symlink".installed
   if [[ -r "$installed_file" ]] ; then
-    echo installed-file = $installed_file
+    job_status_msg $backup_scheme "$location_parameter" "installed"
     active_job=false
-    # TODO: Starting a job worth a notification?
   fi
 
-  if [[ $active_job == true ]] ; then 
-    echo the job: $valid_symlink is active
+  if [[ $active_job == true ]] ; then
+    job_status_msg $backup_scheme "$location_parameter" "active"
   fi
-  just_symlink_name="$(justSymlinkName "$valid_symlink")"
-  manager "$backup_scheme"  "$just_symlink_name" backup
-  echo the backup script is "$DELEGATE_SCRIPT"
-  if excludeFileHasContents "$backup_scheme" "$just_symlink_name" ; then 
+
+  if excludeFileHasContents "$backup_scheme" "$just_symlink_name" ; then
     local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
     probe="$scheme_bin_folder/$symlink_name.d/exclude.file"
-    echo Exclude file: $probe
-  fi
-  exit 2
-
-  # we add in that we have or don't have any restore counter parts.
-
-  # Do  we have a general dropin script?
-
-  # Do we have a local dropin script?
-
-  # Do we have an exclude file.
-}
-
-cat_existing_job() {
-  set -e
-  if ! nrargs 2 $#  "I need two arguments!" ; then
-    exit 2
+    echo "${fg_g}We have an exclude file: $probe for the backup job \
+$backup_scheme of $location_parameter.${rset}"
+    if [[ "$3" == "cat"  ]] ; then
+      cat "$probe"
+    fi
+  else
+    echo "${fg_g}We don't have an exclude file: for the backup job \
+$backup_scheme of $location_parameter.${rset}"
   fi
 
-  # Kind of a report:
-  # scheme / folder
-  # is it just installed?
-  # is it stopped
-  # is it paused
-  # is it running
-  # is there a general dropin script?
-  # is there a local dropin script?
-  # is thhere an exclude file?
-
-
-  # err 1 "Faking a start  of $1 $2 "
-  backup_scheme="$1"
-  location_parameter="$2"
-  jobs_folder="$XDG_DATA_HOME"/fbjobs/"$backup_scheme"
-
-  jobCount=$(workingSymLinksCount "$jobs_folder")
-  # We need the count of working symlinks for deducting
-  # if we need to restart the service or not, which we
-  # need if the count is zero.
-
-  valid_symlink="$(symlinkInJobsFolder $backup_scheme "$location_parameter" )"
-
-  # we have the stuff in the startJob() and activateJob() sub-commands for finding state-files?
-  # in the edit subCommands we have the rest of what we need.
-  active_job=true
-  paused_file="$valid_symlink".paused
-  if [[ -r "$paused_file" ]] ; then
-    echo paused-file = $paused_file
-    active_job=false
-    # TODO: Activating a job worth a notification?
-  fi
-
-  stopped_file="$valid_symlink".stopped
-  if [[ -r "$stopped_file" ]] ; then
-    echo stopped-file = $stopped_file
-    active_job=false
-    # TODO: Starting a job worth a notification?
-  fi
-
-  installed_file="$valid_symlink".installed
-  if [[ -r "$installed_file" ]] ; then
-    echo installed-file = $installed_file
-    active_job=false
-    # TODO: Starting a job worth a notification?
-  fi
-
-  if [[ $active_job == true ]] ; then 
-    echo the job: $valid_symlink is active
-  fi
-  just_symlink_name="$(justSymlinkName "$valid_symlink")"
   manager "$backup_scheme"  "$just_symlink_name" backup
-  echo the backup script is "$DELEGATE_SCRIPT"
-  if excludeFileHasContents "$backup_scheme" "$just_symlink_name" ; then 
-    local scheme_bin_folder=$XDG_BIN_HOME/fb/$backup_scheme
-    probe="$scheme_bin_folder/$symlink_name.d/exclude.file"
-    echo Exclude file: $probe
+  echo -e "${fg_g}Backup script:${rset} $DELEGATE_SCRIPT"
+
+  if echo $DELEGATE_SCRIPT | grep  "${just_symlink_name}.d" &> /dev/null ; then
+    echo "${fg_g}It's a ${fg_r}local dropin ${fg_g}for \
+${fg_r}$location_parameter${rset}."
+  elif echo $DELEGATE_SCRIPT | grep  "${backup_scheme}"/"${backup_scheme}.d" \
+    &> /dev/null ; then
+    echo "${fg_g}It's a ${fg_r}general dropin ${fg_g}for the \ ${fg_r}\
+$backup_scheme ${fg_g}scheme${rset}."
+  else
+    echo "${fg_g}It's the ${fg_r}regular script ${fg_g}for the ${fg_r}\
+$backup_scheme ${fg_g}scheme${rset}."
   fi
-  exit 2
 
-  # we add in that we have or don't have any restore counter parts.
+  if [[ "$3" == "cat"  ]] ; then
+    cat "$DELEGATE_SCRIPT"
+  fi
 
-  # Do  we have a general dropin script?
+  manager "$backup_scheme"  "$just_symlink_name" restore
+  echo -e "${fg_g}Restore script:${rset} $DELEGATE_SCRIPT"
 
-  # Do we have a local dropin script?
-
-  # Do we have an exclude file.
+  if echo $DELEGATE_SCRIPT | grep  "${just_symlink_name}.d" &> /dev/null ; then
+    echo "${fg_g}It's a ${fg_r}local dropin ${fg_g}for ${fg_r}\
+$location_parameter${rset}."
+  elif echo $DELEGATE_SCRIPT | grep  "${backup_scheme}"/"${backup_scheme}.d" \
+&> /dev/null ; then
+    echo "${fg_g}It's a ${fg_r}general dropin ${fg_g}for the ${fg_r}\
+$backup_scheme ${fg_g}scheme${rset}."
+  else
+    echo "${fg_g}It's the ${fg_r}regular script ${fg_g}for the ${fg_r}\
+$backup_scheme ${fg_g}scheme${rset}."
+  fi
+  if [[ "$3" == "cat"  ]] ; then
+    cat "$DELEGATE_SCRIPT"
+  fi
 }
 
 revert_existing_job() {
-  echo Stub..
 }
 
 check_service() {
