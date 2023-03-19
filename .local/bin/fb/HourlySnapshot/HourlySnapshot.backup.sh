@@ -338,6 +338,9 @@ $(realpath $jobs_folder/$symlink_name)."  "$BACKUP_SCHEME"
       fi
   fi
 else
+  routNotification " : No investigation of new  or modified files, since last \
+backup of $(realpath $jobs_folder/$symlink_name), during --dry-run" \
+"$BACKUP_SCHEME"
   MUST_MAKE_BACKUP=0
 fi
 
