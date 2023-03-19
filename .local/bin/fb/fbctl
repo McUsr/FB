@@ -423,6 +423,13 @@ exist! \"$PNAME -h\" for help.\nTerminating..."
       exit 2
     fi
   fi
+else 
+  :
+  # command = list jobs and takes a variable number of arguments.
+  # we let the command  figure out what to do.
+  # we don't need to do anything here, though if we do have an arg, we should pass it along,
+  # or assign a null value, that way, we have consistency in the parser.
+
 fi
 # what to do when args_needed = 2?
 
