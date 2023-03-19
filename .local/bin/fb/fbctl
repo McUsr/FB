@@ -1246,7 +1246,6 @@ revert_existing_job() {
   if ! nrargs 2 $#  "I need two arguments!" ; then
     exit 5
   fi
-
   # visual first, editor after.
   dieIfNotValidFbFolderName "$1"
   backup_scheme=$1
@@ -1266,81 +1265,92 @@ revert_existing_job() {
     # do we have a folder ?
     if [[ ! -d "$scheme_bin_folder"/"$just_symlink_name".d ]] ; then
         echo -e "$PNAME : The folder \
-\"$scheme_bin_folder/$just_symlink_name.d\" didn't exist.\
-\nNothing to do!" | journalThis 7 "$backup_scheme"
+\$scheme_bin_folder/$just_symlink_name.d didn't exist.\nNothing to do!" \
+| journalThis 7 "$backup_scheme"
     else
-    # we delete stuff, with messages. 
+    # we delete stuff, with messages.
       # exclude file
       if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/exclude.file ]] ; then
         echo -e "Deleting the exclude file \
-  "$scheme_bin_folder"/"$just_symlink_name".d/exclude.file"
+  $scheme_bin_folder/$just_symlink_name.d/exclude.file"
         rm -f "$scheme_bin_folder"/"$just_symlink_name".d/exclude.file
       fi
       # backup script
-      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".backup.sh ]] ; then
-        echo -e "Deleting the backup script \
-  "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".backup.sh"
+      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".backup.sh ]] ; then
+        echo -e "Deleting the local dropin backup script \
+  $scheme_bin_folder/$just_symlink_name.d/$backup_scheme.backup.sh"
         rm -f \
-      "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh
+      "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".restore.sh
       fi
 
       # restore script
-      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh ]] ; then
-        echo -e "Deleting the restore script \
-  "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh"
+      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".restore.sh ]] ; then
+        echo -e "Deleting the local dropin restore script \
+  $scheme_bin_folder/$just_symlink_name.d/$backup_scheme.restore.sh"
         rm -f \
-      "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh
+      "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".restore.sh
       fi
+      echo "Deleting the local dropin folder $scheme_bin_folder/$just_symlink_name.d"
+      rm -fr "$scheme_bin_folder"/"$just_symlink_name".d
     fi
   else
     just_symlink_name="$1"
     # TODO: SHUT DOWN THE SERVICE!
-    # that we can try it out with run .. --dry-run 
-    # message about things, that we need to ENABLE the service, to be restarted, 
+    # that we can try it out with run .. --dry-run
+    # message about things, that we need to ENABLE the service, to be restarted,
     if [[ ! -d "$scheme_bin_folder"/"$just_symlink_name".d ]] ; then
         echo -e "$PNAME : The folder \
-\"$scheme_bin_folder/$just_symlink_name.d\" didn't exist.\
-\nNothing to do!" | journalThis 7 "$backup_scheme"
+$scheme_bin_folder/$just_symlink_name.d didn't exist.\nNothing to do!" \
+| journalThis 7 "$backup_scheme"
     else
-    # we delete stuff, with messages. 
-      #  no exclude file to delete for general dropin?
-      # backup script
-      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".backup.sh ]] ; then
-        echo -e "Deleting the backup script \
-  "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".backup.sh"
+      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".backup.sh ]] ; then
+        echo -e "Deleting the general dropin backup script \
+  $scheme_bin_folder/$just_symlink_name.d/$backup_scheme.backup.sh"
         rm -f \
-      "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh
+      "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".backup.sh
       fi
 
       # restore script
-      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh ]] ; then
-        echo -e "Deleting the restore script \
-  "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh"
+      if [[ -r "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".restore.sh ]] ; then
+        echo -e "Deleting the general dropin restore script \
+  $scheme_bin_folder/$just_symlink_name.d/$backup_scheme.restore.sh"
         rm -f \
-      "$scheme_bin_folder"/"$just_symlink_name".d/"$scheme_bin_folder".restore.sh
+      "$scheme_bin_folder"/"$just_symlink_name".d/"$backup_scheme".restore.sh
       fi
+
+      echo "Deleting the general dropin folder $scheme_bin_folder/$just_symlink_name.d"
+      rm -fr "$scheme_bin_folder"/"$just_symlink_name".d
     fi
   fi
   return 0
 }
 
 check_service() {
+# Checks that the unit and timer is installed, and the current status.
+# so we invoke systemctl
   echo Stub..
 }
 
 enable_service() {
+#  Enables a service.  lpresumably in either a disabled, or stopped state.
+#  Does a  as well as starting in the process.
   echo Stub..
 }
 
 disable_service() {
+#  Disables a service, for editing or whatever, it stops the service in the
+#  process.
   echo Stub..
 }
 
 configure_service() {
+#  Configures a service, or its timer. Stops and disables the service before
+#  editing.
   echo Stub..
 }
 
 status_for_service () {
+#  Shows various interesting properties of the service
   echo Stub..
 }
 
