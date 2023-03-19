@@ -1325,8 +1325,8 @@ case "$cur_command" in
     edit-exclude) edit_exclude_for_job "$backup_scheme" "$source_location" ;;
     edit-restore) edit_existing_job "$backup_scheme" "$source_location" "restore" ;;
     edit) edit_existing_job "$backup_scheme" "$source_location" "backup" ;;
-    show) show_existing_job "$backup_scheme" "$source_location" ;;
-    cat) cat_existing_job "$backup_scheme" "$source_location" ;;
+    show) show_existing_job "$backup_scheme" "$source_location" "show" ;;
+    cat) show_existing_job "$backup_scheme" "$source_location" "cat" | less ;;
     revert) revert_existing_job "$backup_scheme" "$source_location" ;;
     check) check_service "$backup_scheme" ;;
     enable) enable_service "$backup_scheme" ;;
